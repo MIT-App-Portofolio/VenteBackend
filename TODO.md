@@ -1,2 +1,4 @@
 ﻿- Job that removes past events
 - Don't send unsecure full user on user data query
+- Update profile
+  - Move old pfp after email update in s3. Likely by adding a new method in IProfilePictureService

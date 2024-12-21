@@ -1,12 +1,36 @@
+using System.Security.Claims;
+using Amazon;
+using Amazon.Runtime;
+using Amazon.Runtime.SharedInterfaces;
+using Amazon.S3;
+using Amazon.Util;
 using Microsoft.AspNetCore.Identity;
 using Server.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Server.Config;
 using Server.Models;
+using Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+
+builder.Services.Configure<AwsConfig>(builder.Configuration.GetSection("AWS"));
+
+AWSConfigs.LoggingConfig.LogTo = LoggingOptions.Console;
+
+AWSConfigs.AWSRegion = builder.Configuration.GetSection("AWS")["Region"];
+    
+builder.Services.AddSingleton<ICoreAmazonS3>(sp =>
+{
+    var config = sp.GetRequiredService<IOptions<AwsConfig>>().Value;
+    var credentials = new BasicAWSCredentials(config.AccessKeyId, config.SecretAccessKey);
+    return new AmazonS3Client(credentials);
+});
+
+builder.Services.AddSingleton<IProfilePictureService, S3ProfilePictureService>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite("Data Source=dev.db"));
@@ -74,6 +98,15 @@ app.MapPost("/api/account/login", async (SignInManager<ApplicationUser> signInMa
     
     return !result.Succeeded ? Results.BadRequest("Invalid login attempt.") : Results.Ok();
 });
+
+app.MapPost("/api/account/update_pfp", async (IFormFile file, HttpContext context, IProfilePictureService pfpService) => 
+{
+    if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
+    await pfpService.UploadProfilePictureAsync(file.OpenReadStream(), context.User.FindFirst(ClaimTypes.Email).Value);
+    return Results.Ok();
+}).DisableAntiforgery();
+
+app.MapPost("/api/access_pfp", (string userName, IProfilePictureService pfpService) => Results.Ok(pfpService.GetDownloadUrl(userName)));
 
 app.MapGet("/api/account/info", async (HttpContext context, UserManager<ApplicationUser> UserManager) =>
 {
