@@ -2,3 +2,6 @@
 - Don't send unsecure full user on user data query
 - Update profile
   - Move old pfp after email update in s3. Likely by adding a new method in IProfilePictureService
+- Verify proper extension of pfp
+- Invite other users to event
+  - Accept invite to event and register card after accept

@@ -1,9 +1,7 @@
-using System.Security.Claims;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.Runtime.SharedInterfaces;
 using Amazon.S3;
-using Amazon.Util;
 using Microsoft.AspNetCore.Identity;
 using Server.Data;
 using Microsoft.EntityFrameworkCore;
@@ -77,10 +75,10 @@ app.MapPost("/api/account/register", async (UserManager<ApplicationUser> userMan
 {
     var user = new ApplicationUser
     {
-        UserName = model.Email,
+        UserName = model.UserName,
         IgHandle = model.IgHandle,
         Email = model.Email,
-        Name = model.UserName,
+        Name = model.Name,
         EventStatus = new EventStatus()
     };
 
@@ -102,7 +100,7 @@ app.MapPost("/api/account/login", async (SignInManager<ApplicationUser> signInMa
 app.MapPost("/api/account/update_pfp", async (IFormFile file, HttpContext context, IProfilePictureService pfpService) => 
 {
     if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
-    await pfpService.UploadProfilePictureAsync(file.OpenReadStream(), context.User.FindFirst(ClaimTypes.Email).Value);
+    await pfpService.UploadProfilePictureAsync(file.OpenReadStream(), context.User.Identity.Name);
     return Results.Ok();
 }).DisableAntiforgery();
 
@@ -110,8 +108,7 @@ app.MapPost("/api/access_pfp", (string userName, IProfilePictureService pfpServi
 
 app.MapGet("/api/account/info", async (HttpContext context, UserManager<ApplicationUser> UserManager) =>
 {
-    if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
-    return Results.Ok(await UserManager.Users.Include(u => u.EventStatus).FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name));
+    return !context.User.Identity.IsAuthenticated ? Results.Unauthorized() : Results.Ok(await UserManager.Users.Include(u => u.EventStatus).FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name));
 });
 
 app.MapPost("/api/register_event", async (UserManager<ApplicationUser> userManager, HttpContext context, Location location, DateTime time) =>
