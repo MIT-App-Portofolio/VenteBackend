@@ -1,6 +1,7 @@
 using Amazon;
 using Amazon.Runtime;
 using Amazon.Runtime.SharedInterfaces;
+using Amazon.RuntimeDependencies;
 using Amazon.S3;
 using Microsoft.AspNetCore.Identity;
 using Server.Data;
@@ -108,18 +109,25 @@ app.MapPost("/api/access_pfp", (string userName, IProfilePictureService pfpServi
 
 app.MapGet("/api/account/info", async (HttpContext context, UserManager<ApplicationUser> UserManager) =>
 {
-    return !context.User.Identity.IsAuthenticated ? Results.Unauthorized() : Results.Ok(await UserManager.Users.Include(u => u.EventStatus).FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name));
+    return !context.User.Identity.IsAuthenticated ? Results.Unauthorized() 
+        : Results.Ok(
+            await UserManager.Users
+                .Include(u => u.EventStatus)
+                .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name));
 });
 
 app.MapPost("/api/register_event", async (UserManager<ApplicationUser> userManager, HttpContext context, Location location, DateTime time) =>
 {
     if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
-    var user = await userManager.Users.Include(u => u.EventStatus).FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+    var user = await userManager.Users
+        .Include(u => u.EventStatus)
+        .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
     if (user == null) return Results.Unauthorized();
     
     user.EventStatus.Active = true;
     user.EventStatus.Time = time;
     user.EventStatus.Location = location;
+    user.EventStatus.With = [];
     
     await userManager.UpdateAsync(user);
     
@@ -129,14 +137,50 @@ app.MapPost("/api/register_event", async (UserManager<ApplicationUser> userManag
 app.MapPost("/api/cancel_event", async (UserManager<ApplicationUser> userManager, HttpContext context) =>
 {
     if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
-    var user = await userManager.Users.Include(u => u.EventStatus).FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+    var user = await userManager.Users
+        .Include(u => u.EventStatus)
+        .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
     if (user == null) return Results.Unauthorized();
     
     user.EventStatus.Active = false;
     user.EventStatus.Time = null;
     user.EventStatus.Location = null;
+    user.EventStatus.With = null;
     
     await userManager.UpdateAsync(user);
+    
+    return Results.Ok();
+});
+
+app.MapPost("/api/invite_to_event", async (UserManager<ApplicationUser> userManager, List<string> invited, HttpContext context) =>
+{
+    if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
+    var q = userManager.Users
+        .Include(u => u.EventStatus);
+    
+    var invitor = await q.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+
+    if (!invitor.EventStatus.Active) return Results.Unauthorized();
+    
+    foreach (var user in invited)
+    {
+        var u = await q.FirstOrDefaultAsync(u => u.UserName == user);
+        if (u == null) return Results.BadRequest($"User {user} not found.");
+        
+        u.EventStatus.Active = true;
+        u.EventStatus.Time = invitor.EventStatus.Time;
+        u.EventStatus.Location = invitor.EventStatus.Location;
+        var userInvited = new List<string>(invited);
+        userInvited.Remove(u.UserName);
+        userInvited.Add(invitor.UserName);
+        u.EventStatus.With = userInvited;
+        
+        await userManager.UpdateAsync(u);
+    }
+    
+    invitor.EventStatus.With = invited;
+    
+    await userManager.UpdateAsync(invitor);
     
     return Results.Ok();
 });
