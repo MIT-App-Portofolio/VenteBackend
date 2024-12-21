@@ -143,7 +143,6 @@ app.MapPost("/api/cancel_event", async (UserManager<ApplicationUser> userManager
 
 app.MapGet("/api/query_visitors", async (UserManager<ApplicationUser> userManager, HttpContext context, int page) => {
     const int pageSize = 4;
-    const int hoursDiff = 5;
     
     if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
     var user = await userManager.Users.Include(u => u.EventStatus).FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
@@ -152,16 +151,13 @@ app.MapGet("/api/query_visitors", async (UserManager<ApplicationUser> userManage
     if (!user.EventStatus.Active)
         return Results.Ok(new List<ApplicationUser>());
     
-    var dateBefore = user.EventStatus.Time.Value.AddHours(-hoursDiff);
-    var dateAfter = user.EventStatus.Time.Value.AddHours(hoursDiff);
-    
     var users = await userManager.Users
-        .Skip(page * pageSize)
-        .Take(pageSize)
         .Include(u => u.EventStatus)
         .Where(u => u.EventStatus.Active == true && 
                                   u.EventStatus.Location == user.EventStatus.Location && 
-                                  u.EventStatus.Time >= dateBefore && u.EventStatus.Time <= dateAfter)
+                                  u.EventStatus.Time.Value.Day == user.EventStatus.Time.Value.Day)
+        .Skip(page * pageSize)
+        .Take(pageSize)
         .ToListAsync();
     
     return Results.Ok(users);
