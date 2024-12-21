@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Server.Data;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +28,9 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
-    
+}
+else
+{
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
@@ -37,7 +38,6 @@ if (!app.Environment.IsDevelopment())
         c.RoutePrefix = string.Empty;
     });
 }
-
 
 app.UseHttpsRedirection();
 
@@ -54,9 +54,10 @@ app.MapPost("/api/account/register", async (UserManager<ApplicationUser> userMan
     var user = new ApplicationUser
     {
         UserName = model.Email,
+        IgHandle = model.IgHandle,
         Email = model.Email,
         Name = model.UserName,
-        Status = AccountStatus.WaitingSetup
+        EventStatus = new EventStatus()
     };
 
     var result = await userManager.CreateAsync(user, model.Password);
@@ -74,14 +75,66 @@ app.MapPost("/api/account/login", async (SignInManager<ApplicationUser> signInMa
     return !result.Succeeded ? Results.BadRequest("Invalid login attempt.") : Results.Ok();
 });
 
-app.MapGet("/api/account/info", async (HttpContext context) =>
+app.MapGet("/api/account/info", async (HttpContext context, UserManager<ApplicationUser> UserManager) =>
 {
     if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
-    return Results.Ok(new
-    {
-        Name = context.User.Identity.Name,
-        Email = context.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value
-    });
+    return Results.Ok(await UserManager.Users.Include(u => u.EventStatus).FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name));
+});
+
+app.MapGet("/api/register_event", async (UserManager<ApplicationUser> userManager, HttpContext context, Location location, DateTime time) =>
+{
+    if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
+    var user = await userManager.Users.Include(u => u.EventStatus).FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+    if (user == null) return Results.Unauthorized();
+    
+    user.EventStatus.Active = true;
+    user.EventStatus.Time = time;
+    user.EventStatus.Location = location;
+    
+    await userManager.UpdateAsync(user);
+    
+    return Results.Ok();
+});
+
+app.MapGet("/api/cancel_event", async (UserManager<ApplicationUser> userManager, HttpContext context) =>
+{
+    if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
+    var user = await userManager.Users.Include(u => u.EventStatus).FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+    if (user == null) return Results.Unauthorized();
+    
+    user.EventStatus.Active = false;
+    user.EventStatus.Time = null;
+    user.EventStatus.Location = null;
+    
+    await userManager.UpdateAsync(user);
+    
+    return Results.Ok();
+});
+
+app.MapGet("/api/query_visitors", async (UserManager<ApplicationUser> userManager, HttpContext context, int page) => {
+    const int pageSize = 4;
+    const int hoursDiff = 5;
+    
+    if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
+    var user = await userManager.Users.Include(u => u.EventStatus).FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+    if (user == null) return Results.Unauthorized();
+
+    if (!user.EventStatus.Active)
+        return Results.Ok(new List<ApplicationUser>());
+    
+    var dateBefore = user.EventStatus.Time.Value.AddHours(-hoursDiff);
+    var dateAfter = user.EventStatus.Time.Value.AddHours(hoursDiff);
+    
+    var users = await userManager.Users
+        .Skip(page * pageSize)
+        .Take(pageSize)
+        .Include(u => u.EventStatus)
+        .Where(u => u.EventStatus.Active == true && 
+                                  u.EventStatus.Location == user.EventStatus.Location && 
+                                  u.EventStatus.Time >= dateBefore && u.EventStatus.Time <= dateAfter)
+        .ToListAsync();
+    
+    return Results.Ok(users);
 });
 
 app.Run();

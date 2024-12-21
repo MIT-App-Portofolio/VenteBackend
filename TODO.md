@@ -1,0 +1,2 @@
+﻿- Job that removes past events
+- Don't send unsecure full user on user data query

@@ -6,6 +6,8 @@ public class RegisterModel
 {
     [Required, EmailAddress]
     public string Email { get; set; }
+    [Required, MaxLength(100)]
+    public string IgHandle { get; set; }
     [Required, MaxLength(25)]
     public string UserName { get; set; }
     [Required, DataType(DataType.Password)]

@@ -5,11 +5,19 @@ namespace Server.Data;
 public class ApplicationUser : IdentityUser
 {
     public string Name { get; set; }
-    public AccountStatus Status { get; set; }
+    public string IgHandle { get; set; }
+    public EventStatus EventStatus { get; set; }
 }
 
-public enum AccountStatus
+public class EventStatus
 {
-    WaitingSetup,
-    Active
+    public int Id { get; set; }
+    public bool Active { get; set; }
+    public DateTime? Time { get; set; }
+    public Location? Location { get; set; }
+}
+
+public enum Location
+{
+    Salou
 }
