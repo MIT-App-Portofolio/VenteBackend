@@ -81,7 +81,7 @@ app.MapGet("/api/account/info", async (HttpContext context, UserManager<Applicat
     return Results.Ok(await UserManager.Users.Include(u => u.EventStatus).FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name));
 });
 
-app.MapGet("/api/register_event", async (UserManager<ApplicationUser> userManager, HttpContext context, Location location, DateTime time) =>
+app.MapPost("/api/register_event", async (UserManager<ApplicationUser> userManager, HttpContext context, Location location, DateTime time) =>
 {
     if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
     var user = await userManager.Users.Include(u => u.EventStatus).FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
@@ -96,7 +96,7 @@ app.MapGet("/api/register_event", async (UserManager<ApplicationUser> userManage
     return Results.Ok();
 });
 
-app.MapGet("/api/cancel_event", async (UserManager<ApplicationUser> userManager, HttpContext context) =>
+app.MapPost("/api/cancel_event", async (UserManager<ApplicationUser> userManager, HttpContext context) =>
 {
     if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
     var user = await userManager.Users.Include(u => u.EventStatus).FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
