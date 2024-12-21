@@ -137,14 +137,29 @@ app.MapPost("/api/register_event", async (UserManager<ApplicationUser> userManag
 app.MapPost("/api/cancel_event", async (UserManager<ApplicationUser> userManager, HttpContext context) =>
 {
     if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
-    var user = await userManager.Users
-        .Include(u => u.EventStatus)
-        .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+    var q = userManager.Users
+        .Include(u => u.EventStatus);
+    var user = await q.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
     if (user == null) return Results.Unauthorized();
     
     user.EventStatus.Active = false;
     user.EventStatus.Time = null;
     user.EventStatus.Location = null;
+
+    if (user.EventStatus.With != null)
+    {
+        foreach (var u in user.EventStatus.With)
+        {
+            var uQuery = await q.FirstOrDefaultAsync(u1 => u1.UserName == u);
+            
+            if (uQuery == null) continue;
+            
+            uQuery.EventStatus.With.Remove(u);
+            
+            await userManager.UpdateAsync(uQuery);
+        }
+    }
+    
     user.EventStatus.With = null;
     
     await userManager.UpdateAsync(user);
