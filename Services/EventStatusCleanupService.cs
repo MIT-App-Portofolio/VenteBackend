@@ -28,7 +28,7 @@ namespace Server.Services
 
             foreach (var user in usersWithExpiredEvents)
             {
-                logger.LogDebug("Cleaning up event status for user {0}", user.Email);
+                logger.LogInformation("Cleaning up event status for user {0}", user.Email);
                 
                 user.EventStatus = new EventStatus()
                 {
