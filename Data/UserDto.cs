@@ -12,8 +12,10 @@ public class UserDto {
             Active = user.EventStatus.Active,
             Time = user.EventStatus.Time,
             With = user.EventStatus.With,
-            Location = user.EventStatus.Location
         };
+        
+        if (user.EventStatus.Location != null)
+            EventStatus.Location = new LocationDto(user.EventStatus.Location.Value);
     }
     
     public string UserName { get; set; }
@@ -28,5 +30,17 @@ public class EventStatusDto
     public bool Active { get; set; }
     public DateTime? Time { get; set; }
     public List<string>? With { get; set; }
-    public Location? Location { get; set; }
+    public LocationDto? Location { get; set; }
+}
+
+public class LocationDto
+{
+    public LocationDto(Location location)
+    {
+        Id = (int)location;
+        Name = location.ToString();
+    }
+    
+    public int Id { get; set; }
+    public string Name { get; set; }
 }

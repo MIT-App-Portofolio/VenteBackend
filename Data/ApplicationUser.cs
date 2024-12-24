@@ -21,5 +21,6 @@ public class EventStatus
 
 public enum Location
 {
-    Salou
+    Salou,
+    Zaragoza,
 }

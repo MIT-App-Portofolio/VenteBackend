@@ -6,7 +6,7 @@ namespace Server.Services;
 
 public class S3ProfilePictureService(ICoreAmazonS3 s3Client, IOptions<AwsConfig> config) : IProfilePictureService
 {
-    private readonly string _bucketName = config.Value.PfpBucketName;
+    private readonly string _bucketName = config.Value.MainBucketName;
 
     public async Task UploadProfilePictureAsync(Stream pictureStream, string email)
     {

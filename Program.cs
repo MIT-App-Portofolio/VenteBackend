@@ -3,6 +3,7 @@ using Amazon.Runtime;
 using Amazon.Runtime.SharedInterfaces;
 using Amazon.S3;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -44,6 +45,7 @@ builder.Services.AddSingleton<ICoreAmazonS3>(sp =>
 });
 
 builder.Services.AddSingleton<IProfilePictureService, S3ProfilePictureService>();
+builder.Services.AddSingleton<IEventPlacePictureService, S3EventPlacePictureService>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite("Data Source=dev.db"));
@@ -65,7 +67,14 @@ builder.Services.AddCors(options =>
     });
 });
 
+
 var app = builder.Build();
+
+if (builder.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    Seeder.SeedPlaces(scope.ServiceProvider.GetRequiredService<ApplicationDbContext>());
+}
 
 app.UseCors("AllowAll");
 
@@ -170,7 +179,7 @@ app.MapGet("/api/access_pfp", (string userName, IProfilePictureService pfpServic
 
 app.MapGet("/api/get_locations", () =>
 {
-    return Enum.GetValues<Location>().Select(location => new { Id = (int)location, Name = location.ToString() }).ToList();
+    return Enum.GetValues<Location>().Select(location => new LocationDto(location)).ToList();
 });
 
 #endregion
@@ -179,6 +188,7 @@ app.MapGet("/api/get_locations", () =>
 
 app.MapPost("/api/register_event", async (UserManager<ApplicationUser> userManager, HttpContext context, Location location, DateTime time) =>
 {
+    Console.WriteLine("Register event " + location + " " + time);
     var user = await userManager.Users
         .Include(u => u.EventStatus)
         .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
@@ -278,6 +288,20 @@ app.MapGet("/api/query_visitors", async (UserManager<ApplicationUser> userManage
         .ToListAsync();
     
     return Results.Ok(users);
+}).RequireAuthorization();
+
+app.MapGet("/api/query_event_places", async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, IEventPlacePictureService pictureService, HttpContext context) => {
+    var user = await userManager.Users
+        .Include(u => u.EventStatus)
+        .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+        
+    var places = await dbContext.Places
+        .Where(p => p.Location == user.EventStatus.Location)
+        .ToListAsync();
+    
+    var ret = places.Select(place => new EventPlaceDto(place, pictureService.GetDownloadUrls(place))).ToList();
+
+    return Results.Ok(ret);
 }).RequireAuthorization();
 
 #endregion
