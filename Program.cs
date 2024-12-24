@@ -194,7 +194,7 @@ app.MapPost("/api/register_event", async (UserManager<ApplicationUser> userManag
         .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
     if (user == null) return Results.Unauthorized();
 
-    if (time < DateTime.Now)
+    if (time < DateTime.Today)
         return Results.BadRequest();
     
     user.EventStatus.Active = true;
