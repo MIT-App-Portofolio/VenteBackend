@@ -67,6 +67,7 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddHostedService<EventStatusCleanupService>();
 
 var app = builder.Build();
 
@@ -188,11 +189,13 @@ app.MapGet("/api/get_locations", () =>
 
 app.MapPost("/api/register_event", async (UserManager<ApplicationUser> userManager, HttpContext context, Location location, DateTime time) =>
 {
-    Console.WriteLine("Register event " + location + " " + time);
     var user = await userManager.Users
         .Include(u => u.EventStatus)
         .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
     if (user == null) return Results.Unauthorized();
+
+    if (time < DateTime.Now)
+        return Results.BadRequest();
     
     user.EventStatus.Active = true;
     user.EventStatus.Time = time;

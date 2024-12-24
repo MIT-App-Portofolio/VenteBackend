@@ -1,6 +1,4 @@
-﻿using Server.Services;
-
-namespace Server.Data;
+﻿namespace Server.Data;
 
 public class EventPlace
 {
@@ -19,12 +17,14 @@ public class EventPlaceDto
     {
         Name = place.Name;
         Location = new LocationDto(place.Location);
+        Description = place.Description;
         ImageUrls = downloadUrls;
         PriceRangeBegin = place.PriceRangeBegin;
         PriceRangeEnd = place.PriceRangeEnd;
     }
     
     public string Name { get; set; }
+    public string Description { get; set; }
     public LocationDto Location { get; set; }
     public List<string> ImageUrls { get; set; }
     public int PriceRangeBegin { get; set; }
