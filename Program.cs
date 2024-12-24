@@ -1,7 +1,6 @@
 using Amazon;
 using Amazon.Runtime;
 using Amazon.Runtime.SharedInterfaces;
-using Amazon.RuntimeDependencies;
 using Amazon.S3;
 using Microsoft.AspNetCore.Identity;
 using Server.Data;
@@ -15,6 +14,21 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+
+builder.Services.AddAuthentication().AddCookie(options =>
+{
+    options.LoginPath = "/api/account/login";
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = 401;
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = 403;
+        return Task.CompletedTask;
+    };
+});
 
 builder.Services.Configure<AwsConfig>(builder.Configuration.GetSection("AWS"));
 
@@ -34,7 +48,7 @@ builder.Services.AddSingleton<IProfilePictureService, S3ProfilePictureService>()
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite("Data Source=dev.db"));
 
-builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.User.RequireUniqueEmail = true;
     options.SignIn.RequireConfirmedEmail = false;
@@ -43,7 +57,17 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.SetIsOriginAllowed(o => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+    });
+});
+
 var app = builder.Build();
+
+app.UseCors("AllowAll");
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -66,20 +90,22 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
 app.MapRazorPages()
    .WithStaticAssets();
 
+
+#region Account endpoints
+
 app.MapPost("/api/account/register", async (UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, RegisterModel model) =>
 {
     var user = new ApplicationUser
     {
         UserName = model.UserName,
-        IgHandle = model.IgHandle,
         Email = model.Email,
-        Name = model.Name,
         EventStatus = new EventStatus()
     };
 
@@ -87,38 +113,72 @@ app.MapPost("/api/account/register", async (UserManager<ApplicationUser> userMan
     
     if (!result.Succeeded) return Results.BadRequest(result.Errors);
     
-    await signInManager.SignInAsync(user, isPersistent: false);
+    await signInManager.SignInAsync(user, true);
     return Results.Ok();
 });
 
-app.MapPost("/api/account/login", async (SignInManager<ApplicationUser> signInManager, LoginModel model) =>
+app.MapPost("/api/account/login", async (UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, LoginModel model) =>
 {
-    var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, isPersistent: false, lockoutOnFailure: false);
+    var user = await userManager.FindByEmailAsync(model.Email);
+    if (user == null) return Results.BadRequest("Invalid login attempt.");
+    
+    var result = await signInManager.PasswordSignInAsync(user, model.Password, isPersistent: true, lockoutOnFailure: false);
     
     return !result.Succeeded ? Results.BadRequest("Invalid login attempt.") : Results.Ok();
 });
 
-app.MapPost("/api/account/update_pfp", async (IFormFile file, HttpContext context, IProfilePictureService pfpService) => 
+app.MapPost("/api/account/update_profile", async (HttpContext context, UserManager<ApplicationUser> userManager, ProfileModel model) =>
+{
+    var user = await userManager.FindByNameAsync(context.User.Identity.Name);
+    if (user == null) return Results.BadRequest("User not found.");
+    
+    user.Name = model.Name;
+    user.IgHandle = model.IgHandle;
+    user.Description = model.Description;
+    
+    await userManager.UpdateAsync(user);
+    
+    return Results.Ok();
+}).RequireAuthorization();
+
+app.MapGet("/api/account/info", async (HttpContext context, UserManager<ApplicationUser> UserManager) =>
 {
     if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
+    
+    var user = await UserManager.Users
+        .Include(u => u.EventStatus)
+        .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+    
+    return Results.Ok(new UserDto(user));
+});
+
+app.MapPost("/api/account/update_pfp", async (IFormFile file, HttpContext context, IProfilePictureService pfpService) => 
+{
     await pfpService.UploadProfilePictureAsync(file.OpenReadStream(), context.User.Identity.Name);
     return Results.Ok();
 }).DisableAntiforgery();
 
-app.MapPost("/api/access_pfp", (string userName, IProfilePictureService pfpService) => Results.Ok(pfpService.GetDownloadUrl(userName)));
+#endregion
 
-app.MapGet("/api/account/info", async (HttpContext context, UserManager<ApplicationUser> UserManager) =>
+#region Acount Acccess endpoints 
+
+app.MapGet("/api/access_pfp", (string userName, IProfilePictureService pfpService) => Results.Ok(pfpService.GetDownloadUrl(userName)));
+
+#endregion
+
+#region Info endpoints
+
+app.MapGet("/api/get_locations", () =>
 {
-    return !context.User.Identity.IsAuthenticated ? Results.Unauthorized() 
-        : Results.Ok(
-            await UserManager.Users
-                .Include(u => u.EventStatus)
-                .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name));
+    return Enum.GetValues<Location>().Select(location => new { Id = (int)location, Name = location.ToString() }).ToList();
 });
+
+#endregion
+
+#region Event endpoints 
 
 app.MapPost("/api/register_event", async (UserManager<ApplicationUser> userManager, HttpContext context, Location location, DateTime time) =>
 {
-    if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
     var user = await userManager.Users
         .Include(u => u.EventStatus)
         .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
@@ -132,11 +192,10 @@ app.MapPost("/api/register_event", async (UserManager<ApplicationUser> userManag
     await userManager.UpdateAsync(user);
     
     return Results.Ok();
-});
+}).RequireAuthorization();
 
 app.MapPost("/api/cancel_event", async (UserManager<ApplicationUser> userManager, HttpContext context) =>
 {
-    if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
     var q = userManager.Users
         .Include(u => u.EventStatus);
     var user = await q.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
@@ -165,11 +224,10 @@ app.MapPost("/api/cancel_event", async (UserManager<ApplicationUser> userManager
     await userManager.UpdateAsync(user);
     
     return Results.Ok();
-});
+}).RequireAuthorization();
 
 app.MapPost("/api/invite_to_event", async (UserManager<ApplicationUser> userManager, List<string> invited, HttpContext context) =>
 {
-    if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
     var q = userManager.Users
         .Include(u => u.EventStatus);
     
@@ -198,12 +256,11 @@ app.MapPost("/api/invite_to_event", async (UserManager<ApplicationUser> userMana
     await userManager.UpdateAsync(invitor);
     
     return Results.Ok();
-});
+}).RequireAuthorization();
 
 app.MapGet("/api/query_visitors", async (UserManager<ApplicationUser> userManager, HttpContext context, int page) => {
     const int pageSize = 4;
     
-    if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
     var user = await userManager.Users.Include(u => u.EventStatus).FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
     if (user == null) return Results.Unauthorized();
 
@@ -217,9 +274,12 @@ app.MapGet("/api/query_visitors", async (UserManager<ApplicationUser> userManage
                                   u.EventStatus.Time.Value.Day == user.EventStatus.Time.Value.Day)
         .Skip(page * pageSize)
         .Take(pageSize)
+        .Select(u => new UserDto(u))
         .ToListAsync();
     
     return Results.Ok(users);
-});
+}).RequireAuthorization();
+
+#endregion
 
 app.Run();

@@ -4,8 +4,9 @@ namespace Server.Data;
 
 public class ApplicationUser : IdentityUser
 {
-    public string Name { get; set; }
+    public string? Name { get; set; }
     public string? IgHandle { get; set; }
+    public string? Description { get; set; }
     public EventStatus EventStatus { get; set; }
 }
 
