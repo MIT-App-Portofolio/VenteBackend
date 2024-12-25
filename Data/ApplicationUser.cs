@@ -7,6 +7,7 @@ public class ApplicationUser : IdentityUser
     public string? Name { get; set; }
     public string? IgHandle { get; set; }
     public string? Description { get; set; }
+    public Gender Gender { get; set; }
     public EventStatus EventStatus { get; set; }
 }
 
@@ -23,4 +24,10 @@ public enum Location
 {
     Salou,
     Zaragoza,
+}
+
+public enum Gender
+{
+    Male,
+    Female
 }

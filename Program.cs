@@ -115,6 +115,7 @@ app.MapPost("/api/account/register", async (UserManager<ApplicationUser> userMan
     var user = new ApplicationUser
     {
         UserName = model.UserName,
+        Gender = model.Gender,
         Email = model.Email,
         EventStatus = new EventStatus()
     };
@@ -145,6 +146,7 @@ app.MapPost("/api/account/update_profile", async (HttpContext context, UserManag
     user.Name = model.Name;
     user.IgHandle = model.IgHandle;
     user.Description = model.Description;
+    user.Gender = model.Gender;
     
     await userManager.UpdateAsync(user);
     
