@@ -21,6 +21,11 @@ public class S3ProfilePictureService(ICoreAmazonS3 s3Client, IOptions<AwsConfig>
         return s3Client.GeneratePreSignedURL(_bucketName, "profile-pictures/" + email + ".jpeg", DateTime.Now.AddHours(1), new Dictionary<string, object>());
     }
 
+    public string GetFallbackUrl()
+    {
+        return s3Client.GeneratePreSignedURL(_bucketName, "profile-pictures/fallback.jpeg", DateTime.Now.AddHours(1), new Dictionary<string, object>());
+    }
+
     public async Task RemoveProfilePictureAsync(string email)
     {
         await s3Client.DeleteAsync(_bucketName, "profile-pictures/" + email + ".jpeg", new Dictionary<string, object>());

@@ -4,5 +4,7 @@ public interface IProfilePictureService
 {
     public Task UploadProfilePictureAsync(Stream pictureStream, string email);
     public string GetDownloadUrl(string email);
+    public string GetFallbackUrl();
+
     public Task RemoveProfilePictureAsync(string email);
 }

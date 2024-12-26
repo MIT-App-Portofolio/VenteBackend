@@ -117,6 +117,7 @@ app.MapPost("/api/account/register", async (UserManager<ApplicationUser> userMan
         UserName = model.UserName,
         Gender = model.Gender,
         Email = model.Email,
+        HasPfp = false,
         EventStatus = new EventStatus()
     };
 
@@ -164,7 +165,7 @@ app.MapGet("/api/account/info", async (HttpContext context, UserManager<Applicat
     return Results.Ok(new UserDto(user));
 });
 
-app.MapPost("/api/account/update_pfp", async (IFormFile file, HttpContext context, IProfilePictureService pfpService) =>
+app.MapPost("/api/account/update_pfp", async (UserManager<ApplicationUser> userManager, IFormFile file, HttpContext context, IProfilePictureService pfpService) =>
 {
     var formFile = context.Request.Form.Files.FirstOrDefault();
     if (formFile == null) return Results.BadRequest("No file uploaded.");
@@ -182,17 +183,39 @@ app.MapPost("/api/account/update_pfp", async (IFormFile file, HttpContext contex
                 return Results.BadRequest("Image must have a 4:3 aspect ratio.");
     }
 
+    var user = await userManager.GetUserAsync(context.User);
+    user.HasPfp = true;
+    await userManager.UpdateAsync(user);
+
     await pfpService.UploadProfilePictureAsync(file.OpenReadStream(), context.User.Identity.Name);
     return Results.Ok();
 })
 .DisableAntiforgery()
 .RequireAuthorization();
 
+app.MapPost("/api/account/remove_pfp", async (UserManager<ApplicationUser> userManager, IProfilePictureService pfpService, HttpContext context) =>
+{
+    var user = await userManager.GetUserAsync(context.User);
+    user.HasPfp = false;
+    await userManager.UpdateAsync(user);
+
+    await pfpService.RemoveProfilePictureAsync(context.User.Identity.Name);
+    return Results.Ok();
+}).RequireAuthorization();
+
 #endregion
 
 #region Acount Acccess endpoints 
 
-app.MapGet("/api/access_pfp", (string userName, IProfilePictureService pfpService) => Results.Ok(pfpService.GetDownloadUrl(userName)));
+app.MapGet("/api/access_pfp", async (string userName, UserManager<ApplicationUser> userManager, IProfilePictureService pfpService) => {
+    var user = await userManager.FindByNameAsync(userName);
+    if (user == null) return Results.NotFound();
+
+    if (!user.HasPfp)
+        return Results.Ok(pfpService.GetFallbackUrl());
+
+    return Results.Ok(pfpService.GetDownloadUrl(userName));
+});
 
 #endregion
 
