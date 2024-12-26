@@ -1,0 +1,45 @@
+﻿@page "{pageId:int}"
+@model Server.Pages.Admin.UsersModel
+@{
+}
+
+<div class="hero">
+    <div class="hero-content">
+        <div class="card w-96 bg-base-100 shadow-xl">
+            <div class="card-body items-center text-center">
+                <h2 class="card-title">Users</h2>
+                <p>Here is a list of all users.</p>
+
+                <table class="table w-full">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Ig Handle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model.Users)
+                        {
+                            <tr>
+                                <td>@user.UserName</td>
+                                <td>@user.Email</td>
+                                <td>@user.Name</td>
+                                <td>@user.Description</td>
+                                <td>@user.IgHandle</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="btn-group"></div>
+                    <a href="/Admin/Users/@(Model.PageId - 1)" class="btn btn-primary" @(Model.PageId <= 1 ? "disabled" : "")>Previous</a>
+                    <a href="/Admin/Users/@(Model.PageId + 1)" class="btn btn-primary">Next</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
