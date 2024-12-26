@@ -14,7 +14,11 @@ using Server.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorPages();
+builder.Services.AddRazorPages().AddRazorPagesOptions(opt =>
+{
+    opt.Conventions.AuthorizeFolder("/Admin", "RequireAdmin");
+    opt.Conventions.AllowAnonymousToPage("/Admin/Index");
+});
 
 builder.Services.AddAuthentication().AddCookie(options =>
 {
@@ -31,7 +35,13 @@ builder.Services.AddAuthentication().AddCookie(options =>
     };
 });
 
+builder.Services.AddAuthorization(opt =>
+{
+    opt.AddPolicy("RequireAdmin", policy => policy.RequireRole("Admin"));
+});
+
 builder.Services.Configure<AwsConfig>(builder.Configuration.GetSection("AWS"));
+builder.Services.Configure<AdminConfig>(builder.Configuration.GetSection("Admin"));
 
 AWSConfigs.LoggingConfig.LogTo = LoggingOptions.Console;
 
@@ -69,12 +79,36 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddHostedService<EventStatusCleanupService>();
 
+
 var app = builder.Build();
 
 if (builder.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
     Seeder.SeedPlaces(scope.ServiceProvider.GetRequiredService<ApplicationDbContext>());
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var adminRoleExists = await roleManager.RoleExistsAsync("Admin");
+    if (!adminRoleExists)
+        await roleManager.CreateAsync(new IdentityRole("Admin"));
+
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var adminConfig = scope.ServiceProvider.GetRequiredService<IOptions<AdminConfig>>().Value;
+
+    var admin = new ApplicationUser
+    {
+        UserName = "admin",
+        Email = "admin@example.com",
+        Gender = Gender.Male,
+        HasPfp = false,
+        EventStatus = new EventStatus()
+    };
+
+    await userManager.CreateAsync(admin, adminConfig.Password);
+    await userManager.AddToRoleAsync(admin, "Admin");
 }
 
 app.UseCors("AllowAll");
@@ -207,7 +241,8 @@ app.MapPost("/api/account/remove_pfp", async (UserManager<ApplicationUser> userM
 
 #region Acount Acccess endpoints 
 
-app.MapGet("/api/access_pfp", async (string userName, UserManager<ApplicationUser> userManager, IProfilePictureService pfpService) => {
+app.MapGet("/api/access_pfp", async (string userName, UserManager<ApplicationUser> userManager, IProfilePictureService pfpService) =>
+{
     var user = await userManager.FindByNameAsync(userName);
     if (user == null) return Results.NotFound();
 
@@ -310,7 +345,7 @@ app.MapPost("/api/invite_to_event", async (UserManager<ApplicationUser> userMana
     invitor.EventStatus.With = invited;
 
     await userManager.UpdateAsync(invitor);
-
+;
     return Results.Ok();
 }).RequireAuthorization();
 
