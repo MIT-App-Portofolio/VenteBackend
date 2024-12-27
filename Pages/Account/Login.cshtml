@@ -1,0 +1,33 @@
+@page
+@model Server.Pages.Account.LoginModel
+@{
+}
+
+<div class="hero">
+    <div class="hero-content">
+        <div class="card w-96 bg-base-100 shadow-xl">
+            <div class="card-body items-center text-center">
+                <h2 class="card-title">Inicia session</h2>
+
+                <form method="post">
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="Input.Email" class="grow" placeholder="Email" required />
+                    </label>
+
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="Input.Password" class="grow" type="password" placeholder="Password" required />
+                    </label>
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <button type="submit" class="btn btn-primary w-full">Inicia sesion</button>
+                </form>
+
+                <div class="mt-4">
+                    <p>No tienes cuenta? <a asp-page="/Account/Register" class="link">Crea una</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

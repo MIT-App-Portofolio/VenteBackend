@@ -4,26 +4,67 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Your Project</title>
-    <link rel="stylesheet" href="~/css/tailwind.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
+    <title>@ViewData["Title"] - VoyA</title>
+    <link rel="stylesheet" href="~/css/tailwind.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 
 <body>
-    <header class="bg-base-200 p-4 shadow-md">
-        <div class="container mx-auto">
-            <h1 class="text-2xl font-bold">My Website</h1>
-        </div>
+    <header>
+        <nav class="navbar bg-base-100">
+            <a class="navbar-start" asp-page="/Index">VoyA</a>
+            <div class="navbar-center">
+                <ul class="menu menu-horizontal px-1">
+                    <li>
+                        <a asp-page="/Index">Home</a>
+                    </li>
+                    <li>
+                        <a asp-page="/Privacy">Privacy</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="navbar-end">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <a asp-page="/Dashboard">
+                        <button class="btn btn-outline btn-primary">Dashboard</button>
+                    </a>
+                }
+                else
+                {
+                    <div class="flex-row">
+                        <a asp-page="/Account/Register">
+                            <button class="btn btn-primary">
+                                Registrarte
+                            </button>
+                        </a>
+
+                        <a asp-page="/Account/Login">
+                            <button class="btn btn-outline btn-secondary">
+                                Iniciar Session
+                            </button>
+                        </a>
+                    </div>
+                }
+            </div>
+        </nav>
     </header>
-    <main class="flex-grow container mx-auto p-4">
-        @RenderBody()
+
+    <main role="main" class="min-h-screen flex flex-col justify-between">
+        <section class="flex-grow">
+            @RenderBody()
+        </section>
+        <footer class="footer footer-center">
+            <p>
+                &copy; 2024 - VoyA
+            </p>
+        </footer>
     </main>
-    <footer class="bg-base-200 p-4 shadow-md">
-        <div class="container mx-auto">
-            <p class="text-center">© 2024 My Website</p>
-        </div>
-    </footer>
-    @RenderSection("Scripts", required: false)
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 
 </html>

@@ -17,7 +17,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages().AddRazorPagesOptions(opt =>
 {
     opt.Conventions.AuthorizeFolder("/Admin", "RequireAdmin");
-    opt.Conventions.AllowAnonymousToPage("/Admin/Index");
 });
 
 builder.Services.AddAuthentication().AddCookie(options =>
@@ -126,7 +125,7 @@ else
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-        c.RoutePrefix = string.Empty;
+        c.RoutePrefix = "swagger";
     });
 }
 
@@ -345,7 +344,7 @@ app.MapPost("/api/invite_to_event", async (UserManager<ApplicationUser> userMana
     invitor.EventStatus.With = invited;
 
     await userManager.UpdateAsync(invitor);
-;
+    ;
     return Results.Ok();
 }).RequireAuthorization();
 

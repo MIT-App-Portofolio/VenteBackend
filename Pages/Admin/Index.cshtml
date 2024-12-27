@@ -5,28 +5,11 @@
 
 <div class="hero">
     <div class="hero-content">
-        @if (!User.Identity.IsAuthenticated)
-        {
-            <form method="post" class="min-w-96 justify-stretch">
-                <h2 class="text-2xl mb-4">Log in</h2>
-
-                <span asp-validation-for="Input.Password"></span>
-                <label class="input input-bordered flex items-center gap-2 mb-3">
-                    <input type="password" class="grow" asp-for="Input.Password" value="password"/>
-                </label>
-
-                <div asp-validation-summary="ModelOnly"></div>
-                <button type="submit" class="btn btn-primary w-full">Log In</button>
-            </form>
-        }
-        else
-        {
-            <div class="card w-96 bg-base-100 shadow-xl">
-                <div class="card-body items-center text-center">
-                    <a asp-page="/Admin/Users" asp-route-pageId=0>Users</a>
-                    <a asp-page="/Admin/EventPlaces" asp-route-pageId=0>Places</a>
-                </div>
+        <div class="card w-96 bg-base-100 shadow-xl">
+            <div class="card-body items-center text-center">
+                <a asp-page="/Admin/Users" asp-route-pageId=0>Users</a>
+                <a asp-page="/Admin/EventPlaces" asp-route-pageId=0>Places</a>
             </div>
-        }
+        </div>
     </div>
 </div>
