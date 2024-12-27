@@ -1,56 +1,13 @@
-﻿@page
+﻿@page "{pageId:int}"
 @model Server.Pages.Admin.EventPlacesModel
-@using Server.Data
 @{
 }
 
 <div class="hero">
     <div class="hero-content">
-        <form class="w-full" method="post">
-            <label class="input input-bordered flex items-center gap-2 mb-3">
-                <input class="grow" asp-for="Input.Name" value="name"/>
-            </label>
-            <label class="input input-bordered flex items-center gap-2 mb-3">
-                <input class="grow" asp-for="Input.Description" value="description"/>
-            </label>
-
-            <label class="input input-bordered flex items-center gap-2 mb-3">
-                <select asp-for="Input.Location" class="grow">
-                    @foreach (var location in Enum.GetValues(typeof(Location)))
-                    {
-                        <option value="@location">@location</option>
-                    }
-                </select>
-            </label>
-
-            <label class="input input-bordered flex items-center gap-2 mb-3">
-                <input class="grow" asp-for="Input.PriceRangeStart" value="image"/>
-            </label>
-
-            <label class="input input-bordered flex items-center gap-2 mb-3">
-                <input class="grow" asp-for="Input.PriceRangeEnd" value="image"/>
-            </label>
-
-            <label class="input input-bordered flex items-center gap-2 mb-3">
-                <input type="text" id="imageInput" class="grow" placeholder="Add image URL" />
-                <button type="button" class="btn btn-primary" onclick="addImage()">Add</button>
-            </label>
-            <ul id="imageList" class="list-disc pl-5">
-                @foreach (var image in Model.Input.Images)
-                {
-                    <li>@image <button type="button" class="btn btn-sm btn-error" onclick="removeImage('@image')">Remove</button></li>
-                }
-            </ul>
-            <input type="hidden" asp-for="Input.Images" id="Images" />
-        </form>
-    </div>
-</div>
-
-<div class="hero">
-    <div class="hero-content">
-        <div class="card w-full bg-base-100 shadow-xl">
+        <div class="card w-96 bg-base-100 shadow-xl">
             <div class="card-body items-center text-center">
-                <h2 class="card-title">Places</h2>
+                <h2 class="card-title">Event Places</h2>
 
                 <table class="table w-full">
                     <thead>
@@ -58,7 +15,8 @@
                             <th>Name</th>
                             <th>Description</th>
                             <th>Location</th>
-                            <th>Images</th>
+                            <th>Price Range</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -68,68 +26,20 @@
                                 <td>@place.Name</td>
                                 <td>@place.Description</td>
                                 <td>@place.Location</td>
+                                <td>@place.PriceRangeBegin - @place.PriceRangeEnd</td>
                                 <td>
-                                    @foreach (var image in place.Images)
-                                    {
-                                        <a href="@image" target="_blank">@image</a>
-
-                                        <br />
-                                    }
+                                    <a asp-page="/Admin/EditEventPlace" asp-route-id="@place.Id" class="btn btn-primary">Edit</a>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
 
-                <div class="btn-group"></div>
-                <a href="/Admin/EventPlaces/@(Model.PageId - 1)" class="btn btn-primary" @(Model.PageId <= 1 ?
-                    "disabled" : "")>Previous</a>
-                <a href="/Admin/EventPlaces/@(Model.PageId + 1)" class="btn btn-primary">Next</a>
+                <div class="btn-group">
+                    <a href="/Admin/EventPlaces/@(Model.PageId - 1)" class="btn btn-primary" @(Model.PageId <= 1 ? "disabled" : "")>Previous</a>
+                    <a href="/Admin/EventPlaces/@(Model.PageId + 1)" class="btn btn-primary">Next</a>
+                </div>
             </div>
         </div>
     </div>
 </div>
-</div>
-
-@section Scripts {
-<script>
-function addImage() {
-    var imageInput = document.getElementById('imageInput');
-    var imageList = document.getElementById('imageList');
-    var images = document.getElementById('Images');
-
-    if (imageInput.value.trim() !== '') {
-        var li = document.createElement('li');
-        li.textContent = imageInput.value;
-        li.innerHTML += ' <button type="button" class="btn btn-sm btn-error" onclick="removeImage(\'' + imageInput.value + '\')">Remove</button>';
-        imageList.appendChild(li);
-
-        var currentImages = images.value ? images.value.split(',') : [];
-        currentImages.push(imageInput.value);
-        images.value = currentImages.join(',');
-
-        imageInput.value = '';
-    }
-}
-
-function removeImage(image) {
-    var imageList = document.getElementById('imageList');
-    var images = document.getElementById('Images');
-
-    var currentImages = images.value.split(',');
-    var index = currentImages.indexOf(image);
-    if (index > -1) {
-        currentImages.splice(index, 1);
-        images.value = currentImages.join(',');
-
-        var items = imageList.getElementsByTagName('li');
-        for (var i = 0; i < items.length; i++) {
-            if (items[i].textContent.includes(image)) {
-                imageList.removeChild(items[i]);
-                break;
-            }
-        }
-    }
-}
-</script>
-}
