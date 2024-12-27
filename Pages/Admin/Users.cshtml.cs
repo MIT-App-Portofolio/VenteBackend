@@ -20,6 +20,24 @@ namespace Server.Pages.Admin
             Users = await _userManager.Users.Skip(PageId * 10).Take(10).ToListAsync();
         }
 
+        public async Task<IActionResult> OnPostDeleteAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var result = await _userManager.DeleteAsync(user);
+            if (!result.Succeeded)
+            {
+                // Handle error
+                return BadRequest(result.Errors);
+            }
+
+            return RedirectToPage(new { pageId = PageId });
+        }
+
         [FromQuery]
         public int PageId { get; set; }
 

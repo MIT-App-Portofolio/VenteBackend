@@ -17,6 +17,7 @@
                             <th>Name</th>
                             <th>Description</th>
                             <th>Ig Handle</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -28,17 +29,22 @@
                                 <td>@user.Name</td>
                                 <td>@user.Description</td>
                                 <td>@user.IgHandle</td>
+                                <td>
+                                    <form method="post" asp-page-handler="Delete" asp-route-userId="@user.Id">
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </td>
                             </tr>
                         }
                     </tbody>
                 </table>
 
-                <div class="btn-group"></div>
-                    <a href="/Admin/Users/@(Model.PageId - 1)" class="btn btn-primary" @(Model.PageId <= 1 ? "disabled" : "")>Previous</a>
+                <div class="btn-group">
+                    <a href="/Admin/Users/@(Model.PageId - 1)" class="btn btn-primary" @(Model.PageId <= 1 ? "disabled"
+                        : "")>Previous</a>
                     <a href="/Admin/Users/@(Model.PageId + 1)" class="btn btn-primary">Next</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
