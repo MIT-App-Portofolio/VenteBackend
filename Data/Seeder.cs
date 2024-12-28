@@ -4,6 +4,9 @@ public class Seeder
 {
     public static void SeedPlaces(ApplicationDbContext context)
     {
+        // TODO: remove
+        return;
+
         if (context.Places.Any())
             return;
 

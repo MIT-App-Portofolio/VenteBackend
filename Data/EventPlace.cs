@@ -3,6 +3,9 @@
 public class EventPlace
 {
     public int Id { get; set; }
+    public ApplicationUser Owner { get; set; }
+    public string OwnerId { get; set; }
+
     public string Name { get; set; }
     public string Description { get; set; }
     public Location Location { get; set; }
@@ -22,7 +25,7 @@ public class EventPlaceDto
         PriceRangeBegin = place.PriceRangeBegin;
         PriceRangeEnd = place.PriceRangeEnd;
     }
-    
+
     public string Name { get; set; }
     public string Description { get; set; }
     public LocationDto Location { get; set; }

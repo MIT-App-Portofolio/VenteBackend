@@ -10,6 +10,8 @@ public class ApplicationUser : IdentityUser
     public bool HasPfp { get; set; }
     public Gender Gender { get; set; }
     public EventStatus EventStatus { get; set; }
+
+    public EventPlace? EventPlace { get; set; }
 }
 
 public class EventStatus

@@ -1,0 +1,60 @@
+﻿@page
+@model Server.Pages.Admin.CreateAffiliateModel
+@using Server.Data
+@{
+}
+
+<div class="hero">
+    <div class="hero-content">
+        <div class="card w-96 bg-base-100 shadow-xl">
+            <div class="card-body items-center text-center">
+                <h2 class="card-title">Create Affiliate</h2>
+
+                <form method="post">
+                    <span asp-validation-for="Input.UserName" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="Input.UserName" class="grow" placeholder="Username" />
+                    </label>
+
+                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="Input.Email" class="grow" placeholder="Email" />
+                    </label>
+
+                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="Input.Password" class="grow" placeholder="Password" />
+                    </label>
+
+                    <span asp-validation-for="Input.EventPlaceName" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="Input.EventPlaceName" class="grow" placeholder="Event place name" />
+                    </label>
+
+                    <span asp-validation-for="Input.EventPlaceLocation" class="text-danger"></span>
+                    <select asp-for="Input.EventPlaceLocation" class="select select-bordered w-full mb-3"
+                        asp-items="Html.GetEnumSelectList<Location>()">
+                    </select>
+
+                    <span asp-validation-for="Input.EventPlaceDescription" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="Input.EventPlaceDescription" class="grow"
+                            placeholder="Event place description" />
+                    </label>
+
+                    <span asp-validation-for="Input.EventPlacePriceRangeBegin" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="Input.EventPlacePriceRangeBegin" class="grow" placeholder="Price range start" />
+                    </label>
+
+                    <span asp-validation-for="Input.EventPlacePriceRangeEnd" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="Input.EventPlacePriceRangeEnd" class="grow" placeholder="Price range end" />
+                    </label>
+
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

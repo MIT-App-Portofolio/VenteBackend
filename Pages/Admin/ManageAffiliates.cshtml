@@ -1,0 +1,36 @@
+﻿@page
+@model Server.Pages.Admin.ManageAffiliatesModel
+@{
+}
+
+<div class="hero">
+    <div class="hero-content">
+        <div class="card w-96 bg-base-100 shadow-xl">
+            <div class="card-body items-center text-center">
+                <h2 class="card-title">Users</h2>
+
+                <table class="table w-full">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model.Affiliates)
+                        {
+                            <tr>
+                                <td>@user.UserName</td>
+                                <td>@user.Email</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <a asp-page="/Admin/CreateAffiliate">
+                    <button class="btn btn-primary">Create new affiliate</button>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
