@@ -40,7 +40,7 @@ namespace Server.Pages.Account
                 return LocalRedirect(ReturnUrl ?? "/");
             }
 
-            ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+            ModelState.AddModelError(string.Empty, "No se pudo iniciar session.");
             return Page();
         }
     }

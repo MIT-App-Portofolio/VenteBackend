@@ -17,16 +17,13 @@ namespace Server.Pages
         public async Task<IActionResult> OnGetAsync()
         {
             var user = await _userManager.GetUserAsync(User);
-            Console.WriteLine(user);
             if (user == null)
                 return Unauthorized();
 
-            Console.WriteLine("a");
-
             if (await _userManager.IsInRoleAsync(user, "Admin"))
                 return RedirectToPage("/Admin/Index");
-
-            Console.WriteLine("b");
+            if (await _userManager.IsInRoleAsync(user, "Affiliate"))
+                return RedirectToPage("/Affiliate/Index");
 
             return RedirectToPage("/User/Index");
         }

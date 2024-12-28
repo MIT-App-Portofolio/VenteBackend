@@ -27,21 +27,15 @@
                 @if (User.Identity.IsAuthenticated)
                 {
                     <a asp-page="/Dashboard">
-                        <button class="btn btn-outline btn-primary">Dashboard</button>
+                        <button class="btn btn-outline btn-primary">Panel de control</button>
                     </a>
                 }
                 else
                 {
                     <div class="flex-row">
-                        <a asp-page="/Account/Register">
-                            <button class="btn btn-primary">
-                                Registrarte
-                            </button>
-                        </a>
-
                         <a asp-page="/Account/Login">
                             <button class="btn btn-outline btn-secondary">
-                                Iniciar Session
+                                Afiliados
                             </button>
                         </a>
                     </div>

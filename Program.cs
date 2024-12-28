@@ -17,6 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages().AddRazorPagesOptions(opt =>
 {
     opt.Conventions.AuthorizeFolder("/Admin", "RequireAdmin");
+    opt.Conventions.AuthorizeFolder("/Affiliate", "RequireAffiliate");
 });
 
 builder.Services.AddAuthentication().AddCookie(options =>
@@ -37,6 +38,7 @@ builder.Services.AddAuthentication().AddCookie(options =>
 builder.Services.AddAuthorization(opt =>
 {
     opt.AddPolicy("RequireAdmin", policy => policy.RequireRole("Admin"));
+    opt.AddPolicy("RequireAffiliate", policy => policy.RequireRole("Affiliate"));
 });
 
 builder.Services.Configure<AwsConfig>(builder.Configuration.GetSection("AWS"));
@@ -90,10 +92,14 @@ if (builder.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var adminRoleExists = await roleManager.RoleExistsAsync("Admin");
-    if (!adminRoleExists)
+    if (!await roleManager.RoleExistsAsync("Admin"))
         await roleManager.CreateAsync(new IdentityRole("Admin"));
+    if (!await roleManager.RoleExistsAsync("Affiliate"))
+        await roleManager.CreateAsync(new IdentityRole("Affiliate"));
+}
 
+using (var scope = app.Services.CreateScope())
+{
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var adminConfig = scope.ServiceProvider.GetRequiredService<IOptions<AdminConfig>>().Value;
 
