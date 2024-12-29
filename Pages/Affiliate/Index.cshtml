@@ -3,4 +3,15 @@
 @{
 }
 
-<p>No hay nada para afiliados en el momento</p>
+<div class="hero">
+    <div class="hero-content">
+        <a asp-page="/Affiliate/EditEventPlace">
+            <button class="btn btn-primary">Editar</button>
+        </a>
+
+        <h2>@Model.Place.Name</h2>
+        <p>@Model.Place.Description</p>
+        <p>@Model.Place.Location</p>
+        <p>@Model.Place.PriceRangeStart - @Model.Place.PriceRangeEnd</p>
+    </div>
+</div>

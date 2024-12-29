@@ -3,7 +3,8 @@ using Server.Data;
 
 namespace Server.Models;
 
-public class EventPlaceModel {
+public class EventPlaceModel
+{
     public EventPlaceModel() { }
 
     public EventPlaceModel(EventPlace eventPlace)

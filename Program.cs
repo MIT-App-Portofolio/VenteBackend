@@ -80,7 +80,6 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddHostedService<EventStatusCleanupService>();
 
-
 var app = builder.Build();
 
 if (builder.Environment.IsDevelopment())
