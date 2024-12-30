@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Models;
@@ -80,23 +81,20 @@ public static class Api
             return Results.Ok(new UserDto(user));
         });
 
-        app.MapPost("/api/account/update_pfp", async (UserManager<ApplicationUser> userManager, IFormFile file,
+        app.MapPost("/api/account/update_pfp", async (UserManager<ApplicationUser> userManager, [FromForm] IFormFile file,
                 HttpContext context, IProfilePictureService pfpService) =>
             {
-                var formFile = context.Request.Form.Files.FirstOrDefault();
-                if (formFile == null) return Results.BadRequest("No file uploaded.");
-
-                if (formFile.Length > 3 * 1024 * 1024)
+                if (!file.ContentType.Equals("image/jpeg", StringComparison.OrdinalIgnoreCase))
+                    return Results.BadRequest("Only JPEG files are allowed.");
+                
+                if (file.Length > 3 * 1024 * 1024)
                     return Results.BadRequest("File size exceeds the 3MB limit.");
 
-                if (!formFile.ContentType.Equals("image/jpeg", StringComparison.OrdinalIgnoreCase))
-                    return Results.BadRequest("Only JPEG files are allowed.");
-
-                using (var stream = formFile.OpenReadStream())
+                await using (var stream = file.OpenReadStream())
                 {
-                    using (var image = Image.Load(stream))
-                        if (image.Width * 3 != image.Height * 4)
-                            return Results.BadRequest("Image must have a 4:3 aspect ratio.");
+                    using (var image = await Image.LoadAsync(stream))
+                        if (image.Width != image.Height)
+                            return Results.BadRequest("Image must have a 1:1 aspect ratio.");
                 }
 
                 var user = await userManager.GetUserAsync(context.User);
