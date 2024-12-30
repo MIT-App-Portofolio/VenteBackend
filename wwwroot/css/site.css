@@ -1955,6 +1955,10 @@ html {
   }
 }
 
+.select-bordered {
+  border-color: var(--fallback-bc,oklch(var(--bc)/0.2));
+}
+
 .select:focus {
   box-shadow: none;
   border-color: var(--fallback-bc,oklch(var(--bc)/0.2));
@@ -2127,14 +2131,6 @@ html {
   margin-bottom: 0.75rem;
 }
 
-.mb-4 {
-  margin-bottom: 1rem;
-}
-
-.mt-4 {
-  margin-top: 1rem;
-}
-
 .flex {
   display: flex;
 }
@@ -2153,10 +2149,6 @@ html {
 
 .w-full {
   width: 100%;
-}
-
-.min-w-96 {
-  min-width: 24rem;
 }
 
 .flex-grow {
@@ -2183,10 +2175,6 @@ html {
   justify-content: space-between;
 }
 
-.justify-stretch {
-  justify-content: stretch;
-}
-
 .gap-2 {
   gap: 0.5rem;
 }
@@ -2203,16 +2191,6 @@ html {
 
 .text-center {
   text-align: center;
-}
-
-.text-2xl {
-  font-size: 1.5rem;
-  line-height: 2rem;
-}
-
-.text-blue-500 {
-  --tw-text-opacity: 1;
-  color: rgb(59 130 246 / var(--tw-text-opacity, 1));
 }
 
 .shadow-xl {

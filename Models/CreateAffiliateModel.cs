@@ -3,7 +3,7 @@ using Server.Data;
 
 namespace Server.Models
 {
-    public class AffiliateCreate
+    public class CreateAffiliateModel
     {
         [Required]
         public string UserName { get; set; }

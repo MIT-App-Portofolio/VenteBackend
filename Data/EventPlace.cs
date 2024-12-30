@@ -13,23 +13,3 @@ public class EventPlace
     public int PriceRangeBegin { get; set; }
     public int PriceRangeEnd { get; set; }
 }
-
-public class EventPlaceDto
-{
-    public EventPlaceDto(EventPlace place, List<string> downloadUrls)
-    {
-        Name = place.Name;
-        Location = new LocationDto(place.Location);
-        Description = place.Description;
-        ImageUrls = downloadUrls;
-        PriceRangeBegin = place.PriceRangeBegin;
-        PriceRangeEnd = place.PriceRangeEnd;
-    }
-
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public LocationDto Location { get; set; }
-    public List<string> ImageUrls { get; set; }
-    public int PriceRangeBegin { get; set; }
-    public int PriceRangeEnd { get; set; }
-}
