@@ -24,6 +24,9 @@ public static class Api
         app.MapPost("/api/account/register", async (UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager, RegisterModel model) =>
         {
+            if (model.UserName == "fallback")
+                return Results.BadRequest("Fallback username is reserved.");
+            
             var user = new ApplicationUser
             {
                 UserName = model.UserName,
