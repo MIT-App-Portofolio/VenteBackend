@@ -4,7 +4,7 @@
 }
 
 <div class="hero">
-    <div class="hero-content flex-col align-start w-96">
+    <div class="hero-content flex-col align-start w-full">
         <div class="overflow-auto whitespace-nowrap flex-row" style="width: 550px;">
             @foreach (var url in Model.Images)
             {
@@ -41,7 +41,7 @@
             <h3 class="text-xl font-semibold mb-2">Lugar</h3>
             <p class="mb-4">@Model.Place.Location</p>
             <h3 class="text-xl font-semibold mb-2">Rango de precio</h3>
-            <p class="mb-4">@Model.Place.PriceRangeStart - @Model.Place.PriceRangeEnd</p>
+            <p class="mb-4">@Model.Place.PriceRangeStart&euro; - @Model.Place.PriceRangeEnd&euro;</p>
 
             <a asp-page="/Affiliate/EditEventPlace">
                 <button class="btn btn-primary">Editar</button>
@@ -49,56 +49,72 @@
         </div>
 
         <div class="mt-8 p-6 bg-base-100 rounded-lg shadow-md w-full">
+            <!-- Would this create a dialogue for each offer? Yes. Sorry end user... Too lazy to build a separate api endpoint -->
+            @for (var i = 0; i < Model.Offers.Count; i++)
+            {
+                <dialog id="image-upload-dialog-@i" class="modal">
+                    <form method="post" enctype="multipart/form-data" asp-page-handler="UploadOfferPicture" asp-route-offerId="@i" class="modal-box flex flex-col">
+                        @Html.AntiForgeryToken()
+                        <h3 class="font-bold text-lg">Sube una imagen</h3>
+                        <input type="file" name="picture" required class="file-input file-input-bordered w-full max-w-xs self-center mt-5" />
+                        <div class="modal-action">
+                            <button type="submit" class="btn btn-primary">Subir</button>
+                            <button type="button" class="btn" onclick="document.getElementById('image-upload-dialog-@i').close()">Cancelar</button>
+                        </div>
+                    </form>
+                </dialog>
+            }
+
             <h3 class="text-xl font-semibold mb-2">Ofertas</h3>
             <button class="btn btn-primary" onclick="document.getElementById('offer-create-dialog').showModal()">Crear oferta</button>
-            <div class="overflow-auto whitespace-nowrap flex-row" style="width: 550px;">
+            <table class="table w-full">
+                <thead>
+                <tr>
+                    <th>Imagen</th>
+                    <th>Informacion</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
                 @for (var i = 0; i < Model.Offers.Count; i++)
                 {
-                    <!-- Would this create a dialogue for each offer? Yes. Sorry end user... Too lazy to build a separate api endpoint -->
-                    <dialog id="image-upload-dialog-@i">
-                        <form method="post" enctype="multipart/form-data" asp-page-handler="UploadOfferPicture" asp-route-offerId="@i" class="modal-box flex flex-col">
-                            @Html.AntiForgeryToken()
-                            <h3 class="font-bold text-lg">Sube una imagen</h3>
-                            <input type="file" name="picture" required class="file-input file-input-bordered w-full max-w-xs self-center mt-5" />
-                            <div class="modal-action">
-                                <button type="submit" class="btn btn-primary">Subir</button>
-                                <button type="button" class="btn" onclick="document.getElementById('image-upload-dialog-@i').close()">Cancelar</button>
-                            </div>
-                        </form>
-                    </dialog>
-                    
-                    <div class="relative m-2 group flex flex-row">
-                        @if (Model.OfferPictures[i] != null)
-                        {
-                            <div class="relative group mr-2">
-                                <img src="@Model.OfferPictures[i]" class="inline-block" style="height: 200px;" alt="Image of offer"/>
+
+                    <tr>
+                        <td class="relative group">
+                            @if (Model.OfferPictures[i] != null)
+                            {
+                                <img src="@Model.OfferPictures[i]" style="max-height: 120px;" class="relative left-1/2 -translate-x-1/2" alt="Image of offer"/>
                                 <form method="post" asp-page-handler="DeleteOfferPicture" asp-route-offerId="@i">
                                     <button
                                         type="submit"
-                                        class="child absolute invisible group-hover:visible btn btn-error top-0 left-0 right-0 bottom-0 m-auto w-20 inset-0"
-                                    >Borrar</button>
+                                        class="child absolute invisible group-hover:visible btn btn-error top-0 left-0 right-0 bottom-0 m-auto w-20 inset-0">Borrar</button>
                                 </form>
+                            }
+                            else
+                            {
+                                <button class="btn btn-primary absolute top-0 left-0 right-0 bottom-0 m-auto w-32 inset-0" onclick="document.getElementById('image-upload-dialog-@i').showModal()">Sube una imagen</button>
+                            }
+                        </td>
+
+                        <td>
+                            <div>
+                                <h4 class="font-bold text-lg">@Model.Offers[i].Name</h4>
+                                <p>@Model.Offers[i].Description</p>
+                                <p>@Model.Offers[i].Price&euro;</p>
                             </div>
-                        }
-                        else
-                        {
-                            <button class="btn btn-primary mr-2" onclick="document.getElementById('image-upload-dialog-@i').showModal()">Sube una imagen</button>
-                        }
-                        
-                        <div class="mr-2">
-                            <h4 class="font-bold text-lg">@Model.Offers[i].Name</h4>
-                            <p>@Model.Offers[i].Description</p>
-                            <p>@Model.Offers[i].Price &euro;</p>
-                        </div>
-                        <form method="post" asp-page-handler="DeleteOffer" asp-route-offerId="@i">
-                            <button
-                                type="submit"
-                                class="btn btn-error"
-                            >Borrar</button>
-                        </form>
-                    </div>
+                        </td>
+
+                        <td>
+                            <form method="post" asp-page-handler="DeleteOffer" asp-route-offerId="@i">
+                                <button
+                                    type="submit"
+                                    class="btn btn-error">Borrar</button>
+                            </form>
+                        </td>
+                    </tr>
                 }
-            </div>
+                </tbody>
+            </table>
         </div>
 
         <dialog id="offer-create-dialog" class="modal">
