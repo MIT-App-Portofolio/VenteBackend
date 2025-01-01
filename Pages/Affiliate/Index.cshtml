@@ -5,10 +5,6 @@
 
 <div class="hero">
     <div class="hero-content flex-col align-start w-96">
-        <a asp-page="/Affiliate/EditEventPlace">
-            <button class="btn btn-primary">Editar</button>
-        </a>
-
         <div class="overflow-auto whitespace-nowrap flex-row" style="width: 550px;">
             @foreach (var url in Model.Images)
             {
@@ -38,9 +34,18 @@
             </form>
         </dialog>
 
-        <h2 class="text-2xl">@Model.Place.Name</h2>
-        <p>@Model.Place.Description</p>
-        <p>@Model.Place.Location</p>
-        <p>@Model.Place.PriceRangeStart - @Model.Place.PriceRangeEnd</p>
+        <div class="mt-8 p-6 bg-base-100 rounded-lg shadow-md w-full">
+            <h2 class="text-3xl font-bold mb-4">@Model.Place.Name</h2>
+            <h3 class="text-xl font-semibold mb-2">Descripción</h3>
+            <p class="mb-4">@Model.Place.Description</p>
+            <h3 class="text-xl font-semibold mb-2">Lugar</h3>
+            <p class="mb-4">@Model.Place.Location</p>
+            <h3 class="text-xl font-semibold mb-2">Rango de precio</h3>
+            <p class="mb-4">@Model.Place.PriceRangeStart - @Model.Place.PriceRangeEnd</p>
+
+            <a asp-page="/Affiliate/EditEventPlace">
+                <button class="btn btn-primary">Editar</button>
+            </a>
+        </div>
     </div>
 </div>
