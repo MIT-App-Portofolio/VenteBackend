@@ -55,8 +55,6 @@ public class S3EventPlacePictureService(ICoreAmazonS3 s3Client, IOptions<AwsConf
     
     public async Task DeleteAsync(EventPlace place, string filename)
     {
-        Console.WriteLine("deleting");
         await s3Client.DeleteAsync(_bucketName, "places-pictures/" + place.Name + "/" + filename, new Dictionary<string, object>());
-        Console.WriteLine("deleted");
     }
 }

@@ -199,7 +199,7 @@ public static class Api
         }).RequireAuthorization();
 
         app.MapPost("/api/invite_to_event",
-            async (UserManager<ApplicationUser> userManager, List<string> invited, HttpContext context) =>
+            async (UserManager<ApplicationUser> userManager, string invited, HttpContext context) =>
             {
                 var q = userManager.Users
                     .Include(u => u.EventStatus);
@@ -208,26 +208,53 @@ public static class Api
 
                 if (!invitor.EventStatus.Active) return Results.Unauthorized();
 
-                foreach (var user in invited)
-                {
-                    var u = await q.FirstOrDefaultAsync(u => u.UserName == user);
-                    if (u == null) return Results.BadRequest($"User {user} not found.");
+                if (invitor.EventStatus.With.Contains(invited)) return Results.Ok();
+                
+                var u = await q.FirstOrDefaultAsync(u => u.UserName == invited);
+                if (u == null) return Results.BadRequest("User not found.");
 
-                    u.EventStatus.Active = true;
-                    u.EventStatus.Time = invitor.EventStatus.Time;
-                    u.EventStatus.Location = invitor.EventStatus.Location;
-                    var userInvited = new List<string>(invited);
-                    userInvited.Remove(u.UserName);
-                    userInvited.Add(invitor.UserName);
-                    u.EventStatus.With = userInvited;
+                u.EventStatus.Active = true;
+                u.EventStatus.Time = invitor.EventStatus.Time;
+                u.EventStatus.Location = invitor.EventStatus.Location;
+                
+                var userInvited = new List<string>(invitor.EventStatus.With);
+                userInvited.Remove(u.UserName);
+                userInvited.Add(invitor.UserName);
+                u.EventStatus.With = userInvited;
 
-                    await userManager.UpdateAsync(u);
-                }
+                await userManager.UpdateAsync(u);
 
-                invitor.EventStatus.With = invited;
+                invitor.EventStatus.With.Add(invited);
 
                 await userManager.UpdateAsync(invitor);
-                ;
+                return Results.Ok();
+            }).RequireAuthorization();
+
+        app.MapPost("/api/kick_from_event",
+            async (UserManager<ApplicationUser> userManager, string kicked, HttpContext context) =>
+            {
+                var q = userManager.Users
+                    .Include(u => u.EventStatus);
+
+                var invitor = await q.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+                
+                if (!invitor.EventStatus.Active) return Results.Unauthorized();
+
+                if (!invitor.EventStatus.With.Contains(kicked)) return Results.BadRequest();
+                
+                var u = await q.FirstOrDefaultAsync(u => u.UserName == kicked);
+                if (u == null) return Results.BadRequest("User not found.");
+                
+                u.EventStatus.Active = false;
+                u.EventStatus.Time = null;
+                u.EventStatus.Location = null;
+                u.EventStatus.With = null;
+
+                invitor.EventStatus.With.Remove(kicked);
+            
+                await userManager.UpdateAsync(u);
+                await userManager.UpdateAsync(invitor);
+                
                 return Results.Ok();
             }).RequireAuthorization();
 
@@ -276,7 +303,11 @@ public static class Api
 
             var ret = places.Select(place =>
             {
-                place.Place.Offers = place.Offers;
+                place.Place.Offers = place.Offers.Select((o, i) =>
+                {
+                    o.Image = o.Image == null ? null : pictureService.GetEventOfferPictureUrl(place.Place, i);
+                    return o;
+                }).ToList();
                 return new EventPlaceDto(place.Place, pictureService.GetDownloadUrls(place.Place));
             }).ToList();
 

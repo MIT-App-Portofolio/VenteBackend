@@ -99,6 +99,7 @@
                         <td>
                             <div>
                                 <h4 class="font-bold text-lg">@Model.Offers[i].Name</h4>
+                                <p>@Model.Offers[i].ActiveOn.ToShortDateString()</p>
                                 <p>@Model.Offers[i].Description</p>
                                 <p>@Model.Offers[i].Price&euro;</p>
                             </div>
