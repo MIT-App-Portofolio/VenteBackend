@@ -27,10 +27,27 @@ public class S3EventPlacePictureService(ICoreAmazonS3 s3Client, IOptions<AwsConf
             .ToList();
     }
     
+    public string GetEventOfferPictureUrl(EventPlace place, int offerId)
+    {
+        var offer = place.Offers[offerId];
+        var path = "places-pictures/" + place.Name + "/" + offer.Name + "/" + offer.Image;
+        
+        return s3Client.GeneratePreSignedURL(_bucketName, path, DateTime.Now.AddHours(1), 
+            new Dictionary<string, object>());
+    }
     
     public async Task UploadAsync(EventPlace place, Stream pictureStream, string filename)
     {
         var path = "places-pictures/" + place.Name + "/" + filename;
+        await s3Client.UploadObjectFromStreamAsync(_bucketName, path, pictureStream,
+            new Dictionary<string, object>());
+        await s3Client.MakeObjectPublicAsync(_bucketName, path, true);
+    }
+    
+    public async Task UploadEventOfferPictureAsync(EventPlace place, int offerId, Stream pictureStream, string filename)
+    {
+        var offer = place.Offers[offerId];
+        var path = "places-pictures/" + place.Name + "/" + offer.Name + "/" + filename;
         await s3Client.UploadObjectFromStreamAsync(_bucketName, path, pictureStream,
             new Dictionary<string, object>());
         await s3Client.MakeObjectPublicAsync(_bucketName, path, true);

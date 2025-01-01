@@ -47,5 +47,95 @@
                 <button class="btn btn-primary">Editar</button>
             </a>
         </div>
+
+        <div class="mt-8 p-6 bg-base-100 rounded-lg shadow-md w-full">
+            <h3 class="text-xl font-semibold mb-2">Ofertas</h3>
+            <button class="btn btn-primary" onclick="document.getElementById('offer-create-dialog').showModal()">Crear oferta</button>
+            <div class="overflow-auto whitespace-nowrap flex-row" style="width: 550px;">
+                @for (var i = 0; i < Model.Offers.Count; i++)
+                {
+                    <!-- Would this create a dialogue for each offer? Yes. Sorry end user... Too lazy to build a separate api endpoint -->
+                    <dialog id="image-upload-dialog-@i">
+                        <form method="post" enctype="multipart/form-data" asp-page-handler="UploadOfferPicture" asp-route-offerId="@i" class="modal-box flex flex-col">
+                            @Html.AntiForgeryToken()
+                            <h3 class="font-bold text-lg">Sube una imagen</h3>
+                            <input type="file" name="picture" required class="file-input file-input-bordered w-full max-w-xs self-center mt-5" />
+                            <div class="modal-action">
+                                <button type="submit" class="btn btn-primary">Subir</button>
+                                <button type="button" class="btn" onclick="document.getElementById('image-upload-dialog-@i').close()">Cancelar</button>
+                            </div>
+                        </form>
+                    </dialog>
+                    
+                    <div class="relative m-2 group flex flex-row">
+                        @if (Model.OfferPictures[i] != null)
+                        {
+                            <div class="relative group mr-2">
+                                <img src="@Model.OfferPictures[i]" class="inline-block" style="height: 200px;" alt="Image of offer"/>
+                                <form method="post" asp-page-handler="DeleteOfferPicture" asp-route-offerId="@i">
+                                    <button
+                                        type="submit"
+                                        class="child absolute invisible group-hover:visible btn btn-error top-0 left-0 right-0 bottom-0 m-auto w-20 inset-0"
+                                    >Borrar</button>
+                                </form>
+                            </div>
+                        }
+                        else
+                        {
+                            <button class="btn btn-primary mr-2" onclick="document.getElementById('image-upload-dialog-@i').showModal()">Sube una imagen</button>
+                        }
+                        
+                        <div class="mr-2">
+                            <h4 class="font-bold text-lg">@Model.Offers[i].Name</h4>
+                            <p>@Model.Offers[i].Description</p>
+                            <p>@Model.Offers[i].Price &euro;</p>
+                        </div>
+                        <form method="post" asp-page-handler="DeleteOffer" asp-route-offerId="@i">
+                            <button
+                                type="submit"
+                                class="btn btn-error"
+                            >Borrar</button>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <dialog id="offer-create-dialog" class="modal">
+            <form method="post" enctype="multipart/form-data" asp-page-handler="CreateOffer" class="modal-box flex flex-col">
+                <span asp-validation-for="CreateOfferInput.Name" class="text-danger"></span>
+                <label class="input input-bordered flex items-center gap-2 mb-3">
+                    <input asp-for="CreateOfferInput.Name" class="grow" placeholder="Nombre (obligatorio)" required />
+                </label>
+
+                <label class="input input-bordered flex items-center gap-2 mb-3">
+                    <input asp-for="CreateOfferInput.ActiveOn" class="grow" placeholder="Fecha (obligatorio)" type="date" />
+                </label>
+                
+                <label class="input input-bordered flex items-center gap-2 mb-3">
+                    <input asp-for="CreateOfferInput.Description" class="grow" placeholder="Descripcion" />
+                </label>
+                
+                <label class="input input-bordered flex items-center gap-2 mb-3">
+                    <input asp-for="CreateOfferInput.Price" class="grow" placeholder="Precio" type="number" />
+                </label>
+
+                <div class="modal-action">
+                    <button type="submit" class="btn btn-primary">Crear</button>
+                    <button type="button" class="btn" onclick="document.getElementById('offer-create-dialog').close()">Cancelar</button>
+                </div>
+            </form>
+        </dialog>
     </div>
 </div>
+
+@section Scripts
+{
+    <script>
+        var offerId = null;
+        function openOfferDeleteDialog(id) {
+            offerId = id;
+            document.getElementById('offer-delete-dialog').showModal();
+        }
+    </script>
+}

@@ -64,7 +64,8 @@ namespace Server.Pages.Admin.Affiliates
                 Description = Input.EventPlaceDescription,
                 Images = [],
                 PriceRangeBegin = Input.EventPlacePriceRangeBegin,
-                PriceRangeEnd = Input.EventPlacePriceRangeEnd
+                PriceRangeEnd = Input.EventPlacePriceRangeEnd,
+                Offers = [],
             };
 
             await _context.Places.AddAsync(eventPlace);

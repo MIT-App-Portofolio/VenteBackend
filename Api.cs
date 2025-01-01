@@ -84,7 +84,7 @@ public static class Api
             return Results.Ok(new UserDto(user));
         });
 
-        app.MapPost("/api/account/update_pfp", async (UserManager<ApplicationUser> userManager, [FromForm] IFormFile file,
+        app.MapPost("/api/account/update_pfp", async (UserManager<ApplicationUser> userManager, IFormFile file,
                 HttpContext context, IProfilePictureService pfpService) =>
             {
                 if (!file.ContentType.Equals("image/jpeg", StringComparison.OrdinalIgnoreCase))
@@ -265,9 +265,20 @@ public static class Api
 
             var places = await dbContext.Places
                 .Where(p => p.Location == user.EventStatus.Location)
+                .Select(p =>
+                    new
+                    {
+                        Place = p,
+                        Offers = p.Offers.Where(o => o.ActiveOn.Date == user.EventStatus.Time.Value.Date).ToList()
+                    }
+                )
                 .ToListAsync();
 
-            var ret = places.Select(place => new EventPlaceDto(place, pictureService.GetDownloadUrls(place))).ToList();
+            var ret = places.Select(place =>
+            {
+                place.Place.Offers = place.Offers;
+                return new EventPlaceDto(place.Place, pictureService.GetDownloadUrls(place.Place));
+            }).ToList();
 
             return Results.Ok(ret);
         }).RequireAuthorization();

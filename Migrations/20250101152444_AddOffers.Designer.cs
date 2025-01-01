@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Server.Data;
 
@@ -10,9 +11,11 @@ using Server.Data;
 namespace Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250101152444_AddOffers")]
+    partial class AddOffers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
@@ -278,9 +281,10 @@ namespace Server.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("EventPlaceId")
+                    b.Property<int?>("EventPlaceId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Image")
@@ -290,7 +294,7 @@ namespace Server.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("Price")
+                    b.Property<int>("Price")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -398,13 +402,9 @@ namespace Server.Migrations
 
             modelBuilder.Entity("Server.Data.EventPlaceOffer", b =>
                 {
-                    b.HasOne("Server.Data.EventPlace", "EventPlace")
+                    b.HasOne("Server.Data.EventPlace", null)
                         .WithMany("Offers")
-                        .HasForeignKey("EventPlaceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("EventPlace");
+                        .HasForeignKey("EventPlaceId");
                 });
 
             modelBuilder.Entity("Server.Data.ApplicationUser", b =>

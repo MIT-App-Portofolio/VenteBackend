@@ -14,6 +14,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             .HasOne(p => p.Owner)
             .WithOne(u => u.EventPlace)
             .HasForeignKey<EventPlace>(p => p.OwnerId);
+        
+        builder.Entity<EventPlaceOffer>()
+            .HasOne(o => o.EventPlace)
+            .WithMany(p => p.Offers)
+            .HasForeignKey(p => p.EventPlaceId);
     }
 
     public DbSet<EventPlace> Places { get; set; }
