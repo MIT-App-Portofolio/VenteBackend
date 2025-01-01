@@ -4,14 +4,82 @@
 }
 
 <div class="hero">
-    <div class="hero-content">
+    <div class="hero-content flex-col align-start w-96">
         <a asp-page="/Affiliate/EditEventPlace">
             <button class="btn btn-primary">Editar</button>
         </a>
+       
+        <div class="overflow-auto whitespace-nowrap flex-row" style="width: 550px;">
+            @foreach (var url in Model.Images)
+            {
+                <div class="relative inline-block m-2 group">
+                    <img src="@url.Item2" class="inline-block" style="height: 200px;" alt="Image of event place"/>
+                    <form method="post" asp-page-handler="DeleteImage" asp-route-pictureName="@url.Item1">
+                        <button
+                            type="submit"
+                            class="child absolute invisible group-hover:visible  btn btn-error top-0 left-0 right-0 bottom-0 m-auto w-20 inset-0"
+                        >Borrar</button>
+                    </form>
+                    
+                </div>
+            }
+        </div>
 
-        <h2>@Model.Place.Name</h2>
+        <label class="form-control w-full max-w-xs" id="upload-event-picture">
+            @Html.AntiForgeryToken()
+            <div class="label">
+                <span class="label-text">Sube una imagen</span>
+            </div>
+            <input type="file" class="file-input file-input-bordered w-full max-w-xs"/>
+            <progress class="progress w-56" value="100" max="100"></progress>
+        </label>
+
+        <h2 class="text-2xl">@Model.Place.Name</h2>
         <p>@Model.Place.Description</p>
         <p>@Model.Place.Location</p>
         <p>@Model.Place.PriceRangeStart - @Model.Place.PriceRangeEnd</p>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $('#upload-event-picture progress').hide();
+        
+        $('#upload-event-picture input').on('change', function() {
+            $('#upload-event-picture progress').show();
+            
+            var file = $(this).prop('files')[0];
+            var formData = new FormData();
+            formData.append('picture', file);
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/Affiliate?handler=UploadImage', true);
+            xhr.setRequestHeader("RequestVerificationToken", $('input[name="__RequestVerificationToken"]').val());
+
+            xhr.upload.addEventListener("progress", function(event) {
+                if (event.lengthComputable) {
+                    const percent = (event.loaded / event.total) * 100;
+                    $('#upload-event-picture progress').value = percent;
+                }
+            });
+
+            xhr.onload = function() {
+                $('#upload-event-picture progress').hide();
+                $('#upload-event-picture input').val('');
+                if (xhr.status === 200) {
+                    location.reload();
+                } else {
+                    alert("Algo fue mal...");
+                }
+            };
+
+            xhr.onerror = function() {
+                $('#upload-event-picture progress').hide();
+                $('#upload-event-picture input').val('');
+                alert("No se pudo subir la imagen.");
+            };
+
+            xhr.send(formData);
+        });
+    </script>
+}
