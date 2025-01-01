@@ -22,7 +22,8 @@
                     </label>
 
                     <span asp-validation-for="EventPlace.Location" class="text-danger"></span>
-                    <select asp-for="EventPlace.Location" asp-items="Html.GetEnumSelectList<Location>()"></select>
+                    <select asp-for="EventPlace.Location" class="select select-bordered w-full mb-3"
+                            asp-items="Html.GetEnumSelectList<Location>()"></select>
 
                     <span asp-validation-for="EventPlace.PriceRangeStart" class="text-danger"></span>
                     <label class="input input-bordered flex items-center gap-2 mb-3">
