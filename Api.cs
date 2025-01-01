@@ -183,9 +183,7 @@ public static class Api
                 {
                     var uQuery = await q.FirstOrDefaultAsync(u1 => u1.UserName == u);
 
-                    if (uQuery == null) continue;
-
-                    uQuery.EventStatus.With.Remove(u);
+                    uQuery.EventStatus.With.Remove(user.UserName);
 
                     await userManager.UpdateAsync(uQuery);
                 }
