@@ -11,7 +11,6 @@ using SixLabors.ImageSharp;
 
 namespace Server;
 
-
 public static class Api
 {
     private class JwtAuthorizeAttribute : AuthorizeAttribute
@@ -37,7 +36,7 @@ public static class Api
         {
             if (model.UserName == "fallback")
                 return Results.BadRequest("Fallback username is reserved.");
-            
+
             var user = new ApplicationUser
             {
                 UserName = model.UserName,
@@ -55,7 +54,7 @@ public static class Api
         });
 
         app.MapPost("/api/account/login", async (UserManager<ApplicationUser> userManager, JwtTokenManager tokenManager,
-             LoginModel model) =>
+            LoginModel model) =>
         {
             var user = await userManager.FindByEmailAsync(model.Email);
             if (user == null) return Results.BadRequest("Invalid login attempt.");
@@ -83,14 +82,23 @@ public static class Api
             });
 
         app.MapGet("/api/account/info", [JwtAuthorize]
-            async (HttpContext context, UserManager<ApplicationUser> UserManager) =>
+            async (HttpContext context, UserManager<ApplicationUser> userManager) =>
             {
-                var user = await UserManager.Users
+                var user = await userManager.Users
                     .Include(u => u.EventStatus)
                     .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
 
                 return Results.Ok(new UserDto(user));
             });
+
+        app.MapGet("/api/account/profile", async (UserManager<ApplicationUser> userManager, string username) =>
+        {
+            var user = await userManager.Users
+                .Include(u => u.EventStatus)
+                .FirstOrDefaultAsync(u => u.UserName == username);
+
+            return user == null ? Results.NotFound() : Results.Ok(new UserDto(user));
+        });
 
         app.MapPost("/api/account/update_pfp", [JwtAuthorize] async (UserManager<ApplicationUser> userManager,
                 IFormFile file,
@@ -157,7 +165,8 @@ public static class Api
 
     private static void MapEventEndpoints(WebApplication app)
     {
-        app.MapPost("/api/register_event", [JwtAuthorize] async (UserManager<ApplicationUser> userManager, HttpContext context,
+        app.MapPost("/api/register_event", [JwtAuthorize] async (UserManager<ApplicationUser> userManager,
+            HttpContext context,
             Location location, DateTime time) =>
         {
             var user = await userManager.Users
@@ -178,35 +187,36 @@ public static class Api
             return Results.Ok();
         });
 
-        app.MapPost("/api/cancel_event", [JwtAuthorize] async (UserManager<ApplicationUser> userManager, HttpContext context) =>
-        {
-            var q = userManager.Users
-                .Include(u => u.EventStatus);
-            var user = await q.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
-            if (user == null) return Results.Unauthorized();
-
-            user.EventStatus.Active = false;
-            user.EventStatus.Time = null;
-            user.EventStatus.Location = null;
-
-            if (user.EventStatus.With != null)
+        app.MapPost("/api/cancel_event", [JwtAuthorize]
+            async (UserManager<ApplicationUser> userManager, HttpContext context) =>
             {
-                foreach (var u in user.EventStatus.With)
+                var q = userManager.Users
+                    .Include(u => u.EventStatus);
+                var user = await q.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+                if (user == null) return Results.Unauthorized();
+
+                user.EventStatus.Active = false;
+                user.EventStatus.Time = null;
+                user.EventStatus.Location = null;
+
+                if (user.EventStatus.With != null)
                 {
-                    var uQuery = await q.FirstOrDefaultAsync(u1 => u1.UserName == u);
+                    foreach (var u in user.EventStatus.With)
+                    {
+                        var uQuery = await q.FirstOrDefaultAsync(u1 => u1.UserName == u);
 
-                    uQuery.EventStatus.With.Remove(user.UserName);
+                        uQuery.EventStatus.With.Remove(user.UserName);
 
-                    await userManager.UpdateAsync(uQuery);
+                        await userManager.UpdateAsync(uQuery);
+                    }
                 }
-            }
 
-            user.EventStatus.With = null;
+                user.EventStatus.With = null;
 
-            await userManager.UpdateAsync(user);
+                await userManager.UpdateAsync(user);
 
-            return Results.Ok();
-        });
+                return Results.Ok();
+            });
 
         app.MapPost("/api/invite_to_event",
             [JwtAuthorize] async (UserManager<ApplicationUser> userManager, string invited, HttpContext context) =>
@@ -219,14 +229,14 @@ public static class Api
                 if (!invitor.EventStatus.Active) return Results.Unauthorized();
 
                 if (invitor.EventStatus.With.Contains(invited)) return Results.Ok();
-                
+
                 var u = await q.FirstOrDefaultAsync(u => u.UserName == invited);
                 if (u == null) return Results.BadRequest("User not found.");
 
                 u.EventStatus.Active = true;
                 u.EventStatus.Time = invitor.EventStatus.Time;
                 u.EventStatus.Location = invitor.EventStatus.Location;
-                
+
                 var userInvited = new List<string>(invitor.EventStatus.With);
                 userInvited.Remove(u.UserName);
                 userInvited.Add(invitor.UserName);
@@ -247,24 +257,24 @@ public static class Api
                     .Include(u => u.EventStatus);
 
                 var invitor = await q.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
-                
+
                 if (!invitor.EventStatus.Active) return Results.Unauthorized();
 
                 if (!invitor.EventStatus.With.Contains(kicked)) return Results.BadRequest();
-                
+
                 var u = await q.FirstOrDefaultAsync(u => u.UserName == kicked);
                 if (u == null) return Results.BadRequest("User not found.");
-                
+
                 u.EventStatus.Active = false;
                 u.EventStatus.Time = null;
                 u.EventStatus.Location = null;
                 u.EventStatus.With = null;
 
                 invitor.EventStatus.With.Remove(kicked);
-            
+
                 await userManager.UpdateAsync(u);
                 await userManager.UpdateAsync(invitor);
-                
+
                 return Results.Ok();
             });
 
