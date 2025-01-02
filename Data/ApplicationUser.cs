@@ -7,6 +7,7 @@ public class ApplicationUser : IdentityUser
     public string? Name { get; set; }
     public string? IgHandle { get; set; }
     public string? Description { get; set; }
+    public DateTime BirthDate { get; set; }
     public bool HasPfp { get; set; }
     public Gender Gender { get; set; }
     public EventStatus EventStatus { get; set; }

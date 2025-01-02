@@ -11,6 +11,10 @@ public class UserDto
         Name = user.Name;
         IgHandle = user.IgHandle;
         Description = user.Description;
+        Years = DateTime.Now.Year - user.BirthDate.Year;
+        if (DateTime.Now.DayOfYear < user.BirthDate.DayOfYear)
+            Years--;
+        
         EventStatus = new EventStatusDto
         {
             Active = user.EventStatus.Active,
@@ -24,6 +28,7 @@ public class UserDto
 
     public string UserName { get; set; }
     public Gender Gender { get; set; }
+    public int Years { get; set; }
     public string? Name { get; set; }
     public string? IgHandle { get; set; }
     public string? Description { get; set; }

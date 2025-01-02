@@ -36,11 +36,15 @@ public static class Api
         {
             if (model.UserName == "fallback")
                 return Results.BadRequest("Fallback username is reserved.");
+            
+            if (model.BirthDate > DateTime.Today.AddYears(-16))
+                return Results.BadRequest("User must be at least 16 years old.");
 
             var user = new ApplicationUser
             {
                 UserName = model.UserName,
                 Gender = model.Gender,
+                BirthDate = model.BirthDate,
                 Email = model.Email,
                 HasPfp = false,
                 EventStatus = new EventStatus()

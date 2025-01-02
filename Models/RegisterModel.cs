@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-
 using Server.Data;
 
 namespace Server.Models;
@@ -15,4 +14,7 @@ public class RegisterModel
     
     [Required, DataType(DataType.Password)]
     public string Password { get; set; }
+
+    [Required] 
+    public DateTime BirthDate { get; set; }
 }

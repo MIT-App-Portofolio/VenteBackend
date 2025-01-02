@@ -33,6 +33,7 @@ namespace Server.Pages.Admin.Affiliates
             {
                 UserName = Input.UserName,
                 Gender = Gender.Male,
+                BirthDate = DateTime.Now - TimeSpan.FromDays(365 * 69),
                 Email = Input.Email,
                 HasPfp = false,
                 EventStatus = new EventStatus()
