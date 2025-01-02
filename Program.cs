@@ -1,15 +1,15 @@
+using System.Text;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.Runtime.SharedInterfaces;
 using Amazon.S3;
 using Microsoft.AspNetCore.Identity;
-using SixLabors.ImageSharp;
 using Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Server;
 using Server.Config;
-using Server.Models;
 using Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,29 +21,37 @@ builder.Services.AddRazorPages().AddRazorPagesOptions(opt =>
     opt.Conventions.AuthorizeFolder("/Affiliate", "RequireAffiliate");
 });
 
-builder.Services.AddAuthentication().AddCookie(options =>
-{
-    options.LoginPath = "/api/account/login";
-    options.Events.OnRedirectToLogin = context =>
+builder.Services.AddAuthentication()
+    .AddCookie(options =>
     {
-        context.Response.StatusCode = 401;
-        return Task.CompletedTask;
-    };
-    options.Events.OnRedirectToAccessDenied = context =>
+        options.LoginPath = "/Account/Login";
+        options.Events.OnRedirectToAccessDenied = context =>
+        {
+            context.Response.StatusCode = 403;
+            return Task.CompletedTask;
+        };
+    })
+    .AddJwtBearer(options =>
     {
-        context.Response.StatusCode = 403;
-        return Task.CompletedTask;
-    };
-});
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = false,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["JWT:Issuer"],
+            ValidAudience = builder.Configuration["JWT:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
+        };
+    });
 
-builder.Services.AddAuthorization(opt =>
-{
-    opt.AddPolicy("RequireAdmin", policy => policy.RequireRole("Admin"));
-    opt.AddPolicy("RequireAffiliate", policy => policy.RequireRole("Affiliate"));
-});
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("RequireAdmin", policy => policy.RequireRole("Admin"))
+    .AddPolicy("RequireAffiliate", policy => policy.RequireRole("Affiliate"));
 
 builder.Services.Configure<AwsConfig>(builder.Configuration.GetSection("AWS"));
 builder.Services.Configure<AdminConfig>(builder.Configuration.GetSection("Admin"));
+builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JWT"));
 
 AWSConfigs.LoggingConfig.LogTo = LoggingOptions.Console;
 AWSConfigs.AWSRegion = builder.Configuration.GetSection("AWS")["Region"];
@@ -57,6 +65,7 @@ builder.Services.AddSingleton<ICoreAmazonS3>(sp =>
 
 builder.Services.AddSingleton<IProfilePictureService, S3ProfilePictureService>();
 builder.Services.AddSingleton<IEventPlacePictureService, S3EventPlacePictureService>();
+builder.Services.AddSingleton<JwtTokenManager>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite("Data Source=dev.db"));

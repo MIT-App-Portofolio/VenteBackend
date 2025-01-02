@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
@@ -9,8 +11,17 @@ using SixLabors.ImageSharp;
 
 namespace Server;
 
+
 public static class Api
 {
+    private class JwtAuthorizeAttribute : AuthorizeAttribute
+    {
+        public JwtAuthorizeAttribute()
+        {
+            AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme;
+        }
+    }
+
     public static void MapApiEndpoints(this WebApplication app)
     {
         MapAccountEndpoints(app);
@@ -22,7 +33,7 @@ public static class Api
     private static void MapAccountEndpoints(WebApplication app)
     {
         app.MapPost("/api/account/register", async (UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager, RegisterModel model) =>
+            JwtTokenManager tokenManager, RegisterModel model) =>
         {
             if (model.UserName == "fallback")
                 return Results.BadRequest("Fallback username is reserved.");
@@ -40,25 +51,23 @@ public static class Api
 
             if (!result.Succeeded) return Results.BadRequest(result.Errors);
 
-            await signInManager.SignInAsync(user, true);
-            return Results.Ok();
+            return Results.Ok(tokenManager.GenerateToken(user.UserName, user.Email, user.Id));
         });
 
-        app.MapPost("/api/account/login", async (UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager, LoginModel model) =>
+        app.MapPost("/api/account/login", async (UserManager<ApplicationUser> userManager, JwtTokenManager tokenManager,
+             LoginModel model) =>
         {
             var user = await userManager.FindByEmailAsync(model.Email);
             if (user == null) return Results.BadRequest("Invalid login attempt.");
 
-            var result =
-                await signInManager.PasswordSignInAsync(user, model.Password, isPersistent: true,
-                    lockoutOnFailure: false);
+            var success = await userManager.CheckPasswordAsync(user, model.Password);
+            if (!success) return Results.BadRequest("Invalid login attempt.");
 
-            return !result.Succeeded ? Results.BadRequest("Invalid login attempt.") : Results.Ok();
+            return Results.Ok(tokenManager.GenerateToken(user.UserName, user.Email, user.Id));
         });
 
         app.MapPost("/api/account/update_profile",
-            async (HttpContext context, UserManager<ApplicationUser> userManager, ProfileModel model) =>
+            [JwtAuthorize] async (HttpContext context, UserManager<ApplicationUser> userManager, ProfileModel model) =>
             {
                 var user = await userManager.FindByNameAsync(context.User.Identity.Name);
                 if (user == null) return Results.BadRequest("User not found.");
@@ -71,25 +80,27 @@ public static class Api
                 await userManager.UpdateAsync(user);
 
                 return Results.Ok();
-            }).RequireAuthorization();
+            });
 
-        app.MapGet("/api/account/info", async (HttpContext context, UserManager<ApplicationUser> UserManager) =>
-        {
-            if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
+        app.MapGet("/api/account/info", [JwtAuthorize]
+            async (HttpContext context, UserManager<ApplicationUser> UserManager) =>
+            {
+                // TODO: if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
 
-            var user = await UserManager.Users
-                .Include(u => u.EventStatus)
-                .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+                var user = await UserManager.Users
+                    .Include(u => u.EventStatus)
+                    .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
 
-            return Results.Ok(new UserDto(user));
-        });
+                return Results.Ok(new UserDto(user));
+            });
 
-        app.MapPost("/api/account/update_pfp", async (UserManager<ApplicationUser> userManager, IFormFile file,
+        app.MapPost("/api/account/update_pfp", [JwtAuthorize] async (UserManager<ApplicationUser> userManager,
+                IFormFile file,
                 HttpContext context, IProfilePictureService pfpService) =>
             {
                 if (!file.ContentType.Equals("image/jpeg", StringComparison.OrdinalIgnoreCase))
                     return Results.BadRequest("Only JPEG files are allowed.");
-                
+
                 if (file.Length > 3 * 1024 * 1024)
                     return Results.BadRequest("File size exceeds the 3MB limit.");
 
@@ -107,19 +118,22 @@ public static class Api
                 await pfpService.UploadProfilePictureAsync(file.OpenReadStream(), context.User.Identity.Name);
                 return Results.Ok();
             })
-            .DisableAntiforgery()
-            .RequireAuthorization();
+            .DisableAntiforgery();
 
-        app.MapPost("/api/account/remove_pfp", async (UserManager<ApplicationUser> userManager,
+        app.MapPost("/api/account/remove_pfp", [JwtAuthorize] async (UserManager<ApplicationUser> userManager,
             IProfilePictureService pfpService, HttpContext context) =>
         {
             var user = await userManager.GetUserAsync(context.User);
+
+            if (!user.HasPfp) return Results.Ok();
+
+            await pfpService.RemoveProfilePictureAsync(context.User.Identity.Name);
+
             user.HasPfp = false;
             await userManager.UpdateAsync(user);
 
-            await pfpService.RemoveProfilePictureAsync(context.User.Identity.Name);
             return Results.Ok();
-        }).RequireAuthorization();
+        });
     }
 
     private static void MapAccountAccessEndpoints(WebApplication app)
@@ -145,7 +159,7 @@ public static class Api
 
     private static void MapEventEndpoints(WebApplication app)
     {
-        app.MapPost("/api/register_event", async (UserManager<ApplicationUser> userManager, HttpContext context,
+        app.MapPost("/api/register_event", [JwtAuthorize] async (UserManager<ApplicationUser> userManager, HttpContext context,
             Location location, DateTime time) =>
         {
             var user = await userManager.Users
@@ -164,9 +178,9 @@ public static class Api
             await userManager.UpdateAsync(user);
 
             return Results.Ok();
-        }).RequireAuthorization();
+        });
 
-        app.MapPost("/api/cancel_event", async (UserManager<ApplicationUser> userManager, HttpContext context) =>
+        app.MapPost("/api/cancel_event", [JwtAuthorize] async (UserManager<ApplicationUser> userManager, HttpContext context) =>
         {
             var q = userManager.Users
                 .Include(u => u.EventStatus);
@@ -194,10 +208,10 @@ public static class Api
             await userManager.UpdateAsync(user);
 
             return Results.Ok();
-        }).RequireAuthorization();
+        });
 
         app.MapPost("/api/invite_to_event",
-            async (UserManager<ApplicationUser> userManager, string invited, HttpContext context) =>
+            [JwtAuthorize] async (UserManager<ApplicationUser> userManager, string invited, HttpContext context) =>
             {
                 var q = userManager.Users
                     .Include(u => u.EventStatus);
@@ -226,10 +240,10 @@ public static class Api
 
                 await userManager.UpdateAsync(invitor);
                 return Results.Ok();
-            }).RequireAuthorization();
+            });
 
         app.MapPost("/api/kick_from_event",
-            async (UserManager<ApplicationUser> userManager, string kicked, HttpContext context) =>
+            [JwtAuthorize] async (UserManager<ApplicationUser> userManager, string kicked, HttpContext context) =>
             {
                 var q = userManager.Users
                     .Include(u => u.EventStatus);
@@ -254,10 +268,10 @@ public static class Api
                 await userManager.UpdateAsync(invitor);
                 
                 return Results.Ok();
-            }).RequireAuthorization();
+            });
 
         app.MapGet("/api/query_visitors",
-            async (UserManager<ApplicationUser> userManager, HttpContext context, int page) =>
+            [JwtAuthorize] async (UserManager<ApplicationUser> userManager, HttpContext context, int page) =>
             {
                 const int pageSize = 4;
 
@@ -279,9 +293,9 @@ public static class Api
                     .ToListAsync();
 
                 return Results.Ok(users);
-            }).RequireAuthorization();
+            });
 
-        app.MapGet("/api/query_event_places", async (UserManager<ApplicationUser> userManager,
+        app.MapGet("/api/query_event_places", [JwtAuthorize] async (UserManager<ApplicationUser> userManager,
             ApplicationDbContext dbContext, IEventPlacePictureService pictureService, HttpContext context) =>
         {
             var user = await userManager.Users
@@ -310,6 +324,6 @@ public static class Api
             }).ToList();
 
             return Results.Ok(ret);
-        }).RequireAuthorization();
+        });
     }
 }
