@@ -21,9 +21,10 @@ namespace Server.Services
         {
             using var scope = serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            
             var usersWithExpiredEvents = context.Users
                 .Include(u => u.EventStatus)
-                .Where(u => u.EventStatus.Time != null && u.EventStatus.Time.Value.Day < DateTime.Today.Day)
+                .Where(u => u.EventStatus.Time != null && u.EventStatus.Time.Value < DateTime.Today)
                 .ToList();
 
             foreach (var user in usersWithExpiredEvents)

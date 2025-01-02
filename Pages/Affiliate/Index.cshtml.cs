@@ -87,6 +87,9 @@ namespace Server.Pages.Affiliate
                 .FirstOrDefaultAsync(u => u.UserName == User.Identity.Name);
             
             if (user == null) return NotFound();
+
+            if (user.EventPlace.Offers.Any(offer => offer.Name == CreateOfferInput.Name))
+                return RedirectToPage("/Affiliate/Index");
             
             user.EventPlace.Offers.Add(new EventPlaceOffer
             {
@@ -110,6 +113,7 @@ namespace Server.Pages.Affiliate
             
             if (user == null) return NotFound();
             
+            await _eventPlacePictureService.DeleteEventOfferPictureAsync(user.EventPlace, offerId);
             user.EventPlace.Offers.RemoveAt(offerId);
             await _userManager.UpdateAsync(user);
             
@@ -142,7 +146,7 @@ namespace Server.Pages.Affiliate
             
             if (user == null) return NotFound();
             
-            await _eventPlacePictureService.DeleteAsync(user.EventPlace, user.EventPlace.Offers[offerId].Image);
+            await _eventPlacePictureService.DeleteEventOfferPictureAsync(user.EventPlace, offerId);
             user.EventPlace.Offers[offerId].Image = null;
             await _userManager.UpdateAsync(user);
             

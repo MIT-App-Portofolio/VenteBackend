@@ -46,7 +46,6 @@ builder.Services.Configure<AwsConfig>(builder.Configuration.GetSection("AWS"));
 builder.Services.Configure<AdminConfig>(builder.Configuration.GetSection("Admin"));
 
 AWSConfigs.LoggingConfig.LogTo = LoggingOptions.Console;
-
 AWSConfigs.AWSRegion = builder.Configuration.GetSection("AWS")["Region"];
 
 builder.Services.AddSingleton<ICoreAmazonS3>(sp =>
@@ -80,6 +79,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddHostedService<EventStatusCleanupService>();
+builder.Services.AddHostedService<OffersCleanupService>();
 
 var app = builder.Build();
 
