@@ -304,7 +304,7 @@ public static class Api
             });
 
         app.MapGet("/api/query_visitors",
-            [JwtAuthorize] async (UserManager<ApplicationUser> userManager, HttpContext context, int page) =>
+            [JwtAuthorize] async (UserManager<ApplicationUser> userManager, HttpContext context, int page, int? ageRangeMin, int? ageRangeMax, Gender? gender) =>
             {
                 const int pageSize = 4;
 
@@ -314,12 +314,29 @@ public static class Api
 
                 if (!user.EventStatus.Active)
                     return Results.Ok(new List<ApplicationUser>());
-
-                var users = await userManager.Users
+                
+                var query = userManager.Users
                     .Include(u => u.EventStatus)
                     .Where(u => u.EventStatus.Active == true &&
                                 u.EventStatus.Location == user.EventStatus.Location &&
-                                u.EventStatus.Time.Value.Day == user.EventStatus.Time.Value.Day)
+                                u.EventStatus.Time.Value.Day == user.EventStatus.Time.Value.Day);
+
+                    if (gender.HasValue)
+                        query = query.Where(u => u.Gender == gender.Value);
+
+                    if (ageRangeMin.HasValue)
+                    {
+                        var minDate = DateTime.Now.AddYears(-ageRangeMin.Value);
+                        query = query.Where(u => u.BirthDate <= minDate);
+                    }
+
+                    if (ageRangeMax.HasValue)
+                    {
+                        var maxDate = DateTime.Now.AddYears(-ageRangeMax.Value);
+                        query = query.Where(u => u.BirthDate >= maxDate);
+                    }
+
+                var users = await query
                     .Skip(page * pageSize)
                     .Take(pageSize)
                     .Select(u => new UserDto(u))
