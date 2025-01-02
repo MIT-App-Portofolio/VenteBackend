@@ -85,8 +85,6 @@ public static class Api
         app.MapGet("/api/account/info", [JwtAuthorize]
             async (HttpContext context, UserManager<ApplicationUser> UserManager) =>
             {
-                // TODO: if (!context.User.Identity.IsAuthenticated) return Results.Unauthorized();
-
                 var user = await UserManager.Users
                     .Include(u => u.EventStatus)
                     .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
