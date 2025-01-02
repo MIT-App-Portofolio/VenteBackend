@@ -230,19 +230,29 @@ public static class Api
 
                 if (invitor.EventStatus.With.Contains(invited)) return Results.Ok();
 
-                var u = await q.FirstOrDefaultAsync(u => u.UserName == invited);
-                if (u == null) return Results.BadRequest("User not found.");
+                var invitedUser = await q.FirstOrDefaultAsync(u => u.UserName == invited);
+                if (invitedUser == null) return Results.BadRequest("User not found.");
+                
+                if (invitedUser.EventStatus is { Active: true, With.Count: > 0 })
+                    return Results.BadRequest("User is already in an event.");
 
-                u.EventStatus.Active = true;
-                u.EventStatus.Time = invitor.EventStatus.Time;
-                u.EventStatus.Location = invitor.EventStatus.Location;
+                invitedUser.EventStatus.Active = true;
+                invitedUser.EventStatus.Time = invitor.EventStatus.Time;
+                invitedUser.EventStatus.Location = invitor.EventStatus.Location;
 
                 var userInvited = new List<string>(invitor.EventStatus.With);
-                userInvited.Remove(u.UserName);
+                userInvited.Remove(invitedUser.UserName);
                 userInvited.Add(invitor.UserName);
-                u.EventStatus.With = userInvited;
+                invitedUser.EventStatus.With = userInvited;
 
-                await userManager.UpdateAsync(u);
+                await userManager.UpdateAsync(invitedUser);
+
+                foreach (var other in invitor.EventStatus.With)
+                {
+                    var otherUser = await q.FirstOrDefaultAsync(u => u.UserName == other);
+                    otherUser.EventStatus.With.Add(invited);
+                    await userManager.UpdateAsync(otherUser);
+                }
 
                 invitor.EventStatus.With.Add(invited);
 
@@ -262,17 +272,28 @@ public static class Api
 
                 if (!invitor.EventStatus.With.Contains(kicked)) return Results.BadRequest();
 
-                var u = await q.FirstOrDefaultAsync(u => u.UserName == kicked);
-                if (u == null) return Results.BadRequest("User not found.");
-
-                u.EventStatus.Active = false;
-                u.EventStatus.Time = null;
-                u.EventStatus.Location = null;
-                u.EventStatus.With = null;
+                var kickedUser = await q.FirstOrDefaultAsync(u => u.UserName == kicked);
+                if (kickedUser == null) return Results.BadRequest("User not found.");
+                
+                kickedUser.EventStatus.Active = false;
+                kickedUser.EventStatus.Time = null;
+                kickedUser.EventStatus.Location = null;
+                kickedUser.EventStatus.With = null;
+                
+                foreach (var user in invitor.EventStatus.With)
+                {
+                    var userQuery = await q.FirstOrDefaultAsync(u1 => u1.UserName == user);
+                    
+                    if (userQuery.EventStatus.With == null) continue;
+                    
+                    userQuery.EventStatus.With.Remove(kicked);
+                    await userManager.UpdateAsync(userQuery);
+                }
+                
 
                 invitor.EventStatus.With.Remove(kicked);
 
-                await userManager.UpdateAsync(u);
+                await userManager.UpdateAsync(kickedUser);
                 await userManager.UpdateAsync(invitor);
 
                 return Results.Ok();
