@@ -42,6 +42,15 @@
             <p class="mb-4">@Model.Place.Location</p>
             <h3 class="text-xl font-semibold mb-2">Rango de precio</h3>
             <p class="mb-4">@Model.Place.PriceRangeStart&euro; - @Model.Place.PriceRangeEnd&euro;</p>
+            <h3 class="text-xl font-semibold mb-2">Edad minima</h3>
+            @if (Model.Place.AgeRequirement != null)
+            {
+                <p class="mb-4">+@Model.Place.AgeRequirement</p>
+            }
+            else
+            {
+                <p class="mb-4">Sin edad minima</p>
+            }
 
             <a asp-page="/Affiliate/EditEventPlace">
                 <button class="btn btn-primary">Editar</button>

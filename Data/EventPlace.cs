@@ -12,6 +12,7 @@ public class EventPlace
     public List<string> Images { get; set; }
     public int PriceRangeBegin { get; set; }
     public int PriceRangeEnd { get; set; }
+    public int? AgeRequirement { get; set; }
     
     public List<EventPlaceOffer> Offers { get; set; }
 }

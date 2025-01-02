@@ -34,6 +34,11 @@
                     <label class="input input-bordered flex items-center gap-2 mb-3">
                         <input asp-for="EventPlace.PriceRangeEnd" class="grow" placeholder="Rango de precio maximo" />
                     </label>
+                    
+                    <span asp-validation-for="EventPlace.AgeRequirement" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="EventPlace.AgeRequirement" class="grow" placeholder="Edad minima" />
+                    </label>
 
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                     <button type="submit" class="btn btn-primary w-full">Guardar cambios</button>
