@@ -33,7 +33,7 @@ namespace Server.Pages.Admin.Affiliates
             {
                 UserName = Input.UserName,
                 Gender = Gender.Male,
-                BirthDate = DateTime.UnixEpoch,
+                BirthDate = DateTime.MinValue,
                 Email = Input.Email,
                 HasPfp = false,
                 EventStatus = new EventStatus()
