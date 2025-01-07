@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Bogus;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -149,8 +150,14 @@ public static class Api
     private static void MapAccountAccessEndpoints(WebApplication app)
     {
         app.MapGet("/api/access_pfp",
-            async (string userName, UserManager<ApplicationUser> userManager, IProfilePictureService pfpService) =>
+            [JwtAuthorize] async (string userName, UserManager<ApplicationUser> userManager, IProfilePictureService pfpService, HttpContext context) =>
             {
+                if (app.Environment.IsEnvironment("Sandbox"))
+                {
+                    if (userName != context.User.Identity.Name)
+                        return Results.Ok(new Faker().Image.PicsumUrl(400, 400));
+                }
+                
                 var user = await userManager.FindByNameAsync(userName);
                 if (user == null) return Results.NotFound();
 
@@ -353,6 +360,7 @@ public static class Api
                 .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
 
             var places = await dbContext.Places
+                .Include(p => p.Offers)
                 .Where(p => p.Location == user.EventStatus.Location)
                 .Select(p =>
                     new
@@ -372,6 +380,16 @@ public static class Api
                 }).ToList();
                 return new EventPlaceDto(place.Place, pictureService.GetDownloadUrls(place.Place));
             }).ToList();
+
+            if (!app.Environment.IsEnvironment("Sandbox")) return Results.Ok(ret);
+            
+            var faker = new Faker();
+            foreach (var place in ret)
+            {
+                place.ImageUrls = [faker.Image.PicsumUrl(), faker.Image.PicsumUrl(), faker.Image.PicsumUrl()];
+                foreach (var offer in place.Offers)
+                    offer.Image = faker.Image.PicsumUrl();
+            }
 
             return Results.Ok(ret);
         });

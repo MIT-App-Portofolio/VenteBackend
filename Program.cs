@@ -14,6 +14,12 @@ using Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.AddUserSecrets<Program>();
+
+// Use static web assets
+if (builder.Environment.IsEnvironment("Sandbox"))
+    builder.WebHost.UseStaticWebAssets();
+
 // Add services to the container.
 builder.Services.AddRazorPages().AddRazorPagesOptions(opt =>
 {
@@ -79,6 +85,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+if (builder.Environment.IsEnvironment("Sandbox"))
+    builder.Services.AddSingleton<SandboxEnvironmentSeeder>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
@@ -136,6 +145,12 @@ else
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
         c.RoutePrefix = "swagger";
     });
+}
+
+if (app.Environment.IsEnvironment("Sandbox"))
+{
+    var seeder = app.Services.GetRequiredService<SandboxEnvironmentSeeder>();
+    await seeder.Seed();
 }
 
 app.UseHttpsRedirection();
