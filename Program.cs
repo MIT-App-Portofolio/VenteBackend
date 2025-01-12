@@ -3,6 +3,7 @@ using Amazon;
 using Amazon.Runtime;
 using Amazon.Runtime.SharedInterfaces;
 using Amazon.S3;
+using AwsSignatureVersion4;
 using Microsoft.AspNetCore.Identity;
 using Server.Data;
 using Microsoft.EntityFrameworkCore;
@@ -55,6 +56,8 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("RequireAdmin", policy => policy.RequireRole("Admin"))
     .AddPolicy("RequireAffiliate", policy => policy.RequireRole("Affiliate"));
 
+builder.Services.AddHttpClient();
+
 builder.Services.Configure<AwsConfig>(builder.Configuration.GetSection("AWS"));
 builder.Services.Configure<AdminConfig>(builder.Configuration.GetSection("Admin"));
 builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JWT"));
@@ -69,8 +72,16 @@ builder.Services.AddSingleton<ICoreAmazonS3>(sp =>
     return new AmazonS3Client(credentials);
 });
 
-builder.Services.AddSingleton<IProfilePictureService, S3ProfilePictureService>();
-builder.Services.AddSingleton<IEventPlacePictureService, S3EventPlacePictureService>();
+var credentials = new ImmutableCredentials(builder.Configuration["Hetzner:AccessKeyId"], builder.Configuration["Hetzner:SecretAccessKey"], null);
+builder.Services
+    .AddTransient<AwsSignatureHandler>()
+    .AddTransient(_ => new AwsSignatureHandlerSettings(builder.Configuration["Hetzner:Region"], "s3", credentials));
+builder.Services
+    .AddHttpClient("hetzner-storage")
+    .AddHttpMessageHandler<AwsSignatureHandler>();
+
+builder.Services.AddSingleton<IProfilePictureService, HetznerProfilePictureService>();
+builder.Services.AddSingleton<IEventPlacePictureService, HetznerEventPlacePictureService>();
 builder.Services.AddSingleton<JwtTokenManager>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -138,7 +149,7 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    // app.UseHsts();
 }
 else
 {

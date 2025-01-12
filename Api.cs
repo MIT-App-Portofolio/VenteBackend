@@ -118,7 +118,7 @@ public static class Api
                 await using (var stream = file.OpenReadStream())
                 {
                     using (var image = await Image.LoadAsync(stream))
-                        if (image.Width != image.Height)
+                        if (Math.Abs(image.Height - image.Width) > 2)
                             return Results.BadRequest("Image must have a 1:1 aspect ratio.");
                 }
 
