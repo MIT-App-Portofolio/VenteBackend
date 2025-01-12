@@ -21,13 +21,20 @@ builder.Configuration.AddUserSecrets<Program>();
 if (builder.Environment.IsEnvironment("Sandbox"))
     builder.WebHost.UseStaticWebAssets();
 
-// Add services to the container.
 builder.Services.AddRazorPages().AddRazorPagesOptions(opt =>
 {
     opt.Conventions.AuthorizeFolder("/Admin", "RequireAdmin");
     opt.Conventions.AuthorizeFolder("/Affiliate", "RequireAffiliate");
 });
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Database
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlite("Data Source=dev.db"));
+
+// Auth
 builder.Services.AddAuthentication()
     .AddCookie(options =>
     {
@@ -52,16 +59,24 @@ builder.Services.AddAuthentication()
         };
     });
 
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    options.User.RequireUniqueEmail = true;
+    options.SignIn.RequireConfirmedEmail = false;
+}).AddEntityFrameworkStores<ApplicationDbContext>();
+
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("RequireAdmin", policy => policy.RequireRole("Admin"))
     .AddPolicy("RequireAffiliate", policy => policy.RequireRole("Affiliate"));
 
+// Config services
 builder.Services.AddHttpClient();
 
 builder.Services.Configure<AwsConfig>(builder.Configuration.GetSection("AWS"));
 builder.Services.Configure<AdminConfig>(builder.Configuration.GetSection("Admin"));
 builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JWT"));
 
+// S3/AWS
 AWSConfigs.LoggingConfig.LogTo = LoggingOptions.Console;
 AWSConfigs.AWSRegion = builder.Configuration.GetSection("AWS")["Region"];
 
@@ -72,6 +87,7 @@ builder.Services.AddSingleton<ICoreAmazonS3>(sp =>
     return new AmazonS3Client(credentials);
 });
 
+// Hetzner
 var credentials = new ImmutableCredentials(builder.Configuration["Hetzner:AccessKeyId"], builder.Configuration["Hetzner:SecretAccessKey"], null);
 builder.Services
     .AddTransient<AwsSignatureHandler>()
@@ -80,25 +96,17 @@ builder.Services
     .AddHttpClient("hetzner-storage")
     .AddHttpMessageHandler<AwsSignatureHandler>();
 
+// Custom services
 builder.Services.AddSingleton<IProfilePictureService, HetznerProfilePictureService>();
 builder.Services.AddSingleton<IEventPlacePictureService, HetznerEventPlacePictureService>();
 builder.Services.AddSingleton<JwtTokenManager>();
-
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite("Data Source=dev.db"));
-
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-{
-    options.User.RequireUniqueEmail = true;
-    options.SignIn.RequireConfirmedEmail = false;
-}).AddEntityFrameworkStores<ApplicationDbContext>();
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
 if (builder.Environment.IsEnvironment("Sandbox"))
     builder.Services.AddSingleton<SandboxEnvironmentSeeder>();
 
+builder.Services.AddHostedService<EventStatusCleanupService>();
+builder.Services.AddHostedService<OffersCleanupService>();
+
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
@@ -110,11 +118,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddHostedService<EventStatusCleanupService>();
-builder.Services.AddHostedService<OffersCleanupService>();
-
 var app = builder.Build();
 
+// Role config
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -124,6 +130,7 @@ using (var scope = app.Services.CreateScope())
         await roleManager.CreateAsync(new IdentityRole("Affiliate"));
 }
 
+// Admin config
 using (var scope = app.Services.CreateScope())
 {
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -140,6 +147,12 @@ using (var scope = app.Services.CreateScope())
 
     await userManager.CreateAsync(admin, adminConfig.Password);
     await userManager.AddToRoleAsync(admin, "Admin");
+}
+
+if (app.Environment.IsEnvironment("Sandbox"))
+{
+    var seeder = app.Services.GetRequiredService<SandboxEnvironmentSeeder>();
+    await seeder.Seed();
 }
 
 app.UseCors("AllowAll");
@@ -159,12 +172,6 @@ else
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
         c.RoutePrefix = "swagger";
     });
-}
-
-if (app.Environment.IsEnvironment("Sandbox"))
-{
-    var seeder = app.Services.GetRequiredService<SandboxEnvironmentSeeder>();
-    await seeder.Seed();
 }
 
 app.UseHttpsRedirection();
