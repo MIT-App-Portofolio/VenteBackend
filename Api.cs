@@ -237,6 +237,9 @@ public static class Api
 
                 var invitor = await q.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
 
+                if (invitor.UserName == invited)
+                    return Results.BadRequest();
+
                 if (!invitor.EventStatus.Active) return Results.Unauthorized();
 
                 if (invitor.EventStatus.With.Contains(invited)) return Results.Ok();
@@ -301,7 +304,6 @@ public static class Api
                     await userManager.UpdateAsync(userQuery);
                 }
                 
-
                 invitor.EventStatus.With.Remove(kicked);
 
                 await userManager.UpdateAsync(kickedUser);
