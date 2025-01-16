@@ -11,7 +11,7 @@ public class EventPlaceOfferModel
     {
         Name = offer.Name;
         Price = offer.Price;
-        ActiveOn = offer.ActiveOn;
+        ActiveOn = offer.ActiveOn.DateTime;
         Description = offer.Description;
     }
     

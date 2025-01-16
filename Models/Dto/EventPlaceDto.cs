@@ -20,7 +20,7 @@ public class EventPlaceOfferDto
 
     public EventPlaceOfferDto(EventPlaceOffer offer)
     {
-        ActiveOn = offer.ActiveOn;
+        ActiveOn = offer.ActiveOn.Date;
         Name = offer.Name;
         Description = offer.Description;
         Image = offer.Image;

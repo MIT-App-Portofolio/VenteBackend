@@ -23,7 +23,7 @@ public class EventPlaceOffer
     public EventPlace EventPlace { get; set; }
     public int EventPlaceId { get; set; }
     
-    public DateTime ActiveOn { get; set; }
+    public DateTimeOffset ActiveOn { get; set; }
     public string Name { get; set; }
     public string? Description { get; set; }
     public string? Image { get; set; }
