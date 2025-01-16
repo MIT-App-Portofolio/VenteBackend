@@ -32,7 +32,12 @@ builder.Services.AddSwaggerGen();
 
 // Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite("Data Source=dev.db"));
+{
+    if (builder.Environment.IsDevelopment())
+        options.UseSqlite("Data Source=dev.db");
+    else
+        options.UseNpgsql(builder.Configuration.GetConnectionString("Pg"));
+});
 
 // Auth
 builder.Services.AddAuthentication()
