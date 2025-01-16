@@ -7,6 +7,7 @@ using AwsSignatureVersion4;
 using Microsoft.AspNetCore.Identity;
 using Server.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Server;
@@ -16,6 +17,7 @@ using Server.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddUserSecrets<Program>();
+
 
 // Use static web assets
 if (builder.Environment.IsEnvironment("Sandbox"))
@@ -33,6 +35,8 @@ builder.Services.AddSwaggerGen();
 // Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
+    options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+    
     if (builder.Environment.IsDevelopment())
         options.UseSqlite("Data Source=dev.db");
     else
