@@ -92,8 +92,8 @@ public static class Api
                 var user = await userManager.Users
                     .Include(u => u.EventStatus)
                     .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
-
-                return Results.Ok(new UserDto(user));
+                
+                return user == null ? Results.Unauthorized() : Results.Ok(new UserDto(user));
             });
 
         app.MapGet("/api/account/profile", async (UserManager<ApplicationUser> userManager, string username) =>
