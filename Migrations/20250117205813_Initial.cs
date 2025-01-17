@@ -34,7 +34,7 @@ namespace Server.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Active = table.Column<bool>(type: "boolean", nullable: false),
-                    Time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Time = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     With = table.Column<List<string>>(type: "text[]", nullable: true),
                     Location = table.Column<int>(type: "integer", nullable: true)
                 },
@@ -72,7 +72,7 @@ namespace Server.Migrations
                     Name = table.Column<string>(type: "text", nullable: true),
                     IgHandle = table.Column<string>(type: "text", nullable: true),
                     Description = table.Column<string>(type: "text", nullable: true),
-                    BirthDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    BirthDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     HasPfp = table.Column<bool>(type: "boolean", nullable: false),
                     Gender = table.Column<int>(type: "integer", nullable: false),
                     EventStatusId = table.Column<int>(type: "integer", nullable: false),
@@ -214,25 +214,46 @@ namespace Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "EventPlaceOffer",
+                name: "EventPlaceEvent",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     EventPlaceId = table.Column<int>(type: "integer", nullable: false),
-                    ActiveOn = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
                     Image = table.Column<string>(type: "text", nullable: true),
+                    Time = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EventPlaceEvent", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EventPlaceEvent_Places_EventPlaceId",
+                        column: x => x.EventPlaceId,
+                        principalTable: "Places",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EventPlaceOffer",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    EventId = table.Column<int>(type: "integer", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
                     Price = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_EventPlaceOffer", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_EventPlaceOffer_Places_EventPlaceId",
-                        column: x => x.EventPlaceId,
-                        principalTable: "Places",
+                        name: "FK_EventPlaceOffer_EventPlaceEvent_EventId",
+                        column: x => x.EventId,
+                        principalTable: "EventPlaceEvent",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -280,9 +301,14 @@ namespace Server.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_EventPlaceOffer_EventPlaceId",
-                table: "EventPlaceOffer",
+                name: "IX_EventPlaceEvent_EventPlaceId",
+                table: "EventPlaceEvent",
                 column: "EventPlaceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventPlaceOffer_EventId",
+                table: "EventPlaceOffer",
+                column: "EventId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Places_OwnerId",
@@ -314,6 +340,9 @@ namespace Server.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "EventPlaceEvent");
 
             migrationBuilder.DropTable(
                 name: "Places");

@@ -13,7 +13,7 @@ using Server.Data;
 namespace Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250116180557_Initial")]
+    [Migration("20250117205813_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -166,7 +166,7 @@ namespace Server.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("BirthDate")
+                    b.Property<DateTimeOffset>("BirthDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ConcurrencyStamp")
@@ -289,16 +289,13 @@ namespace Server.Migrations
                     b.ToTable("Places");
                 });
 
-            modelBuilder.Entity("Server.Data.EventPlaceOffer", b =>
+            modelBuilder.Entity("Server.Data.EventPlaceEvent", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("ActiveOn")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -313,12 +310,40 @@ namespace Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTimeOffset>("Time")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventPlaceId");
+
+                    b.ToTable("EventPlaceEvent");
+                });
+
+            modelBuilder.Entity("Server.Data.EventPlaceOffer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<int>("EventId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<int?>("Price")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EventPlaceId");
+                    b.HasIndex("EventId");
 
                     b.ToTable("EventPlaceOffer");
                 });
@@ -337,7 +362,7 @@ namespace Server.Migrations
                     b.Property<int?>("Location")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime?>("Time")
+                    b.Property<DateTimeOffset?>("Time")
                         .HasColumnType("timestamp with time zone");
 
                     b.PrimitiveCollection<List<string>>("With")
@@ -421,15 +446,26 @@ namespace Server.Migrations
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("Server.Data.EventPlaceOffer", b =>
+            modelBuilder.Entity("Server.Data.EventPlaceEvent", b =>
                 {
                     b.HasOne("Server.Data.EventPlace", "EventPlace")
-                        .WithMany("Offers")
+                        .WithMany("Events")
                         .HasForeignKey("EventPlaceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("EventPlace");
+                });
+
+            modelBuilder.Entity("Server.Data.EventPlaceOffer", b =>
+                {
+                    b.HasOne("Server.Data.EventPlaceEvent", "Event")
+                        .WithMany("Offers")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
                 });
 
             modelBuilder.Entity("Server.Data.ApplicationUser", b =>
@@ -438,6 +474,11 @@ namespace Server.Migrations
                 });
 
             modelBuilder.Entity("Server.Data.EventPlace", b =>
+                {
+                    b.Navigation("Events");
+                });
+
+            modelBuilder.Entity("Server.Data.EventPlaceEvent", b =>
                 {
                     b.Navigation("Offers");
                 });

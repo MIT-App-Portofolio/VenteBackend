@@ -3,8 +3,8 @@ using Server.Data;
 
 namespace Server.Services;
 
-public class OffersCleanupService(
-    ILogger<OffersCleanupService> logger,
+public class EventsCleanupService(
+    ILogger<EventsCleanupService> logger,
     IServiceProvider serviceProvider)
     : IHostedService, IDisposable
 {
@@ -24,24 +24,24 @@ public class OffersCleanupService(
         var imageService = scope.ServiceProvider.GetRequiredService<IEventPlacePictureService>();
         
         var places = context.Places
-            .Include(p => p.Offers)
+            .Include(p => p.Events)
             .ToList();
 
         foreach (var place in places)
         {
-            var toRemove = place.Offers.Select((o, i) => (o,i)).Where(v => v.o.ActiveOn < DateTime.Today).ToList();
+            var toRemove = place.Events.Select((o, i) => (o,i)).Where(v => v.o.Time < DateTime.Today).ToList();
             
-            foreach (var (offer, i) in toRemove)
+            foreach (var (e, i) in toRemove)
             {
-                logger.LogInformation("Deleting offer image {0} for place {1}", offer.Name, place.Name);
-                if (offer.Image != null)
-                    imageService.DeleteEventOfferPictureAsync(place, i).Wait();
+                logger.LogInformation("Deleting offer image {0} for place {1}", e.Name, place.Name);
+                if (e.Image != null)
+                    imageService.DeleteEventPictureAsync(place, i).Wait();
             }
 
-            foreach (var (offer, _) in toRemove)
+            foreach (var (e, _) in toRemove)
             {
-                logger.LogInformation("Deleting offer {0} for place {1}", offer.Name, place.Name);
-                place.Offers.Remove(offer);
+                logger.LogInformation("Deleting offer {0} for place {1}", e.Name, place.Name);
+                place.Events.Remove(e);
             }
         }
 

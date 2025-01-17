@@ -22,12 +22,10 @@ public class HetznerEventPlacePictureService(IConfiguration configuration, IHttp
             .ToList();
     }
 
-    public string GetEventOfferPictureUrl(EventPlace place, int offerId)
+    public string GetEventPictureUrl(EventPlace place, int offerId)
     {
-        var offer = place.Offers[offerId];
-        var path = $"places-pictures/{place.Name}/{offer.Name}/{offer.Image}";
-        
-        return new Uri(_pfpBucketUrl, path).ToString();
+        var offer = place.Events[offerId];
+        return new Uri(_pfpBucketUrl, $"places-pictures/{place.Name}/{offer.Name}/{offer.Image}").ToString();
     }
 
     public Task UploadAsync(EventPlace place, Stream picture, string filename)
@@ -36,10 +34,10 @@ public class HetznerEventPlacePictureService(IConfiguration configuration, IHttp
         return GetClient().PutAsync(new Uri(_pfpBucketUrl, path), new StreamContent(picture));
     }
 
-    public Task UploadEventOfferPictureAsync(EventPlace place, int offerId, Stream picture, string filename)
+    public Task UploadEventPictureAsync(EventPlace place, int offerId, Stream picture, string filename)
     {
-        var offer = place.Offers[offerId];
-        var path = $"places-pictures/{place.Name}/{offer.Name}/{filename}";
+        var @event = place.Events[offerId];
+        var path = $"places-pictures/{place.Name}/{@event.Name}/{filename}";
         return GetClient().PutAsync(new Uri(_pfpBucketUrl, path), new StreamContent(picture));
     }
 
@@ -49,13 +47,13 @@ public class HetznerEventPlacePictureService(IConfiguration configuration, IHttp
         return GetClient().DeleteAsync(new Uri(_pfpBucketUrl, path));
     }
 
-    public Task DeleteEventOfferPictureAsync(EventPlace place, int offerId)
+    public Task DeleteEventPictureAsync(EventPlace place, int offerId)
     {
-        var offer = place.Offers[offerId];
-        var path = $"places-pictures/{place.Name}/{offer.Name}/{offer.Image}";
+        var @event = place.Events[offerId];
+        var path = $"places-pictures/{place.Name}/{@event.Name}/{@event.Image}";
         return GetClient().DeleteAsync(new Uri(_pfpBucketUrl, path));
     }
-    
+
     private HttpClient GetClient()
     {
         return httpClientFactory.CreateClient("hetzner-storage");

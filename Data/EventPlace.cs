@@ -14,18 +14,30 @@ public class EventPlace
     public int PriceRangeEnd { get; set; }
     public int? AgeRequirement { get; set; }
     
+    public List<EventPlaceEvent> Events { get; set; }
+}
+
+public class EventPlaceEvent
+{
+    public int Id { get; set; }
+    public EventPlace EventPlace { get; set; }
+    public int EventPlaceId { get; set; }
+    
+    public string Name { get; set; }
+    public string? Description { get; set; }
+    public string? Image { get; set; }
+    public DateTimeOffset Time { get; set; }
+    
     public List<EventPlaceOffer> Offers { get; set; }
 }
 
 public class EventPlaceOffer
 {
     public int Id { get; set; }
-    public EventPlace EventPlace { get; set; }
-    public int EventPlaceId { get; set; }
+    public EventPlaceEvent Event { get; set; }
+    public int EventId { get; set; }
     
-    public DateTimeOffset ActiveOn { get; set; }
     public string Name { get; set; }
     public string? Description { get; set; }
-    public string? Image { get; set; }
     public int? Price { get; set; }
 }

@@ -1,6 +1,5 @@
 ﻿using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Identity;
-using Server.Services;
 using Bogus;
 
 namespace Server.Data;
@@ -48,9 +47,15 @@ public partial class SandboxEnvironmentSeeder(ILogger<SandboxEnvironmentSeeder> 
                 Email = new Faker().Internet.Email(),
                 EventPlace = place,
                 Gender = Gender.Male,
-                BirthDate = DateTime.MinValue,
+                BirthDate = DateTimeOffset.Now.AddYears(-18).ToUniversalTime(),
                 HasPfp = false,
-                EventStatus = new EventStatus()
+                EventStatus = new EventStatus
+                {
+                    Active = false,
+                    Location = null,
+                    Time = DateTimeOffset.Now.ToUniversalTime(),
+                    With = null,
+                }
             };
 
             var result = await userManager.CreateAsync(owner, "Password123+");
@@ -71,21 +76,33 @@ public partial class SandboxEnvironmentSeeder(ILogger<SandboxEnvironmentSeeder> 
             .RuleFor(p => p.PriceRangeBegin, f => f.Random.Int(5, 20))
             .RuleFor(p => p.PriceRangeEnd, (f, p) => p.PriceRangeBegin + f.Random.Int(5, 20))
             .RuleFor(p => p.AgeRequirement, f => f.Random.Bool() ? f.PickRandom(16, 18) : null)
-            .RuleFor(p => p.Offers, f =>
+            .RuleFor(p => p.Events, f =>
             {
-                var ret = new List<EventPlaceOffer>();
-                for (var i = 0; i < 10; i++) 
+                var events = new List<EventPlaceEvent>();
+                for (var i = 0; i < 10; i++)
                 {
-                    ret.Add(new EventPlaceOffer
+                    var offers = new List<EventPlaceOffer>();
+                    
+                    for (var j = 0; j < f.Random.Int(1, 5); j++)
                     {
-                        ActiveOn = RandomDate(),
+                        offers.Add(new EventPlaceOffer
+                        {
+                            Name = f.Commerce.ProductName(),
+                            Description = f.Lorem.Sentence(),
+                            Price = f.Random.Int(10, 50),
+                        });
+                    }
+                    
+                    events.Add(new EventPlaceEvent
+                    {
+                        Time = RandomDate(),
                         Name = f.Commerce.ProductName(),
                         Description = f.Lorem.Sentence(),
-                        Price = f.Random.Int(10, 50),
+                        Offers = offers
                     });
                 }
 
-                return ret;
+                return events;
             });
 
         return faker.Generate(count);

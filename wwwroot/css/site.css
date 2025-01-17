@@ -2458,6 +2458,10 @@ html {
   width: 5rem;
 }
 
+.w-32 {
+  width: 8rem;
+}
+
 .w-96 {
   width: 24rem;
 }
@@ -2466,12 +2470,12 @@ html {
   width: 100%;
 }
 
-.w-24 {
-  width: 6rem;
+.w-12 {
+  width: 3rem;
 }
 
-.w-32 {
-  width: 8rem;
+.w-8 {
+  width: 2rem;
 }
 
 .max-w-xs {

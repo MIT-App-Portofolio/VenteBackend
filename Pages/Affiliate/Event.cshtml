@@ -1,0 +1,66 @@
+@page "{eventId:int}"
+@model Server.Pages.Affiliate.Event
+
+@{ }
+
+<div class="hero">
+    <div class="hero-content flex-col align-start w-full">
+        <div class="mt-8 p-6 bg-base-100 rounded-lg shadow-md w-full">
+            <h2 class="text-3xl font-bold mb-4">@Model.EventInfo.Name</h2>
+            <h3 class="text-xl font-semibold mb-2">Descripción</h3>
+            <p class="mb-4">@Model.EventInfo.Description</p>
+            <h3 class="text-xl font-semibold mb-2">Fecha</h3>
+            <p class="mb-4">@Model.EventInfo.Time.ToShortDateString()</p>
+        </div>
+
+        <div class="mt-8 p-6 bg-base-100 rounded-lg shadow-md w-full">
+            <h3 class="text-xl font-semibold mb-2">Ofertas</h3>
+            <button class="btn btn-primary" onclick="document.getElementById('offer-create-dialog').showModal()">Crear oferta</button>
+            <table class="table w-full">
+                <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Precio</th>
+                    <th>Acciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var (offer, i) in Model.Offers)
+                {
+                    <tr>
+                        <td>@offer.Name</td>
+                        <td>@offer.Description</td>
+                        <td>@offer.Price &euro;</td>
+                        <td>
+                            <form method="post" asp-page-handler="DeleteOffer" asp-route-offerId="@i" >
+                                <button type="submit" class="btn btn-error">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<dialog id="offer-create-dialog" class="modal">
+    <form method="post" asp-page-handler="CreateOffer" class="modal-box flex flex-col">
+        @Html.AntiForgeryToken()
+        <h3 class="font-bold text-lg">Crear nueva oferta</h3>
+        <label class="input input-bordered flex items-center gap-2 mb-3">
+            <input asp-for="NewOffer.Name" class="grow" placeholder="Nombre (obligatorio)" required />
+        </label>
+        <label class="input input-bordered flex items-center gap-2 mb-3">
+            <input asp-for="NewOffer.Description" class="grow" placeholder="Descripción" />
+        </label>
+        <label class="input input-bordered flex items-center gap-2 mb-3">
+            <input asp-for="NewOffer.Price" class="grow" placeholder="Precio" type="number" />
+        </label>
+        <div class="modal-action">
+            <button type="submit" class="btn btn-primary">Crear</button>
+            <button type="button" class="btn" onclick="document.getElementById('offer-create-dialog').close()">Cancelar</button>
+        </div>
+    </form>
+</dialog>

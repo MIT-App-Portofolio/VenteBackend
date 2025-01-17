@@ -362,22 +362,22 @@ public static class Api
                 .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
 
             var places = await dbContext.Places
-                .Include(p => p.Offers)
+                .Include(p => p.Events)
                 .Where(p => p.Location == user.EventStatus.Location)
                 .Select(p =>
                     new
                     {
                         Place = p,
-                        Offers = p.Offers.Where(o => o.ActiveOn.Date == user.EventStatus.Time.Value.Date).ToList()
+                        Events = p.Events.Where(o => o.Time.Date == user.EventStatus.Time.Value.Date).ToList()
                     }
                 )
                 .ToListAsync();
 
             var ret = places.Select(place =>
             {
-                place.Place.Offers = place.Offers.Select((o, i) =>
+                place.Place.Events = place.Events.Select((o, i) =>
                 {
-                    o.Image = o.Image == null ? null : pictureService.GetEventOfferPictureUrl(place.Place, i);
+                    o.Image = o.Image == null ? null : pictureService.GetEventPictureUrl(place.Place, i);
                     return o;
                 }).ToList();
                 return new EventPlaceDto(place.Place, pictureService.GetDownloadUrls(place.Place));
@@ -389,7 +389,7 @@ public static class Api
             foreach (var place in ret)
             {
                 place.ImageUrls = [faker.Image.PicsumUrl(), faker.Image.PicsumUrl(), faker.Image.PicsumUrl()];
-                foreach (var offer in place.Offers)
+                foreach (var offer in place.Events)
                     offer.Image = faker.Image.PicsumUrl();
             }
 

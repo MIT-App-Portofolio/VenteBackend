@@ -110,7 +110,7 @@ if (builder.Environment.IsEnvironment("Sandbox"))
     builder.Services.AddSingleton<SandboxEnvironmentSeeder>();
 
 builder.Services.AddHostedService<EventStatusCleanupService>();
-builder.Services.AddHostedService<OffersCleanupService>();
+builder.Services.AddHostedService<EventsCleanupService>();
 
 // CORS
 builder.Services.AddCors(options =>
@@ -196,6 +196,8 @@ app.UseAuthorization();
 app.MapStaticAssets();
 app.MapRazorPages()
    .WithStaticAssets();
+
+app.MapGet("/online", () => Results.Ok());
 
 app.MapApiEndpoints();
 
