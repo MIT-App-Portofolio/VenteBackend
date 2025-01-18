@@ -363,6 +363,7 @@ public static class Api
 
             var places = await dbContext.Places
                 .Include(p => p.Events)
+                    .ThenInclude(e => e.Offers)
                 .Where(p => p.Location == user.EventStatus.Location)
                 .Select(p =>
                     new
@@ -375,22 +376,25 @@ public static class Api
 
             var ret = places.Select(place =>
             {
-                place.Place.Events = place.Events.Select((o, i) =>
+                place.Place.Events = place.Events.Select((e, i) =>
                 {
-                    o.Image = o.Image == null ? null : pictureService.GetEventPictureUrl(place.Place, i);
-                    return o;
+                    var index = place.Place.Events.IndexOf(e);
+                    e.Image = e.Image == null ? null : pictureService.GetEventPictureUrl(place.Place, index);
+                    return e;
                 }).ToList();
                 return new EventPlaceDto(place.Place, pictureService.GetDownloadUrls(place.Place));
             }).ToList();
 
             if (!app.Environment.IsEnvironment("Sandbox")) return Results.Ok(ret);
             
-            var faker = new Faker();
+            var randomCount = 0;
             foreach (var place in ret)
             {
-                place.ImageUrls = [faker.Image.PicsumUrl(), faker.Image.PicsumUrl(), faker.Image.PicsumUrl()];
-                foreach (var offer in place.Events)
-                    offer.Image = faker.Image.PicsumUrl();
+                if (place.ImageUrls.Count == 0) 
+                    place.ImageUrls = ["picsum.photos/640/480?random=" + randomCount++, "picsum.photos/640/480?random=" + randomCount++, "picsum.photos/640/480?random=" + randomCount++];
+                
+                foreach (var e in place.Events)
+                    e.Image ??= "picsum.photos/200/400?random=" + randomCount++;
             }
 
             return Results.Ok(ret);

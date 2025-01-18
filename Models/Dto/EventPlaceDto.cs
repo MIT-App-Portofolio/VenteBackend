@@ -10,8 +10,8 @@ public class EventPlaceDto(EventPlace place, List<string> downloadUrls)
     public List<string> ImageUrls { get; set; } = downloadUrls;
     public int PriceRangeBegin { get; set; } = place.PriceRangeBegin;
     public int PriceRangeEnd { get; set; } = place.PriceRangeEnd;
-    public List<EventPlaceEventDto> Events { get; set; } = place.Events.Select(o => new EventPlaceEventDto(o)).ToList();
     public int? AgeRequirement { get; set; } = place.AgeRequirement;
+    public List<EventPlaceEventDto> Events { get; set; } = place.Events.Select(o => new EventPlaceEventDto(o)).ToList();
 }
 
 public class EventPlaceEventDto

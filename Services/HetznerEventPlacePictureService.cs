@@ -22,10 +22,10 @@ public class HetznerEventPlacePictureService(IConfiguration configuration, IHttp
             .ToList();
     }
 
-    public string GetEventPictureUrl(EventPlace place, int offerId)
+    public string GetEventPictureUrl(EventPlace place, int eventId)
     {
-        var offer = place.Events[offerId];
-        return new Uri(_pfpBucketUrl, $"places-pictures/{place.Name}/{offer.Name}/{offer.Image}").ToString();
+        var e = place.Events[eventId];
+        return new Uri(_pfpBucketUrl, $"places-pictures/{place.Name}/{e.Name}/{e.Image}").ToString();
     }
 
     public Task UploadAsync(EventPlace place, Stream picture, string filename)
@@ -47,9 +47,9 @@ public class HetznerEventPlacePictureService(IConfiguration configuration, IHttp
         return GetClient().DeleteAsync(new Uri(_pfpBucketUrl, path));
     }
 
-    public Task DeleteEventPictureAsync(EventPlace place, int offerId)
+    public Task DeleteEventPictureAsync(EventPlace place, int eventId)
     {
-        var @event = place.Events[offerId];
+        var @event = place.Events[eventId];
         var path = $"places-pictures/{place.Name}/{@event.Name}/{@event.Image}";
         return GetClient().DeleteAsync(new Uri(_pfpBucketUrl, path));
     }
