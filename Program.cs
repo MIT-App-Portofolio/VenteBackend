@@ -78,6 +78,7 @@ builder.Services.AddAuthorizationBuilder()
 // Config services
 builder.Services.AddHttpClient();
 
+builder.Services.Configure<GoogleConfig>(builder.Configuration.GetSection("Google"));
 builder.Services.Configure<AwsConfig>(builder.Configuration.GetSection("AWS"));
 builder.Services.Configure<AdminConfig>(builder.Configuration.GetSection("Admin"));
 builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JWT"));

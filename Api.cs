@@ -1,9 +1,12 @@
 ﻿using Bogus;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Server.Config;
 using Server.Data;
 using Server.Models;
 using Server.Models.Dto;
@@ -32,6 +35,64 @@ public static class Api
 
     private static void MapAccountEndpoints(WebApplication app)
     {
+        app.MapGet("/api/account/google_should_register", async (UserManager<ApplicationUser> userManager, 
+            IOptions<GoogleConfig> config, string id) =>
+        {
+            var payload = await GoogleJsonWebSignature.ValidateAsync(id, new GoogleJsonWebSignature.ValidationSettings
+            {
+                Audience = config.Value.ClientIds
+            });
+            
+            return Results.Ok(await userManager.FindByEmailAsync(payload.Email) == null);
+        });
+
+        app.MapPost("/api/account/login_google", async (UserManager<ApplicationUser> userManager,
+            JwtTokenManager tokenManager, IOptions<GoogleConfig> config, string id) =>
+        {
+            var payload = await GoogleJsonWebSignature.ValidateAsync(id,
+                new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = config.Value.ClientIds
+                });
+
+            var user = await userManager.FindByEmailAsync(payload.Email);
+            if (user == null) return Results.BadRequest("User not found.");
+
+            return Results.Ok(tokenManager.GenerateToken(user.UserName, user.Email, user.Id));
+        });
+
+        app.MapPost("/api/account/register_google", async (UserManager<ApplicationUser> userManager,
+            JwtTokenManager tokenManager, IOptions<GoogleConfig> config, GoogleRegister model) =>
+        {
+            if (model.UserName == "fallback")
+                return Results.BadRequest("Fallback username is reserved.");
+
+            if (model.BirthDate > DateTime.Today.AddYears(-16))
+                return Results.BadRequest("User must be at least 16 years old.");
+
+            var payload = await GoogleJsonWebSignature.ValidateAsync(model.Id,
+                new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = config.Value.ClientIds
+                });
+
+            var user = new ApplicationUser
+            {
+                UserName = model.UserName,
+                Gender = model.Gender,
+                BirthDate = model.BirthDate,
+                Email = payload.Email,
+                HasPfp = false,
+                EventStatus = new EventStatus()
+            };
+
+            var result = await userManager.CreateAsync(user);
+
+            if (!result.Succeeded) return Results.BadRequest(result.Errors);
+
+            return Results.Ok(tokenManager.GenerateToken(user.UserName, user.Email, user.Id));
+        });
+
         app.MapPost("/api/account/register", async (UserManager<ApplicationUser> userManager,
             JwtTokenManager tokenManager, RegisterModel model) =>
         {
