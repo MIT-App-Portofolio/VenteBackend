@@ -452,10 +452,10 @@ public static class Api
             foreach (var place in ret)
             {
                 if (place.ImageUrls.Count == 0) 
-                    place.ImageUrls = ["picsum.photos/640/480?random=" + randomCount++, "picsum.photos/640/480?random=" + randomCount++, "picsum.photos/640/480?random=" + randomCount++];
+                    place.ImageUrls = ["https://picsum.photos/640/480?random=" + randomCount++, "https://picsum.photos/640/480?random=" + randomCount++, "https://picsum.photos/640/480?random=" + randomCount++];
                 
                 foreach (var e in place.Events)
-                    e.Image ??= "picsum.photos/200/400?random=" + randomCount++;
+                    e.Image ??= "https://picsum.photos/200/400?random=" + randomCount++;
             }
 
             return Results.Ok(ret);

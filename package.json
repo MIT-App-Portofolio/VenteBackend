@@ -8,6 +8,7 @@
         "build:css": "npx tailwindcss -i ./wwwroot/css/tailwind.css -o ./wwwroot/css/site.css --watch"
     },
     "dependencies": {
+        "@fontsource/inter": "^5.1.1",
         "daisyui": "^4.12.22"
     }
 }
