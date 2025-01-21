@@ -21,6 +21,10 @@
         </div>
 
         <button class="btn btn-primary" onclick="document.getElementById('upload-dialog').showModal()">Sube una imagen</button>
+       
+        <a asp-page="/Affiliate/Users">
+            <button class="btn btn-secondary">Ver los usuarios que van a @Model.Place.Location.ToString()</button>
+        </a>
 
         <dialog id="upload-dialog" class="modal">
             <form method="post" enctype="multipart/form-data" asp-page-handler="UploadImage" class="modal-box flex flex-col">

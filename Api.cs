@@ -378,7 +378,8 @@ public static class Api
             {
                 const int pageSize = 4;
 
-                var user = await userManager.Users.Include(u => u.EventStatus)
+                var user = await userManager.Users
+                    .Include(u => u.EventStatus)
                     .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
                 if (user == null) return Results.Unauthorized();
 

@@ -32,8 +32,6 @@ namespace Server.Pages.Affiliate
             Place = new EventPlaceModel(user.EventPlace);
             Images = eventPlacePictureService.GetDownloadWithFilenameUrls(user.EventPlace);
             Events = user.EventPlace.Events.Select(e => (new EventPlaceEventModel(e), e.Id)).ToList();
-            
-            foreach (var e in Events) Console.WriteLine(e.Item1.Name + " " + e.Item2);
 
             EventsOfferCount = new Dictionary<int, int>();
             EventPictures = new Dictionary<int, string?>();

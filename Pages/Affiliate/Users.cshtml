@@ -1,0 +1,58 @@
+@page
+@using System.Globalization
+@using Server.Data
+@model Server.Pages.Affiliate.Users
+
+@{ } 
+
+<div class="hero">
+    <div class="hero-content flex flex-col">
+        <h2 class="text-2xl">Usuarios que van a @Model.Location.ToString()</h2>
+        
+        <div class="flex flex-row overflow-x-scroll space-x-5" style="width: 80vw;">
+            @foreach (var (user, pfpUrl) in Model.UsersList)
+            {
+                <div class="card bg-base-100 shadow-xl" style="width: 220px;">
+                    <figure>
+                        <img
+                            class="rounded-md"
+                            style="width: 200px; height: 200px; max-width: none;"
+                            src="@pfpUrl"
+                            alt="Profile picture of @user.UserName" />
+                    </figure>
+                    <div class="card-body">
+                        <h2 class="card-title">@(user.Name ?? "@" + user.UserName)</h2>
+                        
+                        <p>Va a @Model.Location.ToString() el @user.EventStatus.Time?.ToString(new CultureInfo("es-ES"))</p>
+
+                        @if (user.Gender == Gender.Male)
+                        {
+                            <p>Hombre</p>
+                        }
+                        else
+                        {
+                            <p>Mujer</p>
+                        }
+
+                        <p>@user.Years años</p>
+                        
+                        @if (user.Description != null)
+                        {
+                            <p>"@user.Description"</p>
+                        }
+                        
+                        @if (user.IgHandle != null)
+                        {
+                            <p>Instagram <a href="https://instagram.com/@user.IgHandle">@@@user.IgHandle</a></p>
+                        }
+                        
+                        @if (user.EventStatus.With != null)
+                        {
+                            <p>Va con @user.EventStatus.With.Count personas</p>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
