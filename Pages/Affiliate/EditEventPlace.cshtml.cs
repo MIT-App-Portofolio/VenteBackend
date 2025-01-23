@@ -49,6 +49,7 @@ namespace Server.Pages.Affiliate
             user.EventPlace.PriceRangeBegin = EventPlace.PriceRangeStart;
             user.EventPlace.PriceRangeEnd = EventPlace.PriceRangeEnd;
             user.EventPlace.AgeRequirement = EventPlace.AgeRequirement;
+            user.EventPlace.GoogleMapsLink = EventPlace.GoogleMapsLink;
 
             await _userManager.UpdateAsync(user);
 

@@ -6,19 +6,23 @@
 
 <div class="hero">
     <div class="hero-content">
-        <div class="card w-96 bg-base-100 shadow-xl">
+        <div class="card w-full bg-base-100 shadow-xl">
             <div class="card-body items-center text-center">
-                <h2 class="card-title">Editar su lugar de eventos</h2>
+                <h2 class="card-title text-primary">Editar su lugar de eventos</h2>
 
                 <form method="post">
                     <span asp-validation-for="EventPlace.Name" class="text-danger"></span>
                     <label class="input input-bordered flex items-center gap-2 mb-3">
-                        <input asp-for="EventPlace.Name" class="grow" placeholder="Nombre" />
+                        <span class="text-primary">Nombre:</span>
+                        <input asp-for="EventPlace.Name" class="grow"/>
                     </label>
 
                     <span asp-validation-for="EventPlace.Description" class="text-danger"></span>
                     <label class="input input-bordered flex items-center gap-2 mb-3">
-                        <input asp-for="EventPlace.Description" class="grow" placeholder="Descripcion" />
+                        <span class="text-primary">
+                            Descripcion:
+                        </span>
+                        <input asp-for="EventPlace.Description" class="grow"/>
                     </label>
 
                     <span asp-validation-for="EventPlace.Location" class="text-danger"></span>
@@ -27,17 +31,34 @@
 
                     <span asp-validation-for="EventPlace.PriceRangeStart" class="text-danger"></span>
                     <label class="input input-bordered flex items-center gap-2 mb-3">
-                        <input asp-for="EventPlace.PriceRangeStart" class="grow" placeholder="Rango de precio minimo" />
+                        <span class="text-primary">
+                            Rango de precio minimo:
+                        </span>
+                        <input asp-for="EventPlace.PriceRangeStart" class="grow"/>
                     </label>
 
                     <span asp-validation-for="EventPlace.PriceRangeEnd" class="text-danger"></span>
                     <label class="input input-bordered flex items-center gap-2 mb-3">
-                        <input asp-for="EventPlace.PriceRangeEnd" class="grow" placeholder="Rango de precio maximo" />
+                        <span class="text-primary">
+                            Rango de precio maximo:
+                        </span>
+                        <input asp-for="EventPlace.PriceRangeEnd" class="grow"/>
                     </label>
                     
                     <span asp-validation-for="EventPlace.AgeRequirement" class="text-danger"></span>
                     <label class="input input-bordered flex items-center gap-2 mb-3">
-                        <input asp-for="EventPlace.AgeRequirement" class="grow" placeholder="Edad minima" />
+                        <span class="text-primary">
+                            Edad minima:
+                        </span>
+                        <input asp-for="EventPlace.AgeRequirement" class="grow"/>
+                    </label>
+                    
+                    <span asp-validation-for="EventPlace.GoogleMapsLink" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <span class="text-primary">
+                            Google Maps:
+                        </span>
+                        <input asp-for="EventPlace.GoogleMapsLink" class="grow"/>
                     </label>
 
                     <div asp-validation-summary="ModelOnly" class="text-danger"></div>

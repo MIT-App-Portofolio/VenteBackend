@@ -13,6 +13,7 @@ public class EventPlace
     public int PriceRangeBegin { get; set; }
     public int PriceRangeEnd { get; set; }
     public int? AgeRequirement { get; set; }
+    public string? GoogleMapsLink { get; set; }
     
     public List<EventPlaceEvent> Events { get; set; }
 }

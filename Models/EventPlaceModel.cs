@@ -15,6 +15,7 @@ public class EventPlaceModel
         PriceRangeStart = eventPlace.PriceRangeBegin;
         PriceRangeEnd = eventPlace.PriceRangeEnd;
         AgeRequirement = eventPlace.AgeRequirement;
+        GoogleMapsLink = eventPlace.GoogleMapsLink;
     }
 
     [Required]
@@ -28,4 +29,5 @@ public class EventPlaceModel
     [Required]
     public int PriceRangeEnd { get; set; }
     public int? AgeRequirement { get; set; }
+    public string? GoogleMapsLink { get; set; }
 }
