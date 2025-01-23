@@ -11,6 +11,7 @@ public class EventPlaceDto(EventPlace place, List<string> downloadUrls)
     public int PriceRangeBegin { get; set; } = place.PriceRangeBegin;
     public int PriceRangeEnd { get; set; } = place.PriceRangeEnd;
     public int? AgeRequirement { get; set; } = place.AgeRequirement;
+    public string? GoogleMapsLink { get; set; } = place.GoogleMapsLink;
     public List<EventPlaceEventDto> Events { get; set; } = place.Events.Select(o => new EventPlaceEventDto(o)).ToList();
 }
 
