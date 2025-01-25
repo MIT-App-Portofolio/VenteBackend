@@ -54,7 +54,6 @@ public partial class SandboxEnvironmentSeeder(ILogger<SandboxEnvironmentSeeder> 
                     Active = false,
                     Location = null,
                     Time = DateTimeOffset.Now.ToUniversalTime(),
-                    With = null,
                 }
             };
 

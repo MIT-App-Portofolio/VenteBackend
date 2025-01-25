@@ -8,10 +8,15 @@ using Server.Services;
 
 namespace Server.Pages.Affiliate;
 
-public class Users(UserManager<ApplicationUser> userManager, IProfilePictureService profilePictureService, IWebHostEnvironment environment) : PageModel
+public class Users(
+    UserManager<ApplicationUser> userManager,
+    ApplicationDbContext dbContext,
+    IProfilePictureService profilePictureService,
+    IWebHostEnvironment environment) : PageModel
 {
     public List<(UserDto, string)> UsersList { get; set; }
     public Location Location { get; set; }
+
     public async Task<IActionResult> OnGetAsync()
     {
         var location = await userManager.Users
@@ -31,13 +36,19 @@ public class Users(UserManager<ApplicationUser> userManager, IProfilePictureServ
         var cacheCount = 0;
         if (environment.IsEnvironment("Sandbox"))
         {
-            UsersList = users.Select(u => (new UserDto(u), "https://picsum.photos/200/200?random=" + ++cacheCount)).ToList();
+            UsersList = users
+                .Select(u => (new UserDto(u, null), "https://picsum.photos/200/200?random=" + ++cacheCount)).ToList();
         }
         else
         {
-            UsersList = users.Select(u => (new UserDto(u), u.HasPfp ? profilePictureService.GetDownloadUrl(u.UserName) : profilePictureService.GetFallbackUrl())).ToList();
+            var dtos = await UserDto.FromListAsync(users, dbContext, userManager);
+            UsersList = [];
+            for (int i = 0; i < dtos.Count; i++)
+            {
+                UsersList.Add((dtos[i], users[i].HasPfp ? profilePictureService.GetDownloadUrl(users[i].UserName!) : profilePictureService.GetFallbackUrl()));
+            }
         }
-
+        
         return Page();
     }
 }

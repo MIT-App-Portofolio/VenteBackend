@@ -1,0 +1,5 @@
+- Anyone shall be able to invite.
+- Cannot invite users with pending invitations.
+- Cannot invite users within other groups. 
+- Cannot invite users that are already in the group.
+- Can invite users whether they are registered or not within an event.

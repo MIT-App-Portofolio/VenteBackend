@@ -31,11 +31,10 @@ namespace Server.Services
             {
                 logger.LogInformation("Cleaning up event status for user {0}", user.Email);
                 
-                user.EventStatus = new EventStatus()
+                user.EventStatus = new EventStatus
                 {
                     Active = false,
                     Time = null,
-                    With = null,
                     Location = null,
                 };
             }

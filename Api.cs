@@ -1,9 +1,9 @@
-﻿using Bogus;
+﻿using System.Diagnostics;
+using Bogus;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Server.Config;
@@ -35,14 +35,14 @@ public static class Api
 
     private static void MapAccountEndpoints(WebApplication app)
     {
-        app.MapGet("/api/account/google_should_register", async (UserManager<ApplicationUser> userManager, 
+        app.MapGet("/api/account/google_should_register", async (UserManager<ApplicationUser> userManager,
             IOptions<GoogleConfig> config, string id) =>
         {
             var payload = await GoogleJsonWebSignature.ValidateAsync(id, new GoogleJsonWebSignature.ValidationSettings
             {
                 Audience = config.Value.ClientIds
             });
-            
+
             return Results.Ok(await userManager.FindByEmailAsync(payload.Email) == null);
         });
 
@@ -98,7 +98,7 @@ public static class Api
         {
             if (model.UserName == "fallback")
                 return Results.BadRequest("Fallback username is reserved.");
-            
+
             if (model.BirthDate > DateTime.Today.AddYears(-16))
                 return Results.BadRequest("User must be at least 16 years old.");
 
@@ -148,23 +148,50 @@ public static class Api
             });
 
         app.MapGet("/api/account/info", [JwtAuthorize]
-            async (HttpContext context, UserManager<ApplicationUser> userManager) =>
+            async (HttpContext context, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext) =>
             {
                 var user = await userManager.Users
                     .Include(u => u.EventStatus)
                     .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
-                
-                return user == null ? Results.Unauthorized() : Results.Ok(new UserDto(user));
+
+                if (user == null) return Results.Unauthorized();
+
+                List<string>? withUsernames = null;
+
+                if (user.EventStatus.EventGroupId != null)
+                {
+                    var group = await dbContext.Groups.FindAsync(user.EventStatus.EventGroupId);
+                    if (group == null) throw new UnreachableException("Group could not be found.");
+
+                    withUsernames = await userManager.Users.Where(u => group.Members.Contains(u.Id))
+                        .Select(u => u.UserName!).ToListAsync();
+                }
+
+                return Results.Ok(new UserDto(user, withUsernames));
             });
 
-        app.MapGet("/api/account/profile", async (UserManager<ApplicationUser> userManager, string username) =>
-        {
-            var user = await userManager.Users
-                .Include(u => u.EventStatus)
-                .FirstOrDefaultAsync(u => u.UserName == username);
+        app.MapGet("/api/account/profile",
+            async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, string username) =>
+            {
+                var user = await userManager.Users
+                    .Include(u => u.EventStatus)
+                    .FirstOrDefaultAsync(u => u.UserName == username);
 
-            return user == null ? Results.NotFound() : Results.Ok(new UserDto(user));
-        });
+                if (user == null) return Results.Unauthorized();
+
+                List<string>? withUsernames = null;
+
+                if (user.EventStatus.EventGroupId != null)
+                {
+                    var group = await dbContext.Groups.FindAsync(user.EventStatus.EventGroupId);
+                    if (group == null) throw new UnreachableException("Group could not be found.");
+
+                    withUsernames = await userManager.Users.Where(u => group.Members.Contains(u.Id))
+                        .Select(u => u.UserName!).ToListAsync();
+                }
+
+                return Results.Ok(new UserDto(user, withUsernames));
+            });
 
         app.MapPost("/api/account/update_pfp", [JwtAuthorize] async (UserManager<ApplicationUser> userManager,
                 IFormFile file,
@@ -211,14 +238,15 @@ public static class Api
     private static void MapAccountAccessEndpoints(WebApplication app)
     {
         app.MapGet("/api/access_pfp",
-            [JwtAuthorize] async (string userName, UserManager<ApplicationUser> userManager, IProfilePictureService pfpService, HttpContext context) =>
+            [JwtAuthorize] async (string userName, UserManager<ApplicationUser> userManager,
+                IProfilePictureService pfpService, HttpContext context) =>
             {
                 if (app.Environment.IsEnvironment("Sandbox"))
                 {
                     if (userName != context.User.Identity.Name)
                         return Results.Ok(new Faker().Image.PicsumUrl(400, 400));
                 }
-                
+
                 var user = await userManager.FindByNameAsync(userName);
                 if (user == null) return Results.NotFound();
 
@@ -237,22 +265,157 @@ public static class Api
 
     private static void MapEventEndpoints(WebApplication app)
     {
+        app.MapGet("/api/invite_status", [JwtAuthorize]
+            async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, HttpContext context) =>
+            {
+                var user = await userManager.Users
+                    .Include(u => u.EventStatus)
+                    .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+
+                if (user == null) return Results.BadRequest();
+
+                if (user.EventStatus.EventGroupInvitationId == null)
+                    return Results.Ok(new
+                    {
+                        Invited = false,
+                        Invitors = new List<string>()
+                    });
+
+                var invitorIds =
+                    (await dbContext.Groups.FindAsync(user.EventStatus.EventGroupInvitationId))?.Members.ToList();
+
+                if (invitorIds == null)
+                    return Results.BadRequest();
+
+                var groupUsernames = await userManager.Users
+                    .Where(u => invitorIds.Contains(u.Id))
+                    .Select(u => u.UserName!)
+                    .ToListAsync();
+
+                var invitors = new List<UserDto>();
+                foreach (var id in invitorIds)
+                {
+                    var u = await userManager.Users
+                        .Include(u => u.EventStatus)
+                        .FirstOrDefaultAsync(u => u.Id == id);
+
+                    if (u == null) continue;
+
+                    invitors.Add(new UserDto(u, groupUsernames));
+                }
+
+                return Results.Ok(new
+                {
+                    Invited = true,
+                    Invitors = invitors
+                });
+            });
+
+        app.MapPost("/api/accept_invite", [JwtAuthorize]
+            async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, HttpContext context) =>
+            {
+                var user = await userManager.Users
+                    .Include(u => u.EventStatus)
+                    .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+
+                if (user == null) return Results.BadRequest();
+
+                if (user.EventStatus.EventGroupInvitationId == null)
+                    return Results.BadRequest();
+
+                var group = await dbContext.Groups.FindAsync(user.EventStatus.EventGroupInvitationId);
+
+                if (group == null)
+                    throw new UnreachableException("Group could not be found.");
+
+                var groupMember = await userManager.Users
+                    .Include(u => u.EventStatus)
+                    .FirstOrDefaultAsync(u => u.Id == group.Members[0]);
+                
+                if (groupMember == null) throw new UnreachableException("Could not find any member in invited group.");
+
+                user.EventStatus.Active = true;
+                user.EventStatus.EventGroupId = group.Id;
+                user.EventStatus.Location = groupMember.EventStatus.Location;
+                user.EventStatus.Time = groupMember.EventStatus.Time;
+                user.EventStatus.EventGroupInvitationId = null;
+                await userManager.UpdateAsync(user);
+                
+                group.Members.Add(user.Id);
+                group.AwaitingInvite.Remove(user.Id);
+
+                await dbContext.SaveChangesAsync();
+
+                return Results.Ok();
+            });
+        
+        app.MapPost("/api/decline_invite", [JwtAuthorize]
+            async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, HttpContext context) =>
+            {
+                var user = await userManager.Users
+                    .Include(u => u.EventStatus)
+                    .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+
+                if (user == null) return Results.BadRequest();
+
+                if (user.EventStatus.EventGroupInvitationId == null)
+                    return Results.BadRequest();
+
+                var group = await dbContext.Groups.FindAsync(user.EventStatus.EventGroupInvitationId);
+
+                if (group == null)
+                    throw new UnreachableException("Group could not be found.");
+
+                user.EventStatus.EventGroupInvitationId = null;
+                group.AwaitingInvite.Remove(user.Id);
+
+                await userManager.UpdateAsync(user);
+                await dbContext.SaveChangesAsync();
+
+                return Results.Ok();
+            });
+        
+        app.MapGet("/api/group_status", [JwtAuthorize]
+            async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, HttpContext context) =>
+            {
+                var user = await userManager.Users
+                    .Include(u => u.EventStatus)
+                    .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+
+                if (user == null) return Results.BadRequest();
+
+                if (user.EventStatus.EventGroupId == null)
+                    return Results.Ok(new GroupStatusDto());
+
+                var group = await dbContext.Groups.FindAsync(user.EventStatus.EventGroupId);
+
+                if (group == null)
+                    throw new UnreachableException("Group could not be found.");
+
+                return Results.Ok(await GroupStatusDto.FromGroupAsync(group, userManager));
+            });
+
         app.MapPost("/api/register_event", [JwtAuthorize] async (UserManager<ApplicationUser> userManager,
             HttpContext context,
             Location location, DateTime time) =>
         {
+            if (time < DateTime.Today)
+                return Results.BadRequest("Bad time");
+            
             var user = await userManager.Users
                 .Include(u => u.EventStatus)
                 .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
-            if (user == null) return Results.Unauthorized();
+            
+            if (user == null) throw new UnreachableException("Could not find user");
 
-            if (time < DateTime.Today)
-                return Results.BadRequest();
+            if (user.EventStatus.Active)
+                return Results.BadRequest("User already registered");
 
             user.EventStatus.Active = true;
             user.EventStatus.Time = time;
             user.EventStatus.Location = location;
-            user.EventStatus.With = [];
+            user.EventStatus.EventGroupId = null;
+            user.EventStatus.EventGroupInvitationId = null;
 
             await userManager.UpdateAsync(user);
 
@@ -260,7 +423,7 @@ public static class Api
         });
 
         app.MapPost("/api/cancel_event", [JwtAuthorize]
-            async (UserManager<ApplicationUser> userManager, HttpContext context) =>
+            async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, HttpContext context) =>
             {
                 var q = userManager.Users
                     .Include(u => u.EventStatus);
@@ -271,19 +434,35 @@ public static class Api
                 user.EventStatus.Time = null;
                 user.EventStatus.Location = null;
 
-                if (user.EventStatus.With != null)
+                if (user.EventStatus.EventGroupId != null)
                 {
-                    foreach (var u in user.EventStatus.With)
+                    var group = await dbContext.Groups.FindAsync(user.EventStatus.EventGroupId);
+
+                    if (group != null)
                     {
-                        var uQuery = await q.FirstOrDefaultAsync(u1 => u1.UserName == u);
+                        group.Members.Remove(user.Id);
+                        if (group.Members.Count == 0)
+                        {
+                            foreach (var invited in group.AwaitingInvite)
+                            {
+                                var u = await q.FirstOrDefaultAsync(u => u.Id == invited);
+                                if (u == null) continue;
+                                u.EventStatus.EventGroupInvitationId = null;
+                            }
 
-                        uQuery.EventStatus.With.Remove(user.UserName);
-
-                        await userManager.UpdateAsync(uQuery);
+                            dbContext.Groups.Remove(group);
+                            await dbContext.SaveChangesAsync();
+                        }
                     }
                 }
 
-                user.EventStatus.With = null;
+                // Technically, this is unreachable from the UI, if you have a pending invite you cannot navigate to the event page.
+                // But if the user managed to bypass it then they will just see the invitation when they reopen the app, so we shouldn't handle this edge case.
+                if (user.EventStatus.EventGroupInvitationId != null)
+                {
+                }
+
+                user.EventStatus.EventGroupId = null;
 
                 await userManager.UpdateAsync(user);
 
@@ -291,7 +470,8 @@ public static class Api
             });
 
         app.MapPost("/api/invite_to_event",
-            [JwtAuthorize] async (UserManager<ApplicationUser> userManager, string invited, HttpContext context) =>
+            [JwtAuthorize] async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext,
+                string invited, HttpContext context) =>
             {
                 var q = userManager.Users
                     .Include(u => u.EventStatus);
@@ -303,78 +483,102 @@ public static class Api
 
                 if (!invitor.EventStatus.Active) return Results.Unauthorized();
 
-                if (invitor.EventStatus.With.Contains(invited)) return Results.Ok();
-
                 var invitedUser = await q.FirstOrDefaultAsync(u => u.UserName == invited);
                 if (invitedUser == null) return Results.BadRequest("User not found.");
                 
-                if (invitedUser.EventStatus is { Active: true, With.Count: > 0 })
-                    return Results.BadRequest("User is already in an event.");
+                if (invitedUser.EventStatus.EventGroupInvitationId != null &&
+                    invitedUser.EventStatus.EventGroupInvitationId == invitor.EventStatus.EventGroupId)
+                    return Results.BadRequest("User already invited.");
 
-                invitedUser.EventStatus.Active = true;
-                invitedUser.EventStatus.Time = invitor.EventStatus.Time;
-                invitedUser.EventStatus.Location = invitor.EventStatus.Location;
+                if (invitedUser.EventStatus.EventGroupId != null &&
+                    invitedUser.EventStatus.EventGroupId == invitor.EventStatus.EventGroupId)
+                    return Results.BadRequest("User already in group.");
 
-                var userInvited = new List<string>(invitor.EventStatus.With);
-                userInvited.Remove(invitedUser.UserName);
-                userInvited.Add(invitor.UserName);
-                invitedUser.EventStatus.With = userInvited;
+                if (invitedUser.EventStatus.EventGroupInvitationId != null
+                    /* you CAN invite users in another group. Especially those users who invited someone (got group created)
+                     those declined, and now they are in a group with themselves
+                     || invitedUser.EventStatus.EventGroupId != null */)
+                    return Results.BadRequest("User already invited to another group.");
 
-                await userManager.UpdateAsync(invitedUser);
+                EventGroup? group = null;
 
-                foreach (var other in invitor.EventStatus.With)
+                if (invitor.EventStatus.EventGroupId == null)
                 {
-                    var otherUser = await q.FirstOrDefaultAsync(u => u.UserName == other);
-                    otherUser.EventStatus.With.Add(invited);
-                    await userManager.UpdateAsync(otherUser);
+                    group = new EventGroup
+                    {
+                        Members = [invitor.Id],
+                        AwaitingInvite = []
+                    };
+                    await dbContext.AddAsync(group);
+                    await dbContext.SaveChangesAsync();
+                    invitor.EventStatus.EventGroupId = group.Id;
+                    await userManager.UpdateAsync(invitor);
+                    return Results.Ok();
                 }
 
-                invitor.EventStatus.With.Add(invited);
-
+                invitedUser.EventStatus.EventGroupInvitationId = invitor.EventStatus.EventGroupId;
+                
+                await userManager.UpdateAsync(invitedUser);
                 await userManager.UpdateAsync(invitor);
+
+                group ??= await dbContext.Groups.FindAsync(invitor.EventStatus.EventGroupId) ??
+                          throw new UnreachableException("Group could not be found.");
+
+                group.AwaitingInvite.Add(invitedUser.Id);
+                await dbContext.SaveChangesAsync();
+
                 return Results.Ok();
             });
 
         app.MapPost("/api/kick_from_event",
-            [JwtAuthorize] async (UserManager<ApplicationUser> userManager, string kicked, HttpContext context) =>
+            [JwtAuthorize] async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext,
+                string kicked, HttpContext context) =>
             {
                 var q = userManager.Users
                     .Include(u => u.EventStatus);
 
                 var invitor = await q.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+                
+                var kickedUser = await q.FirstOrDefaultAsync(u => u.UserName == kicked);
+
+                if (kickedUser == null) return Results.BadRequest("User not found.");
+
+                if (kickedUser.UserName == invitor.UserName)
+                    return Results.BadRequest();
 
                 if (!invitor.EventStatus.Active) return Results.Unauthorized();
 
-                if (!invitor.EventStatus.With.Contains(kicked)) return Results.BadRequest();
+                if (invitor.EventStatus.EventGroupId == null)
+                    return Results.BadRequest();
 
-                var kickedUser = await q.FirstOrDefaultAsync(u => u.UserName == kicked);
-                if (kickedUser == null) return Results.BadRequest("User not found.");
-                
-                kickedUser.EventStatus.Active = false;
-                kickedUser.EventStatus.Time = null;
-                kickedUser.EventStatus.Location = null;
-                kickedUser.EventStatus.With = null;
-                
-                foreach (var user in invitor.EventStatus.With)
+                var group = await dbContext.Groups.FindAsync(invitor.EventStatus.EventGroupId);
+
+                if (!group.Members.Contains(kickedUser.Id) && !group.AwaitingInvite.Contains(kickedUser.Id))
+                    return Results.BadRequest();
+
+                if (!group.Members.Remove(kickedUser.Id))
                 {
-                    var userQuery = await q.FirstOrDefaultAsync(u1 => u1.UserName == user);
-                    
-                    if (userQuery.EventStatus.With == null) continue;
-                    
-                    userQuery.EventStatus.With.Remove(kicked);
-                    await userManager.UpdateAsync(userQuery);
+                    group.AwaitingInvite.Remove(kickedUser.Id);
+                    kickedUser.EventStatus.EventGroupInvitationId = null;
                 }
-                
-                invitor.EventStatus.With.Remove(kicked);
+
+                kickedUser.EventStatus.Active = false;
+                kickedUser.EventStatus.Location = null;
+                kickedUser.EventStatus.Time = null;
+                // Should not do this. If user is in group A, but invited to B, once kicked from A the invite from B should persist
+                // kickedUser.EventStatus.EventGroupInvitationId = null;
+                kickedUser.EventStatus.EventGroupId = null;
 
                 await userManager.UpdateAsync(kickedUser);
                 await userManager.UpdateAsync(invitor);
+                await dbContext.SaveChangesAsync();
 
                 return Results.Ok();
             });
 
         app.MapGet("/api/query_visitors",
-            [JwtAuthorize] async (UserManager<ApplicationUser> userManager, HttpContext context, int page, int? ageRangeMin, int? ageRangeMax, Gender? gender) =>
+            [JwtAuthorize] async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext,
+                HttpContext context, int page, int? ageRangeMin, int? ageRangeMax, Gender? gender) =>
             {
                 const int pageSize = 4;
 
@@ -385,35 +589,34 @@ public static class Api
 
                 if (!user.EventStatus.Active)
                     return Results.Ok(new List<ApplicationUser>());
-                
+
                 var query = userManager.Users
                     .Include(u => u.EventStatus)
                     .Where(u => u.EventStatus.Active == true &&
                                 u.EventStatus.Location == user.EventStatus.Location &&
                                 u.EventStatus.Time.Value.Day == user.EventStatus.Time.Value.Day);
 
-                    if (gender.HasValue)
-                        query = query.Where(u => u.Gender == gender.Value);
+                if (gender.HasValue)
+                    query = query.Where(u => u.Gender == gender.Value);
 
-                    if (ageRangeMin.HasValue)
-                    {
-                        var minDate = DateTime.Now.AddYears(-ageRangeMin.Value);
-                        query = query.Where(u => u.BirthDate <= minDate);
-                    }
+                if (ageRangeMin.HasValue)
+                {
+                    var minDate = DateTime.Now.AddYears(-ageRangeMin.Value);
+                    query = query.Where(u => u.BirthDate <= minDate);
+                }
 
-                    if (ageRangeMax.HasValue)
-                    {
-                        var maxDate = DateTime.Now.AddYears(-ageRangeMax.Value);
-                        query = query.Where(u => u.BirthDate >= maxDate);
-                    }
+                if (ageRangeMax.HasValue)
+                {
+                    var maxDate = DateTime.Now.AddYears(-ageRangeMax.Value);
+                    query = query.Where(u => u.BirthDate >= maxDate);
+                }
 
                 var users = await query
                     .Skip(page * pageSize)
                     .Take(pageSize)
-                    .Select(u => new UserDto(u))
                     .ToListAsync();
 
-                return Results.Ok(users);
+                return Results.Ok(await UserDto.FromListAsync(users, dbContext, userManager));
             });
 
         app.MapGet("/api/query_event_places", [JwtAuthorize] async (UserManager<ApplicationUser> userManager,
@@ -425,7 +628,7 @@ public static class Api
 
             var places = await dbContext.Places
                 .Include(p => p.Events)
-                    .ThenInclude(e => e.Offers)
+                .ThenInclude(e => e.Offers)
                 .Where(p => p.Location == user.EventStatus.Location)
                 .Select(p =>
                     new
@@ -448,13 +651,18 @@ public static class Api
             }).ToList();
 
             if (!app.Environment.IsEnvironment("Sandbox")) return Results.Ok(ret);
-            
+
             var randomCount = 0;
             foreach (var place in ret)
             {
-                if (place.ImageUrls.Count == 0) 
-                    place.ImageUrls = ["https://picsum.photos/640/480?random=" + randomCount++, "https://picsum.photos/640/480?random=" + randomCount++, "https://picsum.photos/640/480?random=" + randomCount++];
-                
+                if (place.ImageUrls.Count == 0)
+                    place.ImageUrls =
+                    [
+                        "https://picsum.photos/640/480?random=" + randomCount++,
+                        "https://picsum.photos/640/480?random=" + randomCount++,
+                        "https://picsum.photos/640/480?random=" + randomCount++
+                    ];
+
                 foreach (var e in place.Events)
                     e.Image ??= "https://picsum.photos/200/400?random=" + randomCount++;
             }
