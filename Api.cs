@@ -4,6 +4,7 @@ using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Server.Config;
@@ -129,6 +130,17 @@ public static class Api
             if (!success) return Results.BadRequest("Invalid login attempt.");
 
             return Results.Ok(tokenManager.GenerateToken(user.UserName, user.Email, user.Id));
+        });
+
+        app.MapPost("/api/account/set_notification_key", [JwtAuthorize] async (UserManager<ApplicationUser> userManager, HttpContext context, string key) =>
+        {
+            var user = await userManager.FindByNameAsync(context.User.Identity.Name);
+            if (user == null) return Results.BadRequest("User not found.");
+
+            user.NotificationKey = key;
+            await userManager.UpdateAsync(user);
+
+            return Results.Ok();
         });
 
         app.MapPost("/api/account/update_profile",
@@ -470,7 +482,7 @@ public static class Api
             });
 
         app.MapPost("/api/invite_to_event",
-            [JwtAuthorize] async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext,
+            [JwtAuthorize] async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, NotificationService notificationService,
                 string invited, HttpContext context) =>
             {
                 var q = userManager.Users
@@ -526,6 +538,8 @@ public static class Api
 
                 group.AwaitingInvite.Add(invitedUser.Id);
                 await dbContext.SaveChangesAsync();
+                
+                await notificationService.SendInviteNotification(invitedUser, invitor.UserName);
 
                 return Results.Ok();
             });

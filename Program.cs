@@ -4,6 +4,8 @@ using Amazon.Runtime;
 using Amazon.Runtime.SharedInterfaces;
 using Amazon.S3;
 using AwsSignatureVersion4;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Server.Data;
@@ -109,6 +111,12 @@ builder.Services.Configure<AwsConfig>(builder.Configuration.GetSection("AWS"));
 builder.Services.Configure<AdminConfig>(builder.Configuration.GetSection("Admin"));
 builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JWT"));
 
+// Firebase
+FirebaseApp.Create(new AppOptions
+{
+    Credential = GoogleCredential.GetApplicationDefault(),
+});
+
 // S3/AWS
 AWSConfigs.LoggingConfig.LogTo = LoggingOptions.Console;
 AWSConfigs.AWSRegion = builder.Configuration.GetSection("AWS")["Region"];
@@ -135,6 +143,7 @@ builder.Services.AddSingleton<IEventPlacePictureService, HetznerEventPlacePictur
 builder.Services.AddSingleton<JwtTokenManager>();
 if (builder.Environment.IsEnvironment("Sandbox"))
     builder.Services.AddSingleton<SandboxEnvironmentSeeder>();
+builder.Services.AddSingleton<NotificationService>();
 
 builder.Services.AddHostedService<EventStatusCleanupService>();
 builder.Services.AddHostedService<EventsCleanupService>();

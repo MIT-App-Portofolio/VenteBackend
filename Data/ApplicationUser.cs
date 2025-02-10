@@ -7,6 +7,7 @@ public class ApplicationUser : IdentityUser
     public string? Name { get; set; }
     public string? IgHandle { get; set; }
     public string? Description { get; set; }
+    public string? NotificationKey { get; set; }
     public DateTimeOffset BirthDate { get; set; }
     public bool HasPfp { get; set; }
     public Gender Gender { get; set; }

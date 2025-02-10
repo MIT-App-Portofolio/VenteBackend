@@ -16,7 +16,8 @@
       "launchBrowser": false,
       "applicationUrl": "http://localhost:5192",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Sandbox"
+        "ASPNETCORE_ENVIRONMENT": "Sandbox",
+        "GOOGLE_APPLICATION_CREDENTIALS": "/Users/alex/Downloads/vente-43d0b-bf1771094c9b.json"
       }
     },
     "https": {
