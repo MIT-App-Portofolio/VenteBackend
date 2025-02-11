@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Models;
 
@@ -24,8 +25,11 @@ namespace Server.Pages.Admin.Affiliates
 
         public async Task<IActionResult> OnPostAsync()
         {
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValid) return Page();
+
+            if (await _context.Places.AnyAsync(p => p.Name == Input.EventPlaceName))
             {
+                ModelState.AddModelError(string.Empty, "Event place with this name already exists.");
                 return Page();
             }
 
