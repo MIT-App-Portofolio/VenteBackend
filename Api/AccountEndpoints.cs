@@ -162,29 +162,6 @@ public static class AccountEndpoints
                 return Results.Ok(new UserDto(user, withUsernames));
             });
 
-        app.MapGet("/api/account/profile",
-            async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, string username) =>
-            {
-                var user = await userManager.Users
-                    .Include(u => u.EventStatus)
-                    .FirstOrDefaultAsync(u => u.UserName == username);
-
-                if (user == null) return Results.Unauthorized();
-
-                List<string>? withUsernames = null;
-
-                if (user.EventStatus.EventGroupId != null)
-                {
-                    var group = await dbContext.Groups.FindAsync(user.EventStatus.EventGroupId);
-                    if (group == null) throw new UnreachableException("Group could not be found.");
-
-                    withUsernames = await userManager.Users.Where(u => group.Members.Contains(u.Id))
-                        .Select(u => u.UserName!).ToListAsync();
-                }
-
-                return Results.Ok(new UserDto(user, withUsernames));
-            });
-
         app.MapPost("/api/account/update_pfp", [JwtAuthorize] async (UserManager<ApplicationUser> userManager,
                 IFormFile file,
                 HttpContext context, IProfilePictureService pfpService) =>
