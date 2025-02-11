@@ -411,7 +411,7 @@ public static class Api
             HttpContext context,
             Location location, DateTime time) =>
         {
-            if (time < DateTime.Today)
+            if (time.ToUniversalTime() < DateTime.UtcNow.Date)
                 return Results.BadRequest("Bad time");
             
             var user = await userManager.Users
