@@ -38,7 +38,7 @@ namespace Server.Pages.Account
 
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty, "No se pudo iniciar session.");
+                ModelState.AddModelError(string.Empty, "No se pudo iniciar sesión.");
                 return Page();
             }
 
@@ -46,7 +46,7 @@ namespace Server.Pages.Account
             if (result.Succeeded)
                 return LocalRedirect(ReturnUrl ?? "/");
 
-            ModelState.AddModelError(string.Empty, "No se pudo iniciar session.");
+            ModelState.AddModelError(string.Empty, "No se pudo iniciar sesión.");
             return Page();
         }
     }
