@@ -31,6 +31,7 @@ if (builder.Environment.IsEnvironment("Sandbox"))
 builder.Services.AddRazorPages().AddRazorPagesOptions(opt =>
 {
     opt.Conventions.AuthorizeFolder("/Admin", "RequireAdmin");
+    opt.Conventions.AuthorizeFolder("/User", "RequireLoggedIn");
     opt.Conventions.AuthorizeFolder("/Affiliate", "RequireAffiliate");
 });
 
@@ -102,7 +103,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("RequireAdmin", policy => policy.RequireRole("Admin"))
-    .AddPolicy("RequireAffiliate", policy => policy.RequireRole("Affiliate"));
+    .AddPolicy("RequireAffiliate", policy => policy.RequireRole("Affiliate"))
+    .AddPolicy("RequireLoggedIn", policy => policy.RequireAuthenticatedUser());
 
 // Config services
 builder.Services.AddHttpClient();
