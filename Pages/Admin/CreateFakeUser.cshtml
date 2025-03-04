@@ -1,0 +1,58 @@
+@page
+@using Server.Data
+@model Server.Pages.Admin.CreateFakeUser
+
+@{ }
+
+<div class="hero">
+    <div class="hero-content">
+        <div class="card w-96 bg-base-100 shadow-xl">
+            <div class="card-body items-center text-center">
+                <h2 class="card-title">Create Fake User</h2>
+
+                <form method="post" enctype="multipart/form-data">
+                    <span asp-validation-for="Input.UserName" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="Input.UserName" class="grow" placeholder="Username" />
+                    </label>
+
+                    <span asp-validation-for="Input.DisplayName" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="Input.DisplayName" class="grow" placeholder="Display Name" />
+                    </label>
+
+                    <span asp-validation-for="Input.Ig" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="Input.Ig" class="grow" placeholder="Instagram Handle" />
+                    </label>
+
+                    <span asp-validation-for="Input.Description" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="Input.Description" class="grow" placeholder="Description" />
+                    </label>
+
+                    <span asp-validation-for="Input.BirthDate" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="Input.BirthDate" type="date" class="grow" />
+                    </label>
+
+                    <span asp-validation-for="Input.EventStatusDate" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="Input.EventStatusDate" type="date" class="grow" />
+                    </label>
+
+                    <span asp-validation-for="Input.Gender" class="text-danger"></span>
+                    <select asp-for="Input.Gender" class="select select-bordered w-full mb-3" asp-items="Html.GetEnumSelectList<Gender>()">
+                    </select>
+
+                    <span asp-validation-for="Input.ProfilePicture" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="Input.ProfilePicture" type="file" class="grow" />
+                    </label>
+
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
