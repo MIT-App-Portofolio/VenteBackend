@@ -38,7 +38,7 @@ namespace Server.Pages.Admin
             return RedirectToPage(new { pageId = PageId });
         }
 
-        [FromQuery]
+        [FromRoute]
         public int PageId { get; set; }
 
         public List<ApplicationUser> Users { get; set; }
