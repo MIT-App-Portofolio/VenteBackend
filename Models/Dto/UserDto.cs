@@ -28,7 +28,7 @@ public class UserDto
         EventStatus = new EventStatusDto
         {
             Active = user.EventStatus.Active,
-            Time = user.EventStatus.Time?.DateTime,
+            Time = user.EventStatus.Time,
             With = groupUserNames
         };
 

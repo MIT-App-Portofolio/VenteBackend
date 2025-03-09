@@ -143,7 +143,7 @@ public static class EventEndpoints
 
         app.MapPost("/api/register_event", [JwtAuthorize] async (UserManager<ApplicationUser> userManager,
             HttpContext context,
-            Location location, DateTime time) =>
+            Location location, DateTimeOffset time) =>
         {
             if (time.ToUniversalTime() < DateTime.UtcNow.Date)
                 return Results.BadRequest("Bad time");
