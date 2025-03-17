@@ -175,7 +175,7 @@ public static class AccountEndpoints
                 await using (var stream = file.OpenReadStream())
                 {
                     using (var image = await Image.LoadAsync(stream))
-                        if (Math.Abs(image.Height - image.Width) > 2)
+                        if (Math.Abs(image.Height - image.Width) > 5)
                             return Results.BadRequest("Image must have a 1:1 aspect ratio.");
                 }
 
