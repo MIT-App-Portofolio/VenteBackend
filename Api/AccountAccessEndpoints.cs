@@ -18,7 +18,6 @@ public static class AccountAccessEndpoints
             {
                 var user = await userManager.FindByNameAsync(userName);
                 
-                
                 if (user == null) return Results.NotFound();
                 
                 if (app.Environment.IsEnvironment("Sandbox"))
@@ -30,7 +29,7 @@ public static class AccountAccessEndpoints
                 if (!user.HasPfp)
                     return Results.Ok(pfpService.GetFallbackUrl());
 
-                return Results.Ok(pfpService.GetDownloadUrl(userName));
+                return Results.Ok(pfpService.GetDownloadUrl(userName) + "?cache_v=" + user.PfpVersion);
             });
         
 

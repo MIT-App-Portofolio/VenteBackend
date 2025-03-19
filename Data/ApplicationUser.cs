@@ -10,6 +10,7 @@ public class ApplicationUser : IdentityUser
     public string? NotificationKey { get; set; }
     public DateTimeOffset BirthDate { get; set; }
     public bool HasPfp { get; set; }
+    public int PfpVersion { get; set; }
     public Gender Gender { get; set; }
     public EventStatus EventStatus { get; set; }
 

@@ -181,6 +181,7 @@ public static class AccountEndpoints
 
                 var user = await userManager.GetUserAsync(context.User);
                 user.HasPfp = true;
+                user.PfpVersion += 1;
                 await userManager.UpdateAsync(user);
 
                 await pfpService.UploadProfilePictureAsync(file.OpenReadStream(), context.User.Identity.Name);
