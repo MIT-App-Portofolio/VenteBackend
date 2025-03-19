@@ -246,11 +246,9 @@ public static class EventEndpoints
                      || invitedUser.EventStatus.EventGroupId != null */)
                     return Results.BadRequest("User already invited to another group.");
 
-                EventGroup? group = null;
-
                 if (invitor.EventStatus.EventGroupId == null)
                 {
-                    group = new EventGroup
+                    var group = new EventGroup
                     {
                         Members = [invitor.Id],
                         AwaitingInvite = []
@@ -258,8 +256,6 @@ public static class EventEndpoints
                     await dbContext.AddAsync(group);
                     await dbContext.SaveChangesAsync();
                     invitor.EventStatus.EventGroupId = group.Id;
-                    await userManager.UpdateAsync(invitor);
-                    return Results.Ok();
                 }
 
                 invitedUser.EventStatus.EventGroupInvitationId = invitor.EventStatus.EventGroupId;
@@ -267,10 +263,10 @@ public static class EventEndpoints
                 await userManager.UpdateAsync(invitedUser);
                 await userManager.UpdateAsync(invitor);
 
-                group ??= await dbContext.Groups.FindAsync(invitor.EventStatus.EventGroupId) ??
+                var existingGroup = await dbContext.Groups.FindAsync(invitor.EventStatus.EventGroupId) ??
                           throw new UnreachableException("Group could not be found.");
 
-                group.AwaitingInvite.Add(invitedUser.Id);
+                existingGroup.AwaitingInvite.Add(invitedUser.Id);
                 await dbContext.SaveChangesAsync();
                 
                 await notificationService.SendInviteNotification(invitedUser, invitor.UserName);
