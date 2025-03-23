@@ -5,18 +5,11 @@ using Server.Data;
 
 namespace Server.Pages.Admin.Affiliates
 {
-    public class IndexModel : PageModel
+    public class IndexModel(UserManager<ApplicationUser> userManager) : PageModel
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-
-        public IndexModel(UserManager<ApplicationUser> userManager)
-        {
-            _userManager = userManager;
-        }
-
         public async Task<IActionResult> OnGetAsync()
         {
-            Affiliates = (await _userManager.GetUsersInRoleAsync("Affiliate")).ToList();
+            Affiliates = (await userManager.GetUsersInRoleAsync("Affiliate")).ToList();
 
             return Page();
         }
