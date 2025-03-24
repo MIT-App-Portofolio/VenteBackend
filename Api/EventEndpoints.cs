@@ -339,7 +339,7 @@ public static class EventEndpoints
                     .OrderBy(u => u.EventStatus.Time.Value)
                     .Where(u => u.EventStatus.Active == true &&
                                 u.EventStatus.Location == user.EventStatus.Location &&
-                                (u.EventStatus.Time.Value - user.EventStatus.Time.Value).Days > 14);
+                                (u.EventStatus.Time.Value - user.EventStatus.Time.Value).Days < 14);
 
                 if (gender.HasValue)
                     query = query.Where(u => u.Gender == gender.Value);
