@@ -371,6 +371,8 @@ public static class EventEndpoints
                 .Include(u => u.EventStatus)
                 .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
 
+            if (user == null) return Results.BadRequest();
+
             var places = await dbContext.Places
                 .Include(p => p.Events)
                 .ThenInclude(e => e.Offers)
@@ -379,7 +381,7 @@ public static class EventEndpoints
                     new
                     {
                         Place = p,
-                        Events = p.Events.Where(o => o.Time.Date == user.EventStatus.Time.Value.Date).ToList()
+                        Events = p.Events.Where(o => (o.Time - user.EventStatus.Time.Value).Days < 14).ToList()
                     }
                 )
                 .ToListAsync();
