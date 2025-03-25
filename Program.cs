@@ -202,19 +202,33 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsEnvironment("Sandbox"))
 {
     var userManager = app.Services.GetRequiredService<UserManager<ApplicationUser>>();
-    if (await userManager.FindByEmailAsync("user@example.com") == null)
+    if (await userManager.FindByEmailAsync("appletesting@example.com") == null)
     {
         await userManager.CreateAsync(new ApplicationUser
         {
-            UserName = "testaccount",
-            Email = "user@example.com",
+            UserName = "appletest",
+            Email = "appletesting@example.com",
             BirthDate = DateTimeOffset.UnixEpoch,
             Gender = Gender.Male,
             EventStatus = new EventStatus
             {
                 Active = false,
             },
-        }, "TestingAccount1234+");
+        }, "AppleTestingAccount1234+");
+    }
+    if (await userManager.FindByEmailAsync("googletesting@example.com") == null)
+    {
+        await userManager.CreateAsync(new ApplicationUser
+        {
+            UserName = "googletest",
+            Email = "googletesting@example.com",
+            BirthDate = DateTimeOffset.UnixEpoch,
+            Gender = Gender.Male,
+            EventStatus = new EventStatus
+            {
+                Active = false,
+            },
+        }, "GoogleTestingAccount1234+");
     }
 }
 
