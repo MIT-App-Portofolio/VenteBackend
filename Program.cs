@@ -202,16 +202,20 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsEnvironment("Sandbox"))
 {
     var userManager = app.Services.GetRequiredService<UserManager<ApplicationUser>>();
-    await userManager.CreateAsync(new ApplicationUser
+    if (await userManager.FindByEmailAsync("user@example.com") == null)
     {
-        UserName = "testaccount",
-        BirthDate = DateTimeOffset.UnixEpoch,
-        Gender = Gender.Male,
-        EventStatus = new EventStatus
+        await userManager.CreateAsync(new ApplicationUser
         {
-            Active = false,
-        },
-    }, "TestingAccount1234+");
+            UserName = "testaccount",
+            Email = "user@example.com",
+            BirthDate = DateTimeOffset.UnixEpoch,
+            Gender = Gender.Male,
+            EventStatus = new EventStatus
+            {
+                Active = false,
+            },
+        }, "TestingAccount1234+");
+    }
 }
 
 app.UseCors("AllowAll");
