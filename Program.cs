@@ -23,7 +23,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddUserSecrets<Program>();
 
-
 // Use static web assets
 if (builder.Environment.IsEnvironment("Sandbox"))
     builder.WebHost.UseStaticWebAssets();
@@ -202,8 +201,17 @@ using (var scope = app.Services.CreateScope())
 
 if (app.Environment.IsEnvironment("Sandbox"))
 {
-    var seeder = app.Services.GetRequiredService<SandboxEnvironmentSeeder>();
-    await seeder.Seed();
+    var userManager = app.Services.GetRequiredService<UserManager<ApplicationUser>>();
+    await userManager.CreateAsync(new ApplicationUser
+    {
+        UserName = "testaccount",
+        BirthDate = DateTimeOffset.UnixEpoch,
+        Gender = Gender.Male,
+        EventStatus = new EventStatus
+        {
+            Active = false,
+        },
+    }, "TestingAccount1234+");
 }
 
 app.UseCors("AllowAll");

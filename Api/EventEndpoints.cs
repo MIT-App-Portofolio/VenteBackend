@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using Bogus;
+using Bogus.DataSets;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
@@ -9,6 +11,10 @@ namespace Server.Api;
 
 public static class EventEndpoints
 {
+    static EventEndpoints()
+    {
+    }
+
     public static void MapEventEndpoints(WebApplication app)
     {
         app.MapGet("/api/invite_status", [JwtAuthorize]
@@ -319,7 +325,15 @@ public static class EventEndpoints
 
                 return Results.Ok();
             });
+        
+        if (app.Environment.IsEnvironment("Sandbox"))
+            MapMockupQueryEndpoints(app);
+        else
+            MapProdQueryEndpoints(app);
+    }
 
+    private static void MapProdQueryEndpoints(WebApplication app)
+    {
         app.MapGet("/api/query_visitors",
             [JwtAuthorize] async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext,
                 HttpContext context, int page, int? ageRangeMin, int? ageRangeMax, Gender? gender) =>
@@ -396,8 +410,81 @@ public static class EventEndpoints
                 }).ToList();
                 return new EventPlaceDto(place.Place, pictureService.GetDownloadUrls(place.Place));
             }).ToList();
+            
+            return Results.Ok(ret);
+        });
+    }
 
-            if (!app.Environment.IsEnvironment("Sandbox")) return Results.Ok(ret);
+    private static void MapMockupQueryEndpoints(WebApplication app)
+    {
+        app.MapGet("/api/query_visitors",
+            [JwtAuthorize] async (UserManager<ApplicationUser> userManager, 
+                HttpContext context, int page, int? ageRangeMin, int? ageRangeMax, Gender? gender) =>
+            {
+                const int pageSize = 4;
+
+                var user = await userManager.Users
+                    .Include(u => u.EventStatus)
+                    .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+                if (user == null) return Results.Unauthorized();
+
+                if (!user.EventStatus.Active)
+                    return Results.Ok(new List<UserDto>());
+
+                var seed = user.EventStatus.Time.Value.Ticks + page;
+               
+                // to prevent infinite scrolling, limit to 5 pages only
+                return Results.Ok(page > 5 ? [] : CreateRandomUsers(pageSize));
+
+                List<UserDto> CreateRandomUsers(int count)
+                {
+                    var faker = new Faker<UserDto>("es")
+                        .UseSeed((int)seed)
+                        .RuleFor(u => u.Name, f => f.Name.FirstName() + " " + f.Name.LastName())
+                        .RuleFor(u => u.Description, f => f.Lorem.Sentence())
+                        .RuleFor(u => u.Gender, f => gender ?? (Gender)f.PickRandom(0, 1))
+                        .RuleFor(u => u.Years, f =>
+                        {
+                            var start = 18;
+                            var end = 30;
+                            if (ageRangeMax.HasValue)
+                                end = Math.Min(end, ageRangeMax.Value);
+                            if (ageRangeMin.HasValue)
+                                start = Math.Max(start, ageRangeMin.Value);
+
+                            return f.Random.Int(start, end);
+                        });
+
+                    var ret = faker.Generate(count);
+                    ret.ForEach(u =>
+                    {
+                        var username = u.Name.Replace(" ", "");
+                        u.IgHandle = username;
+                        u.UserName = username;
+                        u.EventStatus = new EventStatusDto
+                        {
+                            Active = true,
+                            Time = user.EventStatus.Time.Value,
+                            Location = new LocationDto(user.EventStatus.Location.Value)
+                        };
+                    });
+
+                    return ret;
+                }
+            });
+
+        app.MapGet("/api/query_event_places", [JwtAuthorize] async (UserManager<ApplicationUser> userManager,
+            ApplicationDbContext dbContext, IEventPlacePictureService pictureService, HttpContext context) =>
+        {
+            var user = await userManager.Users
+                .Include(u => u.EventStatus)
+                .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+
+            if (user == null) return Results.BadRequest();
+
+            var seed = user.EventStatus.Time.Value.Ticks;
+
+            var ret = CreateRandomPlaces(15);
 
             var randomCount = 0;
             foreach (var place in ret)
@@ -415,6 +502,59 @@ public static class EventEndpoints
             }
 
             return Results.Ok(ret);
+
+            DateTimeOffset RandomDate()
+            {
+                var random = new Random();
+                var start = user.EventStatus.Time.Value - TimeSpan.FromDays(2);
+                var end = user.EventStatus.Time.Value + TimeSpan.FromDays(14);
+                var range = (end - start).Days;
+                return start.AddDays(random.Next(range));
+            }
+
+            List<EventPlaceDto> CreateRandomPlaces(int count)
+            {
+                var faker = new Faker<EventPlaceDto>("es")
+                    .UseSeed((int)seed)
+                    .RuleFor(p => p.Name, f => f.Company.CompanyName())
+                    .RuleFor(p => p.ImageUrls, _ => [])
+                    .RuleFor(p => p.Description, f => f.Lorem.Sentence())
+                    .RuleFor(p => p.Location, _ => new LocationDto(user.EventStatus.Location.Value))
+                    .RuleFor(p => p.PriceRangeBegin, f => f.Random.Int(5, 20))
+                    .RuleFor(p => p.PriceRangeEnd, (f, p) => p.PriceRangeBegin + f.Random.Int(5, 20))
+                    .RuleFor(p => p.AgeRequirement, f => f.Random.Bool() ? f.PickRandom(16, 18) : null)
+                    .RuleFor(p => p.Events, f =>
+                    {
+                        var events = new List<EventPlaceEventDto>();
+                        for (var i = 0; i < 3; i++)
+                        {
+                            var offers = new List<EventPlaceOfferDto>();
+
+                            for (var j = 0; j < f.Random.Int(1, 5); j++)
+                            {
+                                offers.Add(new EventPlaceOfferDto
+                                {
+                                    Name = f.Commerce.ProductName(),
+                                    Description = f.Lorem.Sentence(),
+                                    Price = f.Random.Int(10, 50),
+                                });
+                            }
+
+                            events.Add(new EventPlaceEventDto
+                            {
+                                Time = RandomDate().DateTime,
+                                Name = f.Commerce.ProductName(),
+                                Description = f.Lorem.Sentence(),
+                                Offers = offers
+                            });
+                        }
+                        events.Sort((e1, e2) => e1.Time.CompareTo(e2.Time));
+
+                        return events;
+                    });
+
+                return faker.Generate(count);
+            }
         });
     }
 }

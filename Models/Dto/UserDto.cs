@@ -7,6 +7,11 @@ namespace Server.Models.Dto;
 
 public class UserDto
 {
+    public UserDto()
+    {
+        
+    }
+    
     /// <summary>
     /// 
     /// </summary>

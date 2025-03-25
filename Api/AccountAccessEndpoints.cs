@@ -16,15 +16,15 @@ public static class AccountAccessEndpoints
             [JwtAuthorize] async (string userName, UserManager<ApplicationUser> userManager,
                 IProfilePictureService pfpService, HttpContext context) =>
             {
+                if (app.Environment.IsEnvironment("Sandbox"))
+                {
+                    if (userName != context.User.Identity.Name)
+                        return Results.Ok(new Faker().Image.PicsumUrl(400, 400));
+                }
+                
                 var user = await userManager.FindByNameAsync(userName);
                 
                 if (user == null) return Results.NotFound();
-                
-                if (app.Environment.IsEnvironment("Sandbox"))
-                {
-                    if (userName != context.User.Identity.Name && !user.HasPfp)
-                        return Results.Ok(new Faker().Image.PicsumUrl(400, 400));
-                }
 
                 if (!user.HasPfp)
                     return Results.Ok(pfpService.GetFallbackUrl());

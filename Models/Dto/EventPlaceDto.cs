@@ -2,17 +2,35 @@
 
 namespace Server.Models.Dto;
 
-public class EventPlaceDto(EventPlace place, List<string> downloadUrls)
+public class EventPlaceDto
 {
-    public string Name { get; set; } = place.Name;
-    public string Description { get; set; } = place.Description;
-    public LocationDto Location { get; set; } = new(place.Location);
-    public List<string> ImageUrls { get; set; } = downloadUrls;
-    public int PriceRangeBegin { get; set; } = place.PriceRangeBegin;
-    public int PriceRangeEnd { get; set; } = place.PriceRangeEnd;
-    public int? AgeRequirement { get; set; } = place.AgeRequirement;
-    public string? GoogleMapsLink { get; set; } = place.GoogleMapsLink;
-    public List<EventPlaceEventDto> Events { get; set; } = place.Events.Select(o => new EventPlaceEventDto(o)).ToList();
+    public EventPlaceDto(EventPlace place, List<string> downloadUrls)
+    {
+        Name = place.Name;
+        Description = place.Description;
+        Location = new LocationDto(place.Location);
+        ImageUrls = downloadUrls;
+        PriceRangeBegin = place.PriceRangeBegin;
+        PriceRangeEnd = place.PriceRangeEnd;
+        AgeRequirement = place.AgeRequirement;
+        GoogleMapsLink = place.GoogleMapsLink;
+        Events = place.Events.Select(o => new EventPlaceEventDto(o)).ToList();
+    }
+
+    public EventPlaceDto()
+    {
+        
+    }
+
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public LocationDto Location { get; set; }
+    public List<string> ImageUrls { get; set; }
+    public int PriceRangeBegin { get; set; }
+    public int PriceRangeEnd { get; set; }
+    public int? AgeRequirement { get; set; }
+    public string? GoogleMapsLink { get; set; }
+    public List<EventPlaceEventDto> Events { get; set; }
 }
 
 public class EventPlaceEventDto
