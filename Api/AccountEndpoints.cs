@@ -156,12 +156,12 @@ public static class AccountEndpoints
             if (user == null) return Results.BadRequest("Invalid login attempt.");
 
             var success = await userManager.CheckPasswordAsync(user, model.Password);
+            
+            if (!success) return Results.BadRequest("Invalid login attempt.");
             if (model.Email == "appletesting@example.com")
             {
                 logger.LogInformation("Apple devs attempted to login with password " + model.Password + " success: " + success);
             }
-            
-            if (!success) return Results.BadRequest("Invalid login attempt.");
 
             return Results.Ok(tokenManager.GenerateToken(user.UserName, user.Email, user.Id));
         });
