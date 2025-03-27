@@ -150,12 +150,17 @@ public static class AccountEndpoints
         });
 
         app.MapPost("/api/account/login", async (UserManager<ApplicationUser> userManager, JwtTokenManager tokenManager,
-            LoginModel model) =>
+            ILogger<Program> logger, LoginModel model) =>
         {
             var user = await userManager.FindByEmailAsync(model.Email);
             if (user == null) return Results.BadRequest("Invalid login attempt.");
 
             var success = await userManager.CheckPasswordAsync(user, model.Password);
+            if (model.Email == "appletesting@example.com")
+            {
+                logger.LogInformation("Apple devs attempted to login with password " + model.Password + " success: " + success);
+            }
+            
             if (!success) return Results.BadRequest("Invalid login attempt.");
 
             return Results.Ok(tokenManager.GenerateToken(user.UserName, user.Email, user.Id));
