@@ -1,0 +1,11 @@
+@page
+@model Server.Pages.Admin.FallbackPfp
+
+@{
+    Layout = null;
+}
+
+<form method="post" enctype="multipart/form-data">
+    <input type="file" asp-for="File" name="file" />
+    <button type="submit">submit</button>
+</form>

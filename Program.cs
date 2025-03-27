@@ -109,6 +109,7 @@ builder.Services.AddAuthorizationBuilder()
 builder.Services.AddHttpClient();
 
 builder.Services.Configure<GoogleConfig>(builder.Configuration.GetSection("Google"));
+builder.Services.Configure<AppleConfig>(builder.Configuration.GetSection("Apple"));
 builder.Services.Configure<AwsConfig>(builder.Configuration.GetSection("AWS"));
 builder.Services.Configure<AdminConfig>(builder.Configuration.GetSection("Admin"));
 builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JWT"));
@@ -146,6 +147,7 @@ builder.Services.AddSingleton<JwtTokenManager>();
 if (builder.Environment.IsEnvironment("Sandbox"))
     builder.Services.AddSingleton<SandboxEnvironmentSeeder>();
 builder.Services.AddSingleton<NotificationService>();
+builder.Services.AddSingleton<AppleTokenValidatorService>();
 
 builder.Services.AddHostedService<EventStatusCleanupService>();
 builder.Services.AddHostedService<EventsCleanupService>();

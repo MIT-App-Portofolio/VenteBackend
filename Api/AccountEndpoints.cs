@@ -73,7 +73,56 @@ public static class AccountEndpoints
 
             return Results.Ok(tokenManager.GenerateToken(user.UserName, user.Email, user.Id));
         });
+        
+        app.MapGet("/api/account/apple_should_register", async (UserManager<ApplicationUser> userManager,
+            AppleTokenValidatorService validator , string id) =>
+        {
+            var validatedToken = await validator.ValidateToken(id);
+            var email = validatedToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
 
+            return Results.Ok(await userManager.FindByEmailAsync(email) == null);
+        });
+
+        app.MapPost("/api/account/login_apple", async (UserManager<ApplicationUser> userManager,
+            JwtTokenManager tokenManager, AppleTokenValidatorService validator, string id) =>
+        {
+            var validatedToken = await validator.ValidateToken(id);
+            var email = validatedToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+
+            var user = await userManager.FindByEmailAsync(email);
+            if (user == null) return Results.BadRequest("User not found.");
+
+            return Results.Ok(tokenManager.GenerateToken(user.UserName, user.Email, user.Id));
+        });
+
+        app.MapPost("/api/account/register_apple", async (UserManager<ApplicationUser> userManager,
+            JwtTokenManager tokenManager, AppleTokenValidatorService validator, AppleRegister model) =>
+        {
+            if (model.UserName == "fallback")
+                return Results.BadRequest("Fallback username is reserved.");
+
+            if (model.BirthDate > DateTime.Today.AddYears(-16))
+                return Results.BadRequest("User must be at least 16 years old.");
+
+            var validatedToken = await validator.ValidateToken(model.Id);
+            var email = validatedToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+
+            var user = new ApplicationUser
+            {
+                UserName = model.UserName,
+                Gender = model.Gender,
+                BirthDate = model.BirthDate,
+                Email = email,
+                HasPfp = false,
+                EventStatus = new EventStatus()
+            };
+
+            var result = await userManager.CreateAsync(user);
+            if (!result.Succeeded) return Results.BadRequest(result.Errors);
+
+            return Results.Ok(tokenManager.GenerateToken(user.UserName, user.Email, user.Id));
+        });
+        
         app.MapPost("/api/account/register", async (UserManager<ApplicationUser> userManager,
             JwtTokenManager tokenManager, RegisterModel model) =>
         {
