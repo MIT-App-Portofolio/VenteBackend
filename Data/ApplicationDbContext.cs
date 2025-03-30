@@ -12,6 +12,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
     public DbSet<EventPlace> Places { get; set; }
     public DbSet<EventGroup> Groups { get; set; }
+    public DbSet<Report> Reports { get; set; }
     
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -22,6 +22,7 @@ public static class Api
             () => { return Enum.GetValues<Location>().Select(location => new LocationDto(location)).ToList(); });
         
         AccountEndpoints.MapAccountEndpoints(app);
+        SafetyEndpoints.MapSafetyEndpoints(app);
         AccountAccessEndpoints.MapAccountAccessEndpoints(app);
         EventEndpoints.MapEventEndpoints(app);
     }

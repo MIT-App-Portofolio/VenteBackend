@@ -1,0 +1,50 @@
+@page
+@model Server.Pages.Admin.Reports
+
+@{ }
+<div class="hero">
+    <div class="hero-content">
+        <div class="card w-96 bg-base-100 shadow-xl">
+            <div class="card-body items-center text-center">
+                <h2 class="card-title">Reports</h2>
+                
+                <table class="table w-full">
+                    <thead>
+                        <tr>
+                            <th>Count</th>
+                            <th>Pfp</th>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Ig handle</th>
+                            <th>Gender</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var report in Model.AllReports)
+                        {
+                            <tr>
+                                <td>@report.ReportCount</td>
+                                <td>
+                                    <img src="@report.PfpUrl" style="max-width: none; width: 100px; height: 100px;"/>
+                                </td>
+                                <td>@report.Username</td>
+                                <td>@report.Name</td>
+                                <td>@report.Description</td>
+                                <td>@report.IgHandle</td>
+                                <td>@report.Gender</td>
+                                <td>
+                                    <form method="post" asp-page-handler="Delete" asp-route-reportId="@report.Id">
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>

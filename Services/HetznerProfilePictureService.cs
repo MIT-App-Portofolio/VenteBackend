@@ -18,6 +18,21 @@ public class HetznerProfilePictureService(IConfiguration configuration, IHttpCli
         return new Uri(_pfpBucketUrl, "/profile-pictures/fallback.jpeg").ToString();
     }
 
+    public Task UploadReportPictureAsync(Stream pictureStream, string username, int pfpVersion)
+    {
+        return GetClient().PutAsync(new Uri(_pfpBucketUrl, $"/reports/{username}_{pfpVersion}.jpeg"), new StreamContent(pictureStream));
+    }
+
+    public Task DeleteReportPictureAsync(string username, int pfpVersion)
+    {
+        return GetClient().DeleteAsync(new Uri(_pfpBucketUrl, $"/reports/{username}_{pfpVersion}.jpeg"));
+    }
+
+    public string GetReportUrl(string userName, int pfpVersion)
+    {
+        return new Uri(_pfpBucketUrl, $"/reports/{userName}_{pfpVersion}.jpeg").ToString();
+    }
+
     public Task RemoveProfilePictureAsync(string username)
     {
         return GetClient().DeleteAsync(new Uri(_pfpBucketUrl, $"/profile-pictures/{username}.jpeg"));

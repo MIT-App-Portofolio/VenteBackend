@@ -233,7 +233,7 @@ public static class AccountEndpoints
                             return Results.BadRequest("Image must have a 1:1 aspect ratio.");
                 }
 
-                var user = await userManager.GetUserAsync(context.User);
+                var user = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
                 user.HasPfp = true;
                 user.PfpVersion += 1;
                 await userManager.UpdateAsync(user);
@@ -246,7 +246,7 @@ public static class AccountEndpoints
         app.MapPost("/api/account/remove_pfp", [JwtAuthorize] async (UserManager<ApplicationUser> userManager,
             IProfilePictureService pfpService, HttpContext context) =>
         {
-            var user = await userManager.GetUserAsync(context.User);
+            var user = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
 
             if (!user.HasPfp) return Results.Ok();
 
