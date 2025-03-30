@@ -13,6 +13,8 @@ public class ApplicationUser : IdentityUser
     public int PfpVersion { get; set; }
     public Gender Gender { get; set; }
     public EventStatus EventStatus { get; set; }
+    
+    public List<string>? Blocked { get; set; }
 
     public EventPlace? EventPlace { get; set; }
 }

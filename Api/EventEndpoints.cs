@@ -351,7 +351,8 @@ public static class EventEndpoints
                 var query = userManager.Users
                     .Include(u => u.EventStatus)
                     .OrderBy(u => u.EventStatus.Time.Value)
-                    .Where(u => u.EventStatus.Active == true &&
+                    .Where(u => !user.Blocked.Contains(u.UserName) &&
+                                u.EventStatus.Active == true &&
                                 u.EventStatus.Location == user.EventStatus.Location &&
                                 (u.EventStatus.Time.Value - user.EventStatus.Time.Value).Days < 14);
 
@@ -468,6 +469,8 @@ public static class EventEndpoints
                             Location = new LocationDto(user.EventStatus.Location.Value)
                         };
                     });
+
+                    ret.RemoveAll(u => user.Blocked.Contains(u.UserName));
 
                     return ret;
                 }

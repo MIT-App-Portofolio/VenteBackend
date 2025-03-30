@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
@@ -10,14 +9,20 @@ public static class SafetyEndpoints
 {
     public static void MapSafetyEndpoints(WebApplication app)
     {
-        app.MapPost("/api/safety/report", async (string userName, ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, IProfilePictureService pfpService) =>
+        app.MapPost("/api/safety/report", async (ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, IProfilePictureService pfpService, ILogger<Program> logger, string username) =>
         {
-            var user = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == userName);
+            if (app.Environment.IsEnvironment("Sandbox"))
+            {
+                logger.LogInformation("Reported " + username + " in sandbox mode.");
+                return Results.Ok();
+            }
+            
+            var user = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == username);
 
             if (user == null) return Results.BadRequest("User not found");
 
             var existingReport = await dbContext.Reports.FirstOrDefaultAsync(r =>
-                r.Username == userName && 
+                r.Username == username && 
                 r.HasPfp == user.HasPfp && 
                 r.Name == user.Name && 
                 r.Description == user.Description &&
@@ -65,6 +70,27 @@ public static class SafetyEndpoints
             memoryStream.Position = 0;
             await pfpService.UploadReportPictureAsync(memoryStream, user.UserName, user.PfpVersion);
             await memoryStream.DisposeAsync();
+            
+            return Results.Ok();
+        });
+
+        app.MapPost("/api/safety/block", [JwtAuthorize] async (UserManager<ApplicationUser> userManager, HttpContext context, string username) =>
+        {
+            if (!app.Environment.IsEnvironment("Sandbox") && !await userManager.Users.AnyAsync(u => u.UserName == username)) return Results.BadRequest();
+            
+            var user = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+
+            if (user.Blocked == null)
+            {
+                user.Blocked = [username];
+            }
+            else
+            {
+                if (!user.Blocked.Contains(username))
+                    user.Blocked.Add(username);
+            }
+            
+            await userManager.UpdateAsync(user);
             
             return Results.Ok();
         });
