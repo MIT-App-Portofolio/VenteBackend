@@ -15,6 +15,5 @@ public class RegisterModel
     [Required, DataType(DataType.Password)]
     public string Password { get; set; }
 
-    [Required] 
-    public DateTime BirthDate { get; set; }
+    public DateTime? BirthDate { get; set; }
 }

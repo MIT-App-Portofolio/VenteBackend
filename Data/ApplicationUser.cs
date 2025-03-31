@@ -8,7 +8,7 @@ public class ApplicationUser : IdentityUser
     public string? IgHandle { get; set; }
     public string? Description { get; set; }
     public string? NotificationKey { get; set; }
-    public DateTimeOffset BirthDate { get; set; }
+    public DateTimeOffset? BirthDate { get; set; }
     public bool HasPfp { get; set; }
     public int PfpVersion { get; set; }
     public Gender Gender { get; set; }
@@ -22,5 +22,6 @@ public class ApplicationUser : IdentityUser
 public enum Gender
 {
     Male,
-    Female
+    Female,
+    NotSpecified
 }

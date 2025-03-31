@@ -24,9 +24,12 @@ public class UserDto
         Name = user.Name;
         IgHandle = user.IgHandle;
         Description = user.Description;
-        Years = DateTime.Now.Year - user.BirthDate.Year;
-        if (DateTime.Now.DayOfYear < user.BirthDate.DayOfYear)
-            Years--;
+        if (user.BirthDate.HasValue)
+        {
+            Years = DateTime.Now.Year - user.BirthDate.Value.Year;
+            if (DateTime.Now.DayOfYear < user.BirthDate.Value.DayOfYear)
+                Years--;
+        }
 
         groupUserNames?.Remove(UserName);
         
@@ -80,7 +83,7 @@ public class UserDto
 
     public string UserName { get; set; }
     public Gender Gender { get; set; }
-    public int Years { get; set; }
+    public int? Years { get; set; }
     public string? Name { get; set; }
     public string? IgHandle { get; set; }
     public string? Description { get; set; }

@@ -61,7 +61,10 @@ public static class AccountEndpoints
             {
                 UserName = model.UserName,
                 Gender = model.Gender,
-                BirthDate = model.BirthDate,
+                BirthDate = model.BirthDate.HasValue 
+                    ? new DateTimeOffset(model.BirthDate.Value) 
+                    : (DateTimeOffset?)null,
+                Blocked = [],
                 Email = payload.Email,
                 HasPfp = false,
                 EventStatus = new EventStatus()
@@ -111,7 +114,10 @@ public static class AccountEndpoints
             {
                 UserName = model.UserName,
                 Gender = model.Gender,
-                BirthDate = model.BirthDate,
+                BirthDate = model.BirthDate.HasValue 
+                    ? new DateTimeOffset(model.BirthDate.Value) 
+                    : (DateTimeOffset?)null,
+                Blocked = [],
                 Email = email,
                 HasPfp = false,
                 EventStatus = new EventStatus()
@@ -136,7 +142,10 @@ public static class AccountEndpoints
             {
                 UserName = model.UserName,
                 Gender = model.Gender,
-                BirthDate = model.BirthDate,
+                BirthDate = model.BirthDate.HasValue 
+                    ? new DateTimeOffset(model.BirthDate.Value) 
+                    : (DateTimeOffset?)null,
+                Blocked = [],
                 Email = model.Email,
                 HasPfp = false,
                 EventStatus = new EventStatus()
@@ -186,7 +195,6 @@ public static class AccountEndpoints
                 user.Name = model.Name;
                 user.IgHandle = model.IgHandle;
                 user.Description = model.Description;
-                user.Gender = model.Gender;
 
                 await userManager.UpdateAsync(user);
 

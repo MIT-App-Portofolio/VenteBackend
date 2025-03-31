@@ -351,10 +351,12 @@ public static class EventEndpoints
                 var query = userManager.Users
                     .Include(u => u.EventStatus)
                     .OrderBy(u => u.EventStatus.Time.Value)
-                    .Where(u => !user.Blocked.Contains(u.UserName) &&
-                                u.EventStatus.Active == true &&
+                    .Where(u => u.EventStatus.Active == true &&
                                 u.EventStatus.Location == user.EventStatus.Location &&
                                 (u.EventStatus.Time.Value - user.EventStatus.Time.Value).Days < 14);
+
+                if (user.Blocked != null)
+                    query = query.Where(u => !user.Blocked.Contains(u.UserName));
 
                 if (gender.HasValue)
                     query = query.Where(u => u.Gender == gender.Value);
@@ -362,13 +364,13 @@ public static class EventEndpoints
                 if (ageRangeMin.HasValue)
                 {
                     var minDate = DateTime.Now.AddYears(-ageRangeMin.Value);
-                    query = query.Where(u => u.BirthDate <= minDate);
+                    query = query.Where(u => u.BirthDate.HasValue && u.BirthDate <= minDate);
                 }
 
                 if (ageRangeMax.HasValue)
                 {
                     var maxDate = DateTime.Now.AddYears(-ageRangeMax.Value);
-                    query = query.Where(u => u.BirthDate >= maxDate);
+                    query = query.Where(u => u.BirthDate.HasValue && u.BirthDate >= maxDate);
                 }
 
                 var users = await query
@@ -470,7 +472,8 @@ public static class EventEndpoints
                         };
                     });
 
-                    ret.RemoveAll(u => user.Blocked.Contains(u.UserName));
+                    if (user.Blocked != null)
+                        ret.RemoveAll(u => user.Blocked.Contains(u.UserName));
 
                     return ret;
                 }

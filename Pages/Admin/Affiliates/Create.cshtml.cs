@@ -38,6 +38,7 @@ namespace Server.Pages.Admin.Affiliates
                 UserName = Input.UserName,
                 Gender = Gender.Male,
                 BirthDate = DateTime.MinValue,
+                Blocked = [],
                 Email = Input.Email,
                 HasPfp = false,
                 EventStatus = new EventStatus()

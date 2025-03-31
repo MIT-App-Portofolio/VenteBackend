@@ -38,6 +38,7 @@ public class CreateFakeUser(UserManager<ApplicationUser> userManager, IProfilePi
             IgHandle = Input.Ig,
             Description = Input.Description,
             BirthDate = Input.BirthDate,
+            Blocked = [],
             Gender = Input.Gender,
             EventStatus = new EventStatus
             {
