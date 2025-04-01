@@ -265,5 +265,17 @@ public static class AccountEndpoints
 
             return Results.Ok();
         });
+
+        app.MapPost("/api/account/delete", [JwtAuthorize]
+            async (UserManager<ApplicationUser> userManager, HttpContext context) =>
+            {
+                var user = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+
+                if (user == null) return Results.Unauthorized();
+
+                await userManager.DeleteAsync(user);
+
+                return Results.Ok();
+            });
     }
 }
