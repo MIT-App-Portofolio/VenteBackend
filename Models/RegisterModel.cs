@@ -7,7 +7,7 @@ public class RegisterModel
 {
     [Required, EmailAddress]
     public string Email { get; set; }
-    [Required, MaxLength(25)]
+    [Required, MaxLength(20)]
     public string UserName { get; set; }
     [Required]
     public Gender Gender {get; set; }

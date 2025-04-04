@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
@@ -50,6 +51,12 @@ public static class AccountEndpoints
 
             if (model.BirthDate > DateTime.Today.AddYears(-16))
                 return Results.BadRequest("User must be at least 16 years old.");
+            
+            var validationResults = new List<ValidationResult>();
+            var context = new ValidationContext(model);
+
+            if (!Validator.TryValidateObject(model, context, validationResults, true))
+                return Results.BadRequest(validationResults);
 
             var payload = await GoogleJsonWebSignature.ValidateAsync(model.Id,
                 new GoogleJsonWebSignature.ValidationSettings
@@ -106,6 +113,12 @@ public static class AccountEndpoints
 
             if (model.BirthDate > DateTime.Today.AddYears(-16))
                 return Results.BadRequest("User must be at least 16 years old.");
+            
+            var validationResults = new List<ValidationResult>();
+            var context = new ValidationContext(model);
+
+            if (!Validator.TryValidateObject(model, context, validationResults, true))
+                return Results.BadRequest(validationResults);
 
             var validatedToken = await validator.ValidateToken(model.Id);
             var email = validatedToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
@@ -138,6 +151,12 @@ public static class AccountEndpoints
             if (model.BirthDate > DateTime.Today.AddYears(-16))
                 return Results.BadRequest("User must be at least 16 years old.");
 
+            var validationResults = new List<ValidationResult>();
+            var context = new ValidationContext(model);
+
+            if (!Validator.TryValidateObject(model, context, validationResults, true))
+                return Results.BadRequest(validationResults);
+            
             var user = new ApplicationUser
             {
                 UserName = model.UserName,
@@ -161,6 +180,12 @@ public static class AccountEndpoints
         app.MapPost("/api/account/login", async (UserManager<ApplicationUser> userManager, JwtTokenManager tokenManager,
             ILogger<Program> logger, LoginModel model) =>
         {
+            var validationResults = new List<ValidationResult>();
+            var validationContext = new ValidationContext(model);
+
+            if (!Validator.TryValidateObject(model, validationContext, validationResults, true))
+                return Results.BadRequest(validationResults);
+            
             var user = await userManager.FindByEmailAsync(model.Email);
             if (user == null) return Results.BadRequest("Invalid login attempt.");
 
@@ -189,6 +214,12 @@ public static class AccountEndpoints
         app.MapPost("/api/account/update_profile",
             [JwtAuthorize] async (HttpContext context, UserManager<ApplicationUser> userManager, ProfileModel model) =>
             {
+                var validationResults = new List<ValidationResult>();
+                var validationContext = new ValidationContext(model);
+
+                if (!Validator.TryValidateObject(model, validationContext, validationResults, true))
+                    return Results.BadRequest(validationResults);
+            
                 var user = await userManager.FindByNameAsync(context.User.Identity.Name);
                 if (user == null) return Results.BadRequest("User not found.");
 
