@@ -170,16 +170,6 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var pictureService = scope.ServiceProvider.GetRequiredService<IEventPlacePictureService>();
-    var conf = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-    var factory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>();
-    await EventPictureMigrations.Migrate(db, pictureService, conf, factory);
-    return;
-}
-
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
 }
 

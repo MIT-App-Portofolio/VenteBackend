@@ -93,6 +93,9 @@ namespace Server.Pages.Affiliate
             
             if (user == null) return NotFound();
 
+            if (user.EventPlace.Events.Any(e => e.Name == CreateEventInput.Name && e.Time == CreateEventInput.Time))
+                return BadRequest("No puede haber un evento con el mismo nombre y fecha");
+
             user.EventPlace.Events.Add(new EventPlaceEvent
             {
                 Time = CreateEventInput.Time,
