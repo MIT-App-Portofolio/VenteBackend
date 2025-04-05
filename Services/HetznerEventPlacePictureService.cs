@@ -1,4 +1,5 @@
 using Server.Data;
+using Server.Pages.Affiliate;
 
 namespace Server.Services;
 
@@ -25,7 +26,7 @@ public class HetznerEventPlacePictureService(IConfiguration configuration, IHttp
     public string GetEventPictureUrl(EventPlace place, int eventId)
     {
         var e = place.Events[eventId];
-        return new Uri(_pfpBucketUrl, $"places-pictures/{place.Name}/{e.Name}/{e.Image}").ToString();
+        return new Uri(_pfpBucketUrl, $"places-pictures/{place.Name}/{e.Name}_{e.Time.ToString()}/{e.Image}").ToString();
     }
 
     public Task UploadAsync(EventPlace place, Stream picture, string filename)
@@ -37,7 +38,7 @@ public class HetznerEventPlacePictureService(IConfiguration configuration, IHttp
     public Task UploadEventPictureAsync(EventPlace place, int offerId, Stream picture, string filename)
     {
         var @event = place.Events[offerId];
-        var path = $"places-pictures/{place.Name}/{@event.Name}/{filename}";
+        var path = $"places-pictures/{place.Name}/{@event.Name}_{@event.Time.ToString()}/{filename}";
         return GetClient().PutAsync(new Uri(_pfpBucketUrl, path), new StreamContent(picture));
     }
 
@@ -50,7 +51,7 @@ public class HetznerEventPlacePictureService(IConfiguration configuration, IHttp
     public Task DeleteEventPictureAsync(EventPlace place, int eventId)
     {
         var @event = place.Events[eventId];
-        var path = $"places-pictures/{place.Name}/{@event.Name}/{@event.Image}";
+        var path = $"places-pictures/{place.Name}/{@event.Name}_{@event.Time.ToString()}/{@event.Image}";
         return GetClient().DeleteAsync(new Uri(_pfpBucketUrl, path));
     }
 

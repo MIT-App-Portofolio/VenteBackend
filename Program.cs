@@ -17,6 +17,7 @@ using Microsoft.OpenApi.Models;
 using Server;
 using Server.Api;
 using Server.Config;
+using Server.ManualMigrations;
 using Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -165,6 +166,16 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var pictureService = scope.ServiceProvider.GetRequiredService<IEventPlacePictureService>();
+    var conf = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+    var factory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>();
+    await EventPictureMigrations.Migrate(db, pictureService, conf, factory);
+    return;
+}
 
 using (var scope = app.Services.CreateScope())
 {

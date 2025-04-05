@@ -93,9 +93,6 @@ namespace Server.Pages.Affiliate
             
             if (user == null) return NotFound();
 
-            if (user.EventPlace.Events.Any(offer => offer.Name == CreateEventInput.Name))
-                return RedirectToPage("/Affiliate/Index");
-            
             user.EventPlace.Events.Add(new EventPlaceEvent
             {
                 Time = CreateEventInput.Time,
@@ -117,15 +114,9 @@ namespace Server.Pages.Affiliate
                 .ThenInclude(p => p.Events)
                 .FirstOrDefaultAsync(u => u.UserName == User.Identity.Name);
             
-            Console.WriteLine("pre");
-            
             if (user == null) return NotFound();
             
-            Console.WriteLine(eventId);
-            
             var index = user.EventPlace.Events.FindIndex(e => e.Id == eventId);
-            
-            Console.WriteLine(index);
             
             if (index == -1) return NotFound();
             
