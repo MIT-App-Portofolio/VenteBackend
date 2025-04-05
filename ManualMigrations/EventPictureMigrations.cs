@@ -18,7 +18,7 @@ public class EventPictureMigrations
                 if (e.Image == null) continue;
 
                 var memoryStream = new MemoryStream();
-                var path = $"places-pictures/{eventPlace.Name}/{e.Name}/{e.Image}";
+                var path = $"places-pictures/{eventPlace.Name}/{e.Name}_{e.Time.ToString()}/{e.Image}";
                 var uri = new Uri(pfpBucketUrl, path);
                 await using (var stream = await httpClient.GetStreamAsync(uri))
                 {
