@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Models.Dto;
+using Server.Services;
 
 namespace Server.Api;
 
@@ -19,7 +21,10 @@ public static class Api
     public static void MapApiEndpoints(this WebApplication app)
     {
         app.MapGet("/api/get_locations",
-            () => { return Enum.GetValues<Location>().Select(location => new LocationDto(location)).ToList(); });
+            async (ApplicationDbContext dbContext, ILocationImageService imageService) =>
+            {
+                return await dbContext.Locations.Select(l => new LocationDto(l, imageService.GetUrl(l.Id))).ToListAsync();
+            });
         
         AccountEndpoints.MapAccountEndpoints(app);
         SafetyEndpoints.MapSafetyEndpoints(app);

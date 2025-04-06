@@ -32,9 +32,9 @@
                     </label>
 
                     <span asp-validation-for="Input.EventPlaceLocation" class="text-danger"></span>
-                    <select asp-for="Input.EventPlaceLocation" class="select select-bordered w-full mb-3"
-                        asp-items="Html.GetEnumSelectList<Location>()">
-                    </select>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <input asp-for="Input.EventPlaceLocation" class="grow" placeholder="Location Id" />
+                    </label>
 
                     <span asp-validation-for="Input.EventPlaceDescription" class="text-danger"></span>
                     <label class="input input-bordered flex items-center gap-2 mb-3">

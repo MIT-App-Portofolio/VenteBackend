@@ -23,7 +23,7 @@
         <button class="btn btn-primary" onclick="document.getElementById('upload-dialog').showModal()">Sube una imagen</button>
        
         <a asp-page="/Affiliate/Users">
-            <button class="btn btn-secondary">Ver los usuarios que van a @Model.Place.Location.ToString()</button>
+            <button class="btn btn-secondary">Ver los usuarios que van a @Model.LocationName</button>
         </a>
 
         <dialog id="upload-dialog" class="modal">
@@ -43,7 +43,7 @@
             <h3 class="text-xl font-semibold mb-2">Descripción</h3>
             <p class="mb-4">@Model.Place.Description</p>
             <h3 class="text-xl font-semibold mb-2">Lugar</h3>
-            <p class="mb-4">@Model.Place.Location</p>
+            <p class="mb-4">@Model.LocationName</p>
             <h3 class="text-xl font-semibold mb-2">Rango de precio</h3>
             <p class="mb-4">@Model.Place.PriceRangeStart&euro; - @Model.Place.PriceRangeEnd&euro;</p>
             <h3 class="text-xl font-semibold mb-2">Edad minima</h3>

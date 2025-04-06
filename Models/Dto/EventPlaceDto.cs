@@ -8,7 +8,7 @@ public class EventPlaceDto
     {
         Name = place.Name;
         Description = place.Description;
-        Location = new LocationDto(place.Location);
+        LocationId = place.LocationId;
         ImageUrls = downloadUrls;
         PriceRangeBegin = place.PriceRangeBegin;
         PriceRangeEnd = place.PriceRangeEnd;
@@ -24,7 +24,7 @@ public class EventPlaceDto
 
     public string Name { get; set; }
     public string Description { get; set; }
-    public LocationDto Location { get; set; }
+    public string LocationId { get; set; }
     public List<string> ImageUrls { get; set; }
     public int PriceRangeBegin { get; set; }
     public int PriceRangeEnd { get; set; }

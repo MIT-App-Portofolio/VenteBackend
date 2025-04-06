@@ -39,15 +39,12 @@ namespace Server.Pages.Admin.EventPlaces
                 return Page();
 
             var existingEventPlace = await _context.Places.FindAsync(Id);
-            Console.WriteLine(existingEventPlace);
             if (existingEventPlace == null)
                 return NotFound();
 
-            Console.WriteLine(EventPlace.Location);
-
             existingEventPlace.Name = EventPlace.Name;
             existingEventPlace.Description = EventPlace.Description;
-            existingEventPlace.Location = EventPlace.Location;
+            existingEventPlace.LocationId = EventPlace.LocationId;
             existingEventPlace.PriceRangeBegin = EventPlace.PriceRangeStart;
             existingEventPlace.PriceRangeEnd = EventPlace.PriceRangeEnd;
 

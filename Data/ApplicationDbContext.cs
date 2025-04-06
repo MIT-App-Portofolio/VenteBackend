@@ -10,6 +10,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
     }
 
+    public DbSet<LocationInfo> Locations { get; set; }
     public DbSet<EventPlace> Places { get; set; }
     public DbSet<EventGroup> Groups { get; set; }
     public DbSet<Report> Reports { get; set; }

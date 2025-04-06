@@ -8,7 +8,9 @@ public class EventPlace
 
     public string Name { get; set; }
     public string Description { get; set; }
-    public Location Location { get; set; }
+    
+    public string LocationId { get; set; }
+    
     public List<string> Images { get; set; }
     public int PriceRangeBegin { get; set; }
     public int PriceRangeEnd { get; set; }

@@ -35,7 +35,7 @@ namespace Server.Services
                 {
                     Active = false,
                     Time = null,
-                    Location = null,
+                    LocationId = null,
                 };
             }
 

@@ -15,7 +15,7 @@ namespace Server.Models
         [Required]
         public string EventPlaceName { get; set; }
         [Required]
-        public Location EventPlaceLocation { get; set; }
+        public string EventPlaceLocation { get; set; }
         [Required]
         public string EventPlaceDescription { get; set; }
         [Required]

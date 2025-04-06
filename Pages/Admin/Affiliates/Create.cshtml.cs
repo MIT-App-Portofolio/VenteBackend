@@ -7,17 +7,9 @@ using Server.Models;
 
 namespace Server.Pages.Admin.Affiliates
 {
-    public class CreateModel : PageModel
+    public class CreateModel(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        : PageModel
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ApplicationDbContext _context;
-
-        public CreateModel(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
-        {
-            _userManager = userManager;
-            _context = context;
-        }
-
         public void OnGet() { }
 
         [BindProperty]
@@ -27,11 +19,14 @@ namespace Server.Pages.Admin.Affiliates
         {
             if (!ModelState.IsValid) return Page();
 
-            if (await _context.Places.AnyAsync(p => p.Name == Input.EventPlaceName))
+            if (await context.Places.AnyAsync(p => p.Name == Input.EventPlaceName))
             {
                 ModelState.AddModelError(string.Empty, "Event place with this name already exists.");
                 return Page();
             }
+
+            if (!context.Locations.Any(l => l.Id == Input.EventPlaceLocation))
+                return BadRequest("Location not found");
 
             var user = new ApplicationUser
             {
@@ -44,7 +39,7 @@ namespace Server.Pages.Admin.Affiliates
                 EventStatus = new EventStatus()
             };
 
-            var result = await _userManager.CreateAsync(user, Input.Password);
+            var result = await userManager.CreateAsync(user, Input.Password);
 
             if (!result.Succeeded)
             {
@@ -55,7 +50,7 @@ namespace Server.Pages.Admin.Affiliates
                 return Page();
             }
 
-            if (!(await _userManager.AddToRoleAsync(user, "Affiliate")).Succeeded)
+            if (!(await userManager.AddToRoleAsync(user, "Affiliate")).Succeeded)
             {
                 ModelState.AddModelError(string.Empty, "Could not add to affiliate role.");
                 return Page();
@@ -66,7 +61,7 @@ namespace Server.Pages.Admin.Affiliates
                 Owner = user,
                 OwnerId = user.Id,
                 Name = Input.EventPlaceName,
-                Location = Input.EventPlaceLocation,
+                LocationId = Input.EventPlaceLocation,
                 Description = Input.EventPlaceDescription,
                 Images = [],
                 PriceRangeBegin = Input.EventPlacePriceRangeBegin,
@@ -74,8 +69,8 @@ namespace Server.Pages.Admin.Affiliates
                 Events = []
             };
 
-            await _context.Places.AddAsync(eventPlace);
-            await _context.SaveChangesAsync();
+            await context.Places.AddAsync(eventPlace);
+            await context.SaveChangesAsync();
 
             return RedirectToPage("/Admin/Affiliates/Index");
         }

@@ -45,7 +45,6 @@ namespace Server.Pages.Affiliate
 
             user.EventPlace.Name = EventPlace.Name;
             user.EventPlace.Description = EventPlace.Description;
-            user.EventPlace.Location = EventPlace.Location;
             user.EventPlace.PriceRangeBegin = EventPlace.PriceRangeStart;
             user.EventPlace.PriceRangeEnd = EventPlace.PriceRangeEnd;
             user.EventPlace.AgeRequirement = EventPlace.AgeRequirement;

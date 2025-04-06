@@ -10,10 +10,12 @@ namespace Server.Pages.Affiliate
 {
     public class IndexModel(
         UserManager<ApplicationUser> userManager,
+        ApplicationDbContext dbContext,
         IEventPlacePictureService eventPlacePictureService)
         : PageModel
     {
         public EventPlaceModel Place { get; set; }
+        public string LocationName { get; set; }
         public List<(string, string)> Images { get; set; }
         public List<(EventPlaceEventModel, int)> Events { get; set; }
         public Dictionary<int, int> EventsOfferCount { get; set; }
@@ -30,6 +32,7 @@ namespace Server.Pages.Affiliate
             if (user == null) return NotFound();
 
             Place = new EventPlaceModel(user.EventPlace);
+            LocationName = (await dbContext.Locations.FirstOrDefaultAsync(l => l.Id == user.EventPlace.LocationId)).Name;
             Images = eventPlacePictureService.GetDownloadWithFilenameUrls(user.EventPlace);
             Events = user.EventPlace.Events.Select(e => (new EventPlaceEventModel(e), e.Id)).ToList();
 

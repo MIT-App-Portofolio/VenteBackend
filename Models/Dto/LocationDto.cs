@@ -2,8 +2,13 @@
 
 namespace Server.Models.Dto;
 
-public class LocationDto(Location location)
+public class LocationDto(LocationInfo location, string pictureUrl)
 {
-    public int Id { get; set; } = (int)location;
-    public string Name { get; set; } = location.ToString();
+    public string Id { get; set; } = location.Id;
+    public string Name { get; set; } = location.Name;
+
+    public string PictureUrl { get; set; } = pictureUrl;
+    
+    public double Latitude { get; set; } = location.Latitude;
+    public double Longitude { get; set; } = location.Longitude;
 }

@@ -7,7 +7,7 @@
 
 <div class="hero">
     <div class="hero-content flex flex-col">
-        <h2 class="text-2xl">Usuarios que van a @Model.Location.ToString()</h2>
+        <h2 class="text-2xl">Usuarios que van a @Model.LocationName</h2>
         
         <div class="flex flex-row overflow-x-scroll space-x-5" style="width: 80vw;">
             @foreach (var (user, pfpUrl) in Model.UsersList)
@@ -23,7 +23,7 @@
                     <div class="card-body">
                         <h2 class="card-title">@(user.Name ?? "@" + user.UserName)</h2>
                         
-                        <p>Va a @Model.Location.ToString() el @user.EventStatus.Time?.ToString(new CultureInfo("es-ES"))</p>
+                        <p>Va a @Model.LocationName el @user.EventStatus.Time?.Date.ToString(new CultureInfo("es-ES"))</p>
 
                         @if (user.Gender == Gender.Male)
                         {

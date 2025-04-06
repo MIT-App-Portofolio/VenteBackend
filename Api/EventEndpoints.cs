@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Bogus;
 using Bogus.DataSets;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Models.Dto;
@@ -88,7 +89,7 @@ public static class EventEndpoints
 
                 user.EventStatus.Active = true;
                 user.EventStatus.EventGroupId = group.Id;
-                user.EventStatus.Location = groupMember.EventStatus.Location;
+                user.EventStatus.LocationId = groupMember.EventStatus.LocationId;
                 user.EventStatus.Time = groupMember.EventStatus.Time;
                 user.EventStatus.EventGroupInvitationId = null;
                 await userManager.UpdateAsync(user);
@@ -148,11 +149,15 @@ public static class EventEndpoints
             });
 
         app.MapPost("/api/register_event", [JwtAuthorize] async (UserManager<ApplicationUser> userManager,
+            ApplicationDbContext dbContext,
             HttpContext context,
-            Location location, DateTimeOffset time) =>
+            string location, DateTimeOffset time) =>
         {
             if (time.ToUniversalTime() < DateTime.UtcNow.Date)
                 return Results.BadRequest("Bad time");
+
+            if (!dbContext.Locations.Any(l => l.Id == location))
+                return Results.BadRequest("Location not found");
             
             var user = await userManager.Users
                 .Include(u => u.EventStatus)
@@ -165,7 +170,7 @@ public static class EventEndpoints
 
             user.EventStatus.Active = true;
             user.EventStatus.Time = time;
-            user.EventStatus.Location = location;
+            user.EventStatus.LocationId = location;
             user.EventStatus.EventGroupId = null;
             user.EventStatus.EventGroupInvitationId = null;
 
@@ -184,7 +189,7 @@ public static class EventEndpoints
 
                 user.EventStatus.Active = false;
                 user.EventStatus.Time = null;
-                user.EventStatus.Location = null;
+                user.EventStatus.LocationId = null;
 
                 if (user.EventStatus.EventGroupId != null)
                 {
@@ -313,7 +318,7 @@ public static class EventEndpoints
                 }
 
                 kickedUser.EventStatus.Active = false;
-                kickedUser.EventStatus.Location = null;
+                kickedUser.EventStatus.LocationId = null;
                 kickedUser.EventStatus.Time = null;
                 // Should not do this. If user is in group A, but invited to B, once kicked from A the invite from B should persist
                 // kickedUser.EventStatus.EventGroupInvitationId = null;
@@ -352,7 +357,7 @@ public static class EventEndpoints
                     .Include(u => u.EventStatus)
                     .OrderBy(u => u.EventStatus.Time.Value)
                     .Where(u => u.EventStatus.Active == true &&
-                                u.EventStatus.Location == user.EventStatus.Location &&
+                                u.EventStatus.LocationId == user.EventStatus.LocationId &&
                                 (u.EventStatus.Time.Value - user.EventStatus.Time.Value).Days < 14);
 
                 if (user.Blocked != null)
@@ -393,7 +398,7 @@ public static class EventEndpoints
             var places = await dbContext.Places
                 .Include(p => p.Events)
                 .ThenInclude(e => e.Offers)
-                .Where(p => p.Location == user.EventStatus.Location)
+                .Where(p => p.LocationId == user.EventStatus.LocationId)
                 .Select(p =>
                     new
                     {
@@ -468,7 +473,7 @@ public static class EventEndpoints
                         {
                             Active = true,
                             Time = user.EventStatus.Time.Value,
-                            Location = new LocationDto(user.EventStatus.Location.Value)
+                            LocationId = user.EventStatus.LocationId
                         };
                     });
 
@@ -525,7 +530,7 @@ public static class EventEndpoints
                     .RuleFor(p => p.Name, f => f.Company.CompanyName())
                     .RuleFor(p => p.ImageUrls, _ => [])
                     .RuleFor(p => p.Description, f => f.Lorem.Sentence())
-                    .RuleFor(p => p.Location, _ => new LocationDto(user.EventStatus.Location.Value))
+                    .RuleFor(p => p.LocationId, _ => user.EventStatus.LocationId)
                     .RuleFor(p => p.PriceRangeBegin, f => f.Random.Int(5, 20))
                     .RuleFor(p => p.PriceRangeEnd, (f, p) => p.PriceRangeBegin + f.Random.Int(5, 20))
                     .RuleFor(p => p.AgeRequirement, f => f.Random.Bool() ? f.PickRandom(16, 18) : null)

@@ -11,7 +11,7 @@ public class EventPlaceModel
     {
         Name = eventPlace.Name;
         Description = eventPlace.Description;
-        Location = eventPlace.Location;
+        LocationId = eventPlace.LocationId;
         PriceRangeStart = eventPlace.PriceRangeBegin;
         PriceRangeEnd = eventPlace.PriceRangeEnd;
         AgeRequirement = eventPlace.AgeRequirement;
@@ -22,8 +22,7 @@ public class EventPlaceModel
     public string Name { get; set; }
     [Required]
     public string Description { get; set; }
-    [Required]
-    public Location Location { get; set; }
+    public string LocationId { get; set; }
     [Required]
     public int PriceRangeStart { get; set; }
     [Required]

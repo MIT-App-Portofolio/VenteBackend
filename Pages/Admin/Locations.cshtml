@@ -1,0 +1,64 @@
+@page
+@model Server.Pages.Admin.Locations
+
+@{ }
+
+<div class="hero">
+    <div class="hero-content flex-col">
+        <form method="post" enctype="multipart/form-data" asp-page-handler="Create">
+            <span asp-validation-for="Input.Id" class="text-danger"></span>
+            <label class="input input-bordered flex items-center gap-2 mb-3">
+                <input asp-for="Input.Id" class="grow" placeholder="Id" />
+            </label>
+            
+            <span asp-validation-for="Input.Name" class="text-danger"></span>
+            <label class="input input-bordered flex items-center gap-2 mb-3">
+                <input asp-for="Input.Name" class="grow" placeholder="Name" />
+            </label>
+            
+            <span asp-validation-for="Input.Longitude" class="text-danger"></span>
+            <label class="input input-bordered flex items-center gap-2 mb-3">
+                <input asp-for="Input.Longitude" class="grow" placeholder="Longitude" />
+            </label>
+            
+            <span asp-validation-for="Input.Latitude" class="text-danger"></span>
+            <label class="input input-bordered flex items-center gap-2 mb-3">
+                <input asp-for="Input.Latitude" class="grow" placeholder="Latitude" />
+            </label>
+
+            <span asp-validation-for="Input.Picture" class="text-danger"></span>
+            <label class="input input-bordered flex items-center gap-2 mb-3">
+                <input asp-for="Input.Picture" type="file" class="grow" />
+            </label>
+
+            <button type="submit" class="btn btn-primary">Create</button>
+        </form>
+        
+        <table class="table w-full">
+            <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Latitude</th>
+                <th>Longitude</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var loc in Model.AllLocations)
+            {
+                <tr>
+                    <td>@loc.Id</td>
+                    <td>@loc.Name</td>
+                    <td>@loc.Latitude</td>
+                    <td>@loc.Longitude</td>
+                    <td>
+                        <form method="post" asp-page-handler="Delete" asp-route-locId="@loc.Id">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

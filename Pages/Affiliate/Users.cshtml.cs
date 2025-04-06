@@ -15,23 +15,23 @@ public class Users(
     IWebHostEnvironment environment) : PageModel
 {
     public List<(UserDto, string)> UsersList { get; set; }
-    public Location Location { get; set; }
+    public string LocationName { get; set; }
 
     public async Task<IActionResult> OnGetAsync()
     {
-        var location = await userManager.Users
+        var locationId = await userManager.Users
             .Include(u => u.EventPlace)
             .Where(u => u.UserName == User.Identity.Name)
-            .Select(u => u.EventPlace.Location)
+            .Select(u => u.EventPlace.LocationId)
             .FirstOrDefaultAsync();
 
         var users = await userManager.Users
             .Include(u => u.EventStatus)
-            .Where(u => u.EventStatus.Active && u.EventStatus.Location == location)
+            .Where(u => u.EventStatus.Active && u.EventStatus.LocationId == locationId)
             .OrderBy(u => u.EventStatus.Time)
             .ToListAsync();
-
-        Location = location;
+        
+        LocationName = (await dbContext.Locations.FirstOrDefaultAsync(l => l.Id == locationId)).Name;
 
         var cacheCount = 0;
         if (environment.IsEnvironment("Sandbox"))

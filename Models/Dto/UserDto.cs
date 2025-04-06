@@ -37,11 +37,9 @@ public class UserDto
         {
             Active = user.EventStatus.Active,
             Time = user.EventStatus.Time,
-            With = groupUserNames
+            With = groupUserNames,
+            LocationId = user.EventStatus.LocationId
         };
-
-        if (user.EventStatus.Location != null)
-            EventStatus.Location = new LocationDto(user.EventStatus.Location.Value);
     }
 
     public static async Task<List<UserDto>> FromListAsync(List<ApplicationUser> users, ApplicationDbContext dbContext,

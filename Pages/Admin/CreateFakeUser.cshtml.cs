@@ -43,7 +43,7 @@ public class CreateFakeUser(UserManager<ApplicationUser> userManager, IProfilePi
             EventStatus = new EventStatus
             {
                 Active = true,
-                Location = Location.Salou,
+                LocationId = "salou",
                 Time = Input.EventStatusDate
             },
             HasPfp = true

@@ -144,9 +144,8 @@ builder.Services
 // Custom services
 builder.Services.AddSingleton<IProfilePictureService, HetznerProfilePictureService>();
 builder.Services.AddSingleton<IEventPlacePictureService, HetznerEventPlacePictureService>();
+builder.Services.AddSingleton<ILocationImageService, HetznerLocationImageService>();
 builder.Services.AddSingleton<JwtTokenManager>();
-if (builder.Environment.IsEnvironment("Sandbox"))
-    builder.Services.AddSingleton<SandboxEnvironmentSeeder>();
 builder.Services.AddSingleton<NotificationService>();
 builder.Services.AddSingleton<AppleTokenValidatorService>();
 
@@ -202,9 +201,9 @@ using (var scope = app.Services.CreateScope())
     await userManager.AddToRoleAsync(admin, "Admin");
 }
 
-if (app.Environment.IsEnvironment("Sandbox"))
+using (var scope = app.Services.CreateScope())
 {
-    var userManager = app.Services.GetRequiredService<UserManager<ApplicationUser>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     if (await userManager.FindByEmailAsync("appletesting@example.com") == null)
     {
         await userManager.CreateAsync(new ApplicationUser
@@ -233,6 +232,12 @@ if (app.Environment.IsEnvironment("Sandbox"))
             },
         }, "GoogleTestingAccount1234+");
     }
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await LocationSystemMigration.Migrate(dbContext);
 }
 
 app.UseCors("AllowAll");
