@@ -234,12 +234,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await LocationSystemMigration.Migrate(dbContext);
-}
-
 app.UseCors("AllowAll");
 
 // Configure the HTTP request pipeline.
