@@ -1,0 +1,20 @@
+@page
+@model Server.Pages.Admin.Affiliates.ProgrammaticCreate
+
+@{ }
+
+<div class="hero">
+    <div class="hero-content">
+        <form method="post">
+            <span asp-validation-for="Input.Json" class="text-danger"></span>
+            <label class="input input-bordered flex items-center gap-2 mb-3">
+                <input asp-for="Input.Json" class="grow" placeholder="Json" />
+            </label>
+            
+            <span asp-validation-for="Input.LocationId" class="text-danger"></span>
+            <label class="input input-bordered flex items-center gap-2 mb-3">
+                <input asp-for="Input.LocationId" class="grow" placeholder="Location Id" />
+            </label>
+        </form>
+    </div>
+</div>
