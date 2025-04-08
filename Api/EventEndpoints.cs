@@ -403,7 +403,7 @@ public static class EventEndpoints
                     new
                     {
                         Place = p,
-                        Events = p.Events.Where(o => (o.Time - user.EventStatus.Time.Value).Days < 14).ToList()
+                        Events = p.Events.OrderBy(o => o.Time).Where(o => (o.Time - user.EventStatus.Time.Value).Days < 14).ToList()
                     }
                 )
                 .ToListAsync();

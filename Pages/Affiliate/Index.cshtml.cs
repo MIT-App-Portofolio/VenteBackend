@@ -34,7 +34,7 @@ namespace Server.Pages.Affiliate
             Place = new EventPlaceModel(user.EventPlace);
             LocationName = (await dbContext.Locations.FirstOrDefaultAsync(l => l.Id == user.EventPlace.LocationId)).Name;
             Images = eventPlacePictureService.GetDownloadWithFilenameUrls(user.EventPlace);
-            Events = user.EventPlace.Events.Select(e => (new EventPlaceEventModel(e), e.Id)).ToList();
+            Events = user.EventPlace.Events.OrderBy(e => e.Time).Select(e => (new EventPlaceEventModel(e), e.Id)).ToList();
 
             EventsOfferCount = new Dictionary<int, int>();
             EventPictures = new Dictionary<int, string?>();
