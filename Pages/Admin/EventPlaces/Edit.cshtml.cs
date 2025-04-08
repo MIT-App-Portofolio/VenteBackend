@@ -5,15 +5,8 @@ using Server.Models;
 
 namespace Server.Pages.Admin.EventPlaces
 {
-    public class EditModel : PageModel
+    public class EditModel(ApplicationDbContext context) : PageModel
     {
-        private readonly ApplicationDbContext _context;
-
-        public EditModel(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         [BindProperty(SupportsGet = true)]
         public int Id { get; set; }
 
@@ -22,7 +15,7 @@ namespace Server.Pages.Admin.EventPlaces
 
         public async Task<IActionResult> OnGetAsync()
         {
-            var eventPlace = await _context.Places.FindAsync(Id);
+            var eventPlace = await context.Places.FindAsync(Id);
 
             if (eventPlace == null)
                 return NotFound();
@@ -34,11 +27,10 @@ namespace Server.Pages.Admin.EventPlaces
 
         public async Task<IActionResult> OnPostAsync()
         {
-            Console.WriteLine(ModelState.IsValid);
             if (!ModelState.IsValid)
                 return Page();
 
-            var existingEventPlace = await _context.Places.FindAsync(Id);
+            var existingEventPlace = await context.Places.FindAsync(Id);
             if (existingEventPlace == null)
                 return NotFound();
 
@@ -48,7 +40,7 @@ namespace Server.Pages.Admin.EventPlaces
             existingEventPlace.PriceRangeBegin = EventPlace.PriceRangeStart;
             existingEventPlace.PriceRangeEnd = EventPlace.PriceRangeEnd;
 
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
 
             return RedirectToPage("/Admin/EventPlaces/Index", new { PageId = 0 });
         }

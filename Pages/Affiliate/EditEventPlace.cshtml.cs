@@ -7,18 +7,11 @@ using Server.Models;
 
 namespace Server.Pages.Affiliate
 {
-    public class EditEventPlaceModel : PageModel
+    public class EditEventPlaceModel(UserManager<ApplicationUser> userManager, ILogger<EditEventPlaceModel> logger) : PageModel
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-
-        public EditEventPlaceModel(UserManager<ApplicationUser> userManager)
-        {
-            _userManager = userManager;
-        }
-
         public async Task<IActionResult> OnGetAsync()
         {
-            var user = await _userManager.Users.Include(u => u.EventPlace).FirstOrDefaultAsync(u => u.UserName == User.Identity.Name);
+            var user = await userManager.Users.Include(u => u.EventPlace).FirstOrDefaultAsync(u => u.UserName == User.Identity.Name);
 
             if (user == null) return NotFound();
 
@@ -32,11 +25,15 @@ namespace Server.Pages.Affiliate
 
         public async Task<IActionResult> OnPostAsync()
         {
-            var user = await _userManager.Users.Include(u => u.EventPlace).FirstOrDefaultAsync(u => u.UserName == User.Identity.Name);
+            var user = await userManager.Users.Include(u => u.EventPlace).FirstOrDefaultAsync(u => u.UserName == User.Identity.Name);
 
             if (user == null) return NotFound();
 
-            if (!ModelState.IsValid) return Page();
+            if (!ModelState.IsValid)
+            {
+                logger.LogInformation("Edit event place failed {0}", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage + ", "));
+                return Page();
+            }
 
             if (user.EventPlace == null)
             {
@@ -50,7 +47,7 @@ namespace Server.Pages.Affiliate
             user.EventPlace.AgeRequirement = EventPlace.AgeRequirement;
             user.EventPlace.GoogleMapsLink = EventPlace.GoogleMapsLink;
 
-            await _userManager.UpdateAsync(user);
+            await userManager.UpdateAsync(user);
 
             return RedirectToPage("/Affiliate/Index");
         }
