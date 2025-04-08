@@ -20,9 +20,9 @@ public class EventPlaceModel
 
     [Required]
     public string Name { get; set; }
-    [Required]
-    public string Description { get; set; }
-    public string LocationId { get; set; }
+    public string? Description { get; set; }
+    // has to be nullable bc reused for admin page and affiliate page, affiliates cannot change location id so the field shouldn't fail
+    public string? LocationId { get; set; }
     [Required]
     public int PriceRangeStart { get; set; }
     [Required]
