@@ -8,6 +8,10 @@ public class ApplicationUser : IdentityUser
     public string? IgHandle { get; set; }
     public string? Description { get; set; }
     public string? NotificationKey { get; set; }
+    
+    public string? CustomNote { get; set; }
+    public DateTimeOffset? NoteWasSet { get; set; }
+    
     public DateTimeOffset? BirthDate { get; set; }
     public bool HasPfp { get; set; }
     public int PfpVersion { get; set; }

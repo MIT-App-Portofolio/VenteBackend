@@ -14,10 +14,8 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Server;
 using Server.Api;
 using Server.Config;
-using Server.ManualMigrations;
 using Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -150,6 +148,7 @@ builder.Services.AddSingleton<NotificationService>();
 builder.Services.AddSingleton<AppleTokenValidatorService>();
 
 builder.Services.AddHostedService<EventStatusCleanupService>();
+builder.Services.AddHostedService<NoteCleanupService>();
 builder.Services.AddHostedService<EventsCleanupService>();
 
 // CORS

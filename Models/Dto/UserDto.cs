@@ -22,6 +22,7 @@ public class UserDto
         UserName = user.UserName!;
         Gender = user.Gender;
         Name = user.Name;
+        Note = user.CustomNote;
         IgHandle = user.IgHandle;
         Description = user.Description;
         if (user.BirthDate.HasValue)
@@ -81,6 +82,7 @@ public class UserDto
 
     public string UserName { get; set; }
     public Gender Gender { get; set; }
+    public string? Note { get; set; }
     public int? Years { get; set; }
     public string? Name { get; set; }
     public string? IgHandle { get; set; }

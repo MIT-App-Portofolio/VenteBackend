@@ -332,7 +332,7 @@ public static class EventEndpoints
             });
         
         if (app.Environment.IsEnvironment("Sandbox"))
-            MapMockupQueryEndpoints(app);
+            MapProdQueryEndpoints(app);
         else
             MapProdQueryEndpoints(app);
     }

@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using Amazon.Runtime;
 using Google.Apis.Auth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -198,6 +199,42 @@ public static class AccountEndpoints
             }
 
             return Results.Ok(tokenManager.GenerateToken(user.UserName, user.Email, user.Id));
+        });
+
+        app.MapPost("/api/account/set_custom_note", [JwtAuthorize] async (UserManager<ApplicationUser> userManager, HttpContext context, string note) =>
+        {
+            var user = await userManager.FindByNameAsync(context.User.Identity.Name);
+            if (user == null) return Results.BadRequest("User not found.");
+
+            if (note.Length > 50) return Results.BadRequest("Note cannot be longer than 50 chars");
+
+            if (note == "")
+            {
+                user.CustomNote = null;
+                user.NoteWasSet = null;
+            }
+            else
+            {
+                user.CustomNote = note;
+                user.NoteWasSet = DateTimeOffset.Now;
+            }
+
+            await userManager.UpdateAsync(user);
+
+            return Results.Ok();
+        });
+        
+        app.MapPost("/api/account/remove_custom_note", [JwtAuthorize] async (UserManager<ApplicationUser> userManager, HttpContext context) =>
+        {
+            var user = await userManager.FindByNameAsync(context.User.Identity.Name);
+            if (user == null) return Results.BadRequest("User not found.");
+
+            user.CustomNote = null;
+            user.NoteWasSet = null;
+
+            await userManager.UpdateAsync(user);
+
+            return Results.Ok();
         });
 
         app.MapPost("/api/account/set_notification_key", [JwtAuthorize] async (UserManager<ApplicationUser> userManager, HttpContext context, string key) =>
