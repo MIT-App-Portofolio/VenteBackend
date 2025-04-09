@@ -18,7 +18,11 @@ public class NotificationService(ILogger<NotificationService> logger)
             Notification = new Notification
             {
                 Title = $"{invitor} te ha invitado a un evento",
-                Body = "Haz click para ver más detalles"
+                Body = "Haz click para ver más detalles",
+            },
+            Data = new Dictionary<string, string>
+            {
+                ["notification_type"] = "invite"
             },
             Token = target.NotificationKey
         };
