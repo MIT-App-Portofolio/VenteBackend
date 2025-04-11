@@ -15,6 +15,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<EventGroup> Groups { get; set; }
     public DbSet<Report> Reports { get; set; }
     
+    public DbSet<CustomOffer> CustomOffers { get; set; }
+    
     protected override void OnModelCreating(ModelBuilder builder)
     {
         DateTimeOffsetConverters(builder);

@@ -10,6 +10,8 @@ using Server.Data;
 using Server.Models;
 using Server.Models.Dto;
 using Server.Services;
+using Server.Services.Concrete;
+using Server.Services.Interfaces;
 using SixLabors.ImageSharp;
 
 namespace Server.Api;
@@ -290,6 +292,58 @@ public static class AccountEndpoints
                 }
 
                 return Results.Ok(new UserDto(user, withUsernames));
+            });
+
+        app.MapGet("/api/account/get_offers", [JwtAuthorize]
+            async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, HttpContext context,
+                ICustomOfferPictureService offerPictureService, IEventPlacePictureService eventPlacePictureService) =>
+            {
+                var user = await userManager.Users
+                    .Include(u => u.EventStatus)
+                    .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+
+                if (user == null) return Results.Unauthorized();
+
+                var offers = dbContext.CustomOffers
+                    .Where(o => o.DestinedTo.Contains(user.Id))
+                    .ToList();
+
+                var cutoffTime = user.EventStatus.Time ?? DateTimeOffset.UtcNow;
+
+                var placeIds = offers.Select(o => o.EventPlaceId).Distinct();
+                var places = (await dbContext.Places
+                    .Include(p => p.Events)
+                    .ThenInclude(e => e.Offers)
+                    .Where(p => placeIds.Contains(p.Id))
+                    .Select(p =>
+                        new
+                        {
+                            Place = p,
+                            Events = p.Events.OrderBy(o => o.Time)
+                                .Where(o => (o.Time - cutoffTime).Days < 14).ToList()
+                        }
+                    )
+                    .ToListAsync()).Select(place =>
+                {
+                    place.Place.Events = place.Events.Select((e, i) =>
+                    {
+                        var index = place.Place.Events.IndexOf(e);
+                        e.Image = e.Image == null
+                            ? null
+                            : eventPlacePictureService.GetEventPictureUrl(place.Place, index);
+                        return e;
+                    }).ToList();
+                    return (place.Place.Id, new EventPlaceDto(place.Place, eventPlacePictureService.GetDownloadUrls(place.Place)));
+                }).ToDictionary();
+
+                var dtos = offers.Select(o =>
+                {
+                    var place = places[o.EventPlaceId];
+                    var imageUrl = o.HasImage ? offerPictureService.GetUrl(o.Id, place.Name) : null;
+                    return new CustomOfferDto(o, imageUrl, place);
+                });
+
+                return Results.Ok(dtos);
             });
 
         app.MapPost("/api/account/update_pfp", [JwtAuthorize] async (UserManager<ApplicationUser> userManager,

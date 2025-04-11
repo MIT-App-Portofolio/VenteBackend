@@ -1,4 +1,4 @@
-namespace Server.Services;
+namespace Server.Services.Interfaces;
 
 public interface ILocationImageService
 {

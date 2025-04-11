@@ -17,6 +17,10 @@ using Microsoft.OpenApi.Models;
 using Server.Api;
 using Server.Config;
 using Server.Services;
+using Server.Services.Concrete;
+using Server.Services.Hosted;
+using Server.Services.Implementations;
+using Server.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -143,6 +147,7 @@ builder.Services
 builder.Services.AddSingleton<IProfilePictureService, HetznerProfilePictureService>();
 builder.Services.AddSingleton<IEventPlacePictureService, HetznerEventPlacePictureService>();
 builder.Services.AddSingleton<ILocationImageService, HetznerLocationImageService>();
+builder.Services.AddSingleton<ICustomOfferPictureService, HetznerCustomOfferPictureService>();
 builder.Services.AddSingleton<JwtTokenManager>();
 builder.Services.AddSingleton<NotificationService>();
 builder.Services.AddSingleton<AppleTokenValidatorService>();
@@ -150,6 +155,7 @@ builder.Services.AddSingleton<AppleTokenValidatorService>();
 builder.Services.AddHostedService<EventStatusCleanupService>();
 builder.Services.AddHostedService<NoteCleanupService>();
 builder.Services.AddHostedService<EventsCleanupService>();
+builder.Services.AddHostedService<CustomOffersCleanupService>();
 
 // CORS
 builder.Services.AddCors(options =>

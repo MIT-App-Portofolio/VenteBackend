@@ -1,4 +1,6 @@
-namespace Server.Services;
+using Server.Services.Interfaces;
+
+namespace Server.Services.Implementations;
 
 public class HetznerLocationImageService(IHttpClientFactory clientFactory, IConfiguration configuration) : ILocationImageService
 {

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Models;
 using Server.Services;
+using Server.Services.Interfaces;
 
 namespace Server.Pages.Affiliate
 {

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
 using Server.Data;
 using Server.Services;
+using Server.Services.Interfaces;
 
 namespace Server.Pages.Admin.Affiliates;
 

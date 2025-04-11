@@ -1,4 +1,6 @@
-namespace Server.Services;
+using Server.Services.Interfaces;
+
+namespace Server.Services.Implementations;
 
 public class HetznerProfilePictureService(IConfiguration configuration, IHttpClientFactory clientFactory) : IProfilePictureService
 {

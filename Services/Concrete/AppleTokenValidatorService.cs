@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Server.Config;
 
-namespace Server.Services;
+namespace Server.Services.Concrete;
 
 public class AppleTokenValidatorService(IOptions<AppleConfig> config)
 {

@@ -1,6 +1,6 @@
 ﻿using Server.Data;
 
-namespace Server.Services;
+namespace Server.Services.Interfaces;
 
 public interface IEventPlacePictureService
 {

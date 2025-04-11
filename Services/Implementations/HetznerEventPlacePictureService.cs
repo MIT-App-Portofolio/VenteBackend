@@ -1,7 +1,7 @@
 using Server.Data;
-using Server.Pages.Affiliate;
+using Server.Services.Interfaces;
 
-namespace Server.Services;
+namespace Server.Services.Implementations;
 
 public class HetznerEventPlacePictureService(IConfiguration configuration, IHttpClientFactory httpClientFactory) : IEventPlacePictureService
 {

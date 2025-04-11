@@ -1,0 +1,39 @@
+@page
+@using System.Globalization
+@model Server.Pages.Affiliate.CustomOffers.Index
+
+@{ }
+
+<div class="hero">
+    <div class="hero-content flex-col">
+        <a asp-page="/Affiliate/CustomOffers/Create">
+            <button class="btn btn-primary">Crear una oferta</button>
+        </a>
+        
+        <div class="flex flex-row overflow-x-scroll space-x-5" style="width: 70vw;">
+            @foreach (var offer in Model.Offers)
+            {
+                <div class="card w-96">
+                    <figure>
+                        <img src="@offer.ImageUrl"/>
+                    </figure>
+                    <div class="card-body">
+                        <h2 class="card-title">@offer.Name</h2>
+
+                        <p>@offer.Description</p>
+
+                        <p>Para @offer.TargetPeople personas</p>
+
+                        <p>Válido hasta @offer.ValidUntil.Date.ToString(new CultureInfo("es"))</p>
+
+                        <div class="card-actions justify-end">
+                            <form method="post" asp-page-handler="Delete" asp-route-offerId="@offer.Id">
+                                <button class="btn btn-error" type="submit">Eliminar</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

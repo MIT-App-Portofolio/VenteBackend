@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Models.Dto;
 using Server.Services;
+using Server.Services.Interfaces;
 
 namespace Server.Api;
 

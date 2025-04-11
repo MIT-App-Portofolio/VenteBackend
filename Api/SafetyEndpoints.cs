@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Services;
+using Server.Services.Interfaces;
 
 namespace Server.Api;
 

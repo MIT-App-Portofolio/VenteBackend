@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Server.Data;
+using Server.Services.Interfaces;
 
-namespace Server.Services;
+namespace Server.Services.Hosted;
 
 public class EventsCleanupService(
     ILogger<EventsCleanupService> logger,

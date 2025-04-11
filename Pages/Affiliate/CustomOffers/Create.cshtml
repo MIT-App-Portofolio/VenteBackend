@@ -1,0 +1,321 @@
+@page
+@model Server.Pages.Affiliate.CustomOffers.Create
+
+@{ }
+
+<div class="hero">
+    <div class="hero-content flex-col">
+        <h2 class="text-2xl">Crear oferta personalizada</h2>
+
+        <form method="post" enctype="multipart/form-data" asp-page-handler="Create">
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Nombre de la oferta</span>
+                </label>
+                <input asp-for="Input.Name" class="input input-bordered" placeholder="Nombre de la oferta"/>
+                <span asp-validation-for="Input.Name" class="text-error"></span>
+            </div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Descripción</span>
+                </label>
+                <textarea asp-for="Input.Description" class="textarea textarea-bordered"
+                          placeholder="Descripción de la oferta"></textarea>
+                <span asp-validation-for="Input.Description" class="text-error"></span>
+            </div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Imagen</span>
+                </label>
+                <input asp-for="Input.Picture" type="file" class="file-input file-input-bordered w-full"/>
+                <span asp-validation-for="Input.Picture" class="text-error"></span>
+            </div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Válido hasta</span>
+                </label>
+                <input asp-for="Input.ValidUntil" type="datetime-local" class="input input-bordered"/>
+                <span asp-validation-for="Input.ValidUntil" class="text-error"></span>
+            </div>
+
+            <input type="hidden" id="selectedUsersInput" name="Input.TargetUsersJson"/>
+        </form>
+
+        <div class="divider">Selección de usuarios</div>
+
+        <div class="collapse bg-base-200">
+            <input type="checkbox"/>
+            <div class="collapse-title text-xl font-medium flex justify-between items-center">
+                <span>Filtros</span>
+            </div>
+            <div class="collapse-content w-full">
+                <div class="flex flex-col gap-4 w-full">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Género</span>
+                        </label>
+                        <select id="genderFilter" class="select select-bordered w-full">
+                            <option value="">Todos</option>
+                            <option value="0">Hombre</option>
+                            <option value="1">Mujer</option>
+                        </select>
+                    </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Rango de edad</span>
+                        </label>
+                        <div class="flex gap-2">
+                            <input type="number" id="minAge" class="input input-bordered w-20" placeholder="Min"
+                                   min="0">
+                            <span>-</span>
+                            <input type="number" id="maxAge" class="input input-bordered w-20" placeholder="Max"
+                                   min="0">
+                        </div>
+                    </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Fecha del evento</span>
+                        </label>
+                        <div class="flex gap-2">
+                            <input type="date" id="minDate" class="input input-bordered">
+                            <span>-</span>
+                            <input type="date" id="maxDate" class="input input-bordered">
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="applyFilters()">Aplicar filtros</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-col justify-start w-full gap-5">
+            <h3 class="text-xl">Usuarios seleccionados</h3>
+            <div id="selected-users" class="flex flex-row overflow-x-scroll space-x-5" style="width: 60vw;">
+            </div>
+        </div>
+
+        <div class="flex-col justify-start w-full gap-5">
+            <h3 class="text-xl">Usuarios disponibles</h3>
+            <button type="button" class="btn btn-primary mb-5" onclick="addAllUsers()">Añadir todos</button>
+            <div id="available-users" class="flex flex-row overflow-x-scroll space-x-5" style="width: 60vw;">
+                <p class="text-error"></p>
+                <span class="loading loading-spinner loading-md"></span>
+            </div>
+        </div>
+
+        <div class="card-actions justify-end mt-4">
+            <button type="submit" class="btn btn-primary" onclick="submitForm()">Crear oferta</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        allUsers = [];
+        availableUsers = [];
+        selectedUsers = [];
+        $(document).ready(function () {
+            $.ajax("?handler=Users", {
+                method: "GET",
+                success: function (data) {
+                    $("#available-users .loading").hide();
+                    allUsers = data;
+                    availableUsers = data;
+                    render();
+                },
+                error: function () {
+                    $("#available-users .loading").hide();
+                    $("#available-users .text-error").text("Algo fue mal");
+                }
+            })
+        });
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return `${date.getDate()}/${date.getMonth() + 1}`;
+        }
+
+        function getGenderText(gender) {
+            return gender === 0 ? 'Hombre' : 'Mujer';
+        }
+
+        function calculateAge(birthDate) {
+            if (!birthDate) return 'Edad no especificada';
+            const today = new Date();
+            const birth = new Date(birthDate);
+            let age = today.getFullYear() - birth.getFullYear();
+            const monthDiff = today.getMonth() - birth.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        function applyFilters() {
+            const genderFilter = $("#genderFilter").val();
+            const minAge = $("#minAge").val();
+            const maxAge = $("#maxAge").val();
+            const minDate = $("#minDate").val();
+            const maxDate = $("#maxDate").val();
+
+            availableUsers = allUsers.filter(user => {
+                if (selectedUsers.some(u => u.id === user.id)) {
+                    return false;
+                }
+                
+                // Filter by gender
+                if (genderFilter !== "" && user.gender.toString() !== genderFilter) {
+                    return false;
+                }
+
+                // Filter by age
+                const age = calculateAge(user.birthDate);
+                if (minAge && age < parseInt(minAge)) {
+                    return false;
+                }
+                if (maxAge && age > parseInt(maxAge)) {
+                    return false;
+                }
+
+                // Filter by event date
+                if (minDate && new Date(user.eventDate) < new Date(minDate)) {
+                    return false;
+                }
+                if (maxDate && new Date(user.eventDate) > new Date(maxDate)) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            render();
+        }
+
+        function render() {
+            // Render available users
+            const availableUsersContainer = $("#available-users");
+            availableUsersContainer.empty();
+
+            if (availableUsers.length === 0) {
+                availableUsersContainer.append('<p>No hay usuarios disponibles</p>');
+                return;
+            }
+
+            const usersList = $('<div class="flex flex-row overflow-x-scroll space-x-5" style="width: 80vw;"></div>');
+
+            availableUsers.forEach(user => {
+                const userCard = $(`
+                    <div class="card bg-base-100 shadow-xl" style="width: 220px;">
+                        <figure>
+                            <img
+                                class="rounded-md"
+                                style="width: 200px; height: 200px; max-width: none;"
+                                src="${user.pfpUrl}"
+                                alt="Profile picture of ${user.displayName}" />
+                        </figure>
+                        <div class="card-body">
+                            <h2 class="card-title">${user.displayName}</h2>
+                            <p>Va el ${formatDate(user.eventDate)}</p>
+                            <p>${getGenderText(user.gender)}</p>
+                            <p>${calculateAge(user.birthDate)} años</p>
+                            <div class="card-actions justify-end">
+                                <button class="btn btn-primary" onclick="selectUser('${user.id}')">Seleccionar</button>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                usersList.append(userCard);
+            });
+            
+            availableUsersContainer.append(usersList);
+        }
+
+        function selectUser(userId) {
+            const user = availableUsers.find(u => u.id === userId);
+            if (!user) return;
+
+            // Remove from available
+            availableUsers = availableUsers.filter(u => u.id !== userId);
+            // Add to selected
+            selectedUsers.push(user);
+
+            // Re-render both lists
+            render();
+            renderSelectedUsers();
+        }
+
+        function renderSelectedUsers() {
+            const selectedUsersContainer = $("#selected-users");
+            selectedUsersContainer.empty();
+
+            if (selectedUsers.length === 0) {
+                selectedUsersContainer.append('<p>No hay usuarios seleccionados</p>');
+                return;
+            }
+
+            const usersList = $('<div class="flex flex-row overflow-x-scroll space-x-5" style="width: 80vw;"></div>');
+
+            selectedUsers.forEach(user => {
+                const userCard = $(`
+                    <div class="card bg-base-100 shadow-xl" style="width: 220px;">
+                        <figure>
+                            <img
+                                class="rounded-md"
+                                style="width: 200px; height: 200px; max-width: none;"
+                                src="${user.pfpUrl}"
+                                alt="Profile picture of ${user.displayName}" />
+                        </figure>
+                        <div class="card-body">
+                            <h2 class="card-title">${user.displayName}</h2>
+                            <p>Va el ${formatDate(user.eventDate)}</p>
+                            <p>${getGenderText(user.gender)}</p>
+                            <p>${calculateAge(user.birthDate)} años</p>
+                            <div class="card-actions justify-end">
+                                <button class="btn btn-error" onclick="deselectUser('${user.id}')">Quitar</button>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                usersList.append(userCard);
+            });
+
+            selectedUsersContainer.append(usersList);
+        }
+
+        function deselectUser(userId) {
+            const user = selectedUsers.find(u => u.id === userId);
+            if (!user) return;
+
+            // Remove from selected
+            selectedUsers = selectedUsers.filter(u => u.id !== userId);
+            // Add back to available
+            availableUsers.push(user);
+
+            // Re-render both lists
+            render();
+            renderSelectedUsers();
+        }
+
+        function submitForm() {
+            // Update the hidden input with selected user IDs
+            const selectedUserIds = selectedUsers.map(user => user.id);
+            $("#selectedUsersInput").val(JSON.stringify(selectedUserIds));
+
+            // Submit the form
+            $("form").submit();
+        }
+
+        function addAllUsers() {
+            // Add all available users to selected
+            selectedUsers = [...selectedUsers, ...availableUsers];
+            // Clear available users
+            availableUsers = [];
+
+            // Re-render both lists
+            render();
+            renderSelectedUsers();
+        }
+    </script>
+}

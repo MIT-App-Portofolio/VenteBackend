@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Server.Data;
 using Server.Services;
+using Server.Services.Interfaces;
 
 namespace Server.Pages.Admin;
 

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Server.Config;
 
-namespace Server.Services;
+namespace Server.Services.Concrete;
 
 public class JwtTokenManager(IOptions<JwtConfig> config)
 {
