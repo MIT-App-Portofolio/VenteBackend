@@ -2,22 +2,18 @@ using Server.Data;
 
 namespace Server.Models.Dto;
 
-public class CustomOfferDto
+public class CustomOfferOnlyDto
 {
-    public CustomOfferDto() { }
+    public CustomOfferOnlyDto() { }
 
-    public CustomOfferDto(CustomOffer offer, string? imageUrl, EventPlaceDto place)
+    public CustomOfferOnlyDto(CustomOffer offer, string? imageUrl)
     {
         Name = offer.Name;
-        Id = offer.Id;
-        Place = place;
         Description = offer.Description;
         ImageUrl = offer.HasImage ? imageUrl : null;
         ValidUntil = offer.ValidUntil;
     }
     
-    public int Id { get; set; }
-    public EventPlaceDto Place { get; set; }
     public string Name { get; set; }
     public string? Description { get; set; }
     public string? ImageUrl { get; set; }

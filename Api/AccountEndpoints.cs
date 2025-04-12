@@ -346,6 +346,24 @@ public static class AccountEndpoints
                 return Results.Ok(dtos);
             });
 
+        app.MapGet("/api/account/get_offer_qr", [JwtAuthorize]
+            async (HttpContext context, ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager,
+                ICustomOfferPictureService customOfferPictureService, CustomOfferTokenStorage tokenStorage, int offerId) =>
+        {
+            var user = await userManager.Users
+                .Include(u => u.EventStatus)
+                .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+
+            if (user == null) return Results.Unauthorized();
+
+            var offer = await dbContext.CustomOffers.FirstOrDefaultAsync(o =>
+                o.Id == offerId && o.DestinedTo.Contains(user.Id));
+
+            if (offer == null) return Results.BadRequest();
+
+            return Results.Ok(tokenStorage.Add(offer.Id, user.Id));
+        });
+
         app.MapPost("/api/account/update_pfp", [JwtAuthorize] async (UserManager<ApplicationUser> userManager,
                 IFormFile file,
                 HttpContext context, IProfilePictureService pfpService) =>

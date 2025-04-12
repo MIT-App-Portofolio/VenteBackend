@@ -31,5 +31,6 @@ public static class Api
         SafetyEndpoints.MapSafetyEndpoints(app);
         AccountAccessEndpoints.MapAccountAccessEndpoints(app);
         EventEndpoints.MapEventEndpoints(app);
+        VenueEndpoints.MapVenueEndpoints(app);
     }
 }

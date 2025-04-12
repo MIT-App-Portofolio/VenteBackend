@@ -148,9 +148,11 @@ builder.Services.AddSingleton<IProfilePictureService, HetznerProfilePictureServi
 builder.Services.AddSingleton<IEventPlacePictureService, HetznerEventPlacePictureService>();
 builder.Services.AddSingleton<ILocationImageService, HetznerLocationImageService>();
 builder.Services.AddSingleton<ICustomOfferPictureService, HetznerCustomOfferPictureService>();
+// builder.Services.AddSingleton<IAlbumPictureService, HetznerAlbumPictureService>();
 builder.Services.AddSingleton<JwtTokenManager>();
 builder.Services.AddSingleton<NotificationService>();
 builder.Services.AddSingleton<AppleTokenValidatorService>();
+builder.Services.AddSingleton<CustomOfferTokenStorage>();
 
 builder.Services.AddHostedService<EventStatusCleanupService>();
 builder.Services.AddHostedService<NoteCleanupService>();
