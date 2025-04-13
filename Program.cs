@@ -7,6 +7,7 @@ using AwsSignatureVersion4;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Server.Data;
 using Microsoft.EntityFrameworkCore;
@@ -171,7 +172,17 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+});
+
 var app = builder.Build();
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedProto
+});
 
 using (var scope = app.Services.CreateScope())
 {
