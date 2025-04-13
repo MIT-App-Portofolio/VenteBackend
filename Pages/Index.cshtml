@@ -13,7 +13,7 @@
                     <h2 class="text-2xl text-primary">Vente</h2>
                     <p>La app para gente que sale.</p>
                     <div class="flex flex-row space-x-2">
-                        <a href="https://apps.apple.com/app/apple-store/id6741685925?pt=127602896&ct=webapp-referrer&mt=8">
+                        <a href="https://apps.apple.com/app/apple-store/id6741685925?pt=127602896&ct=webapp-referrer&mt=8" id="appstore-btn">
                             <img src="AppStoreButton.svg" alt="App Store"/>
                         </a>
                         <a>
@@ -27,7 +27,7 @@
                 <div class="display bg-black">
                     <img src="main-page-ss.webp" alt="Main page" class="w-60 md:w-72 h-auto"/>
                 </div>
-           </div>
+            </div>
         </section>
         
         <section class="flex flex-col md:flex-row space-y-5 md:space-y-0 md:space-x-8">
@@ -86,3 +86,18 @@
         </section>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $('#appstore-btn').on('click', function(e) {
+            e.preventDefault();
+            gtag('event', 'appstore_click', {
+                event_category: 'engagement',
+                event_label: 'AppStoreButton'
+            });
+            setTimeout(() => {
+                window.location.href = this.href;
+            }, 300);
+        });
+    </script>
+}
