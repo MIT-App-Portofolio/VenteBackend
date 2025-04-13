@@ -1,7 +1,9 @@
 @page "{eventId:int}"
 @model Server.Pages.Affiliate.Event
 
-@{ }
+@{
+    ViewData["Title"] = Model.EventInfo.Name;
+}
 
 <div class="hero">
     <div class="hero-content flex-col align-start w-full">

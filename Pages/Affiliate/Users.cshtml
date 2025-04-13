@@ -3,7 +3,9 @@
 @using Server.Data
 @model Server.Pages.Affiliate.Users
 
-@{ } 
+@{
+    ViewData["Title"] = "Usuarios que van a " + Model.LocationName;
+} 
 
 <div class="hero">
     <div class="hero-content flex flex-col">
