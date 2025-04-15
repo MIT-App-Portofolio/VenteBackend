@@ -17,6 +17,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     
     public DbSet<CustomOffer> CustomOffers { get; set; }
     
+    public DbSet<SharedAlbum> Albums { get; set; }
+    
     protected override void OnModelCreating(ModelBuilder builder)
     {
         DateTimeOffsetConverters(builder);

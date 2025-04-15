@@ -149,7 +149,7 @@ builder.Services.AddSingleton<IProfilePictureService, HetznerProfilePictureServi
 builder.Services.AddSingleton<IEventPlacePictureService, HetznerEventPlacePictureService>();
 builder.Services.AddSingleton<ILocationImageService, HetznerLocationImageService>();
 builder.Services.AddSingleton<ICustomOfferPictureService, HetznerCustomOfferPictureService>();
-// builder.Services.AddSingleton<IAlbumPictureService, HetznerAlbumPictureService>();
+builder.Services.AddSingleton<IAlbumPictureService, HetznerAlbumPictureService>();
 builder.Services.AddSingleton<JwtTokenManager>();
 builder.Services.AddSingleton<NotificationService>();
 builder.Services.AddSingleton<AppleTokenValidatorService>();
@@ -159,6 +159,7 @@ builder.Services.AddHostedService<EventStatusCleanupService>();
 builder.Services.AddHostedService<NoteCleanupService>();
 builder.Services.AddHostedService<EventsCleanupService>();
 builder.Services.AddHostedService<CustomOffersCleanupService>();
+builder.Services.AddHostedService<AlbumCleanupService>();
 
 // CORS
 builder.Services.AddCors(options =>

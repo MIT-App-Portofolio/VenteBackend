@@ -32,5 +32,6 @@ public static class Api
         AccountAccessEndpoints.MapAccountAccessEndpoints(app);
         EventEndpoints.MapEventEndpoints(app);
         VenueEndpoints.MapVenueEndpoints(app);
+        AlbumEndpoints.MapAlbumEndpoints(app);
     }
 }
