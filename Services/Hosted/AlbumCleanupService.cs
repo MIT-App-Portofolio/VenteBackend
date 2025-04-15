@@ -24,7 +24,7 @@ public class AlbumCleanupService(
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var pictureService = scope.ServiceProvider.GetRequiredService<IAlbumPictureService>();
 
-        var albums = context.Albums.Where(a => a.DeletionDate <= DateTimeOffset.Now).Include(a => a.Pictures).ToList();
+        var albums = context.Albums.Where(a => a.DeletionDate <= DateTimeOffset.UtcNow).Include(a => a.Pictures).ToList();
 
         var tasks = albums
             .SelectMany(a => a.Pictures.Select(p => pictureService.RemoveAlbumPicture(a.Id, p.Id)))
