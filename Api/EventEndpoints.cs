@@ -392,11 +392,13 @@ public static class EventEndpoints
                 }
 
                 var users = await query
-                    .OrderBy(u => Math.Abs((u.EventStatus.Time.Value - user.EventStatus.Time.Value).Ticks))
-                    .ThenByDescending(u => u.HasPfp)
                     .Skip(page * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
+
+                users = users
+                    .OrderBy(u => Math.Abs((u.EventStatus.Time.Value - user.EventStatus.Time.Value).Ticks))
+                    .ThenByDescending(u => u.HasPfp).ToList();
 
                 return Results.Ok(await UserDto.FromListAsync(users, dbContext, userManager));
             });
