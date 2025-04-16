@@ -83,6 +83,12 @@ public static class EventEndpoints
                 if (group == null)
                     throw new UnreachableException("Group could not be found.");
 
+                if (group.SharedAlbumId != null)
+                {
+                    var album = await dbContext.Albums.FirstAsync(a => a.Id == group.SharedAlbumId);
+                    album.Members.Add(user.Id);
+                }
+
                 var groupMember = await userManager.Users
                     .Include(u => u.EventStatus)
                     .FirstOrDefaultAsync(u => u.Id == group.Members[0]);
@@ -312,6 +318,12 @@ public static class EventEndpoints
 
                 if (!group.Members.Contains(kickedUser.Id) && !group.AwaitingInvite.Contains(kickedUser.Id))
                     return Results.BadRequest();
+
+                if (group.SharedAlbumId != null)
+                {
+                    var album = await dbContext.Albums.FirstAsync(a => a.Id == group.SharedAlbumId);
+                    album.Members.Remove(kickedUser.Id);
+                }
 
                 if (!group.Members.Remove(kickedUser.Id))
                 {
