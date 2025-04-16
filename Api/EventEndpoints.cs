@@ -355,13 +355,14 @@ public static class EventEndpoints
                 if (!user.EventStatus.Active)
                     return Results.Ok(new List<ApplicationUser>());
 
-                var query = userManager.Users
+                IQueryable<ApplicationUser> query = userManager.Users
                     .Include(u => u.EventStatus)
-                    .OrderBy(u => u.EventStatus.Time.Value)
                     .Where(u => u.EventStatus.Active == true &&
                                 u.EventStatus.LocationId == user.EventStatus.LocationId &&
-                                (u.EventStatus.Time.Value - user.EventStatus.Time.Value).Days < 14);
-
+                                (u.EventStatus.Time.Value - user.EventStatus.Time.Value).Days < 14)
+                    .OrderBy(u => Math.Abs((u.EventStatus.Time.Value - user.EventStatus.Time.Value).Ticks))
+                    .ThenByDescending(u => u.HasPfp);
+                
                 if (user.Blocked != null)
                     query = query.Where(u => !user.Blocked.Contains(u.UserName));
 
