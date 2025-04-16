@@ -367,13 +367,11 @@ public static class EventEndpoints
                 if (!user.EventStatus.Active)
                     return Results.Ok(new List<ApplicationUser>());
 
-                IQueryable<ApplicationUser> query = userManager.Users
+                var query = userManager.Users
                     .Include(u => u.EventStatus)
                     .Where(u => u.EventStatus.Active == true &&
                                 u.EventStatus.LocationId == user.EventStatus.LocationId &&
-                                (u.EventStatus.Time.Value - user.EventStatus.Time.Value).Days < 14)
-                    .OrderBy(u => Math.Abs((u.EventStatus.Time.Value - user.EventStatus.Time.Value).Ticks))
-                    .ThenByDescending(u => u.HasPfp);
+                                (u.EventStatus.Time.Value - user.EventStatus.Time.Value).Days < 14);
                 
                 if (user.Blocked != null)
                     query = query.Where(u => !user.Blocked.Contains(u.UserName));
@@ -394,6 +392,8 @@ public static class EventEndpoints
                 }
 
                 var users = await query
+                    .OrderBy(u => Math.Abs((u.EventStatus.Time.Value - user.EventStatus.Time.Value).Ticks))
+                    .ThenByDescending(u => u.HasPfp)
                     .Skip(page * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
