@@ -13,7 +13,7 @@ namespace Server.Pages.Admin
     {
         public async Task OnGetAsync()
         {
-            Users = await userManager.Users.Skip(PageId * 10).Take(10).ToListAsync();
+            Users = await userManager.Users.OrderBy(u => u.Id).Skip(PageId * 10).Take(10).ToListAsync();
         }
 
         public async Task<IActionResult> OnPostShadowBanAsync(string userId)
