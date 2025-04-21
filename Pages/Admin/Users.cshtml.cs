@@ -24,11 +24,17 @@ namespace Server.Pages.Admin
                 return NotFound();
             }
 
+            if (user.HasPfp)
+            {
+                await pfpService.RemoveProfilePictureAsync(user.UserName);
+            }
+
             var result = await userManager.DeleteAsync(user);
             if (!result.Succeeded)
             {
                 return BadRequest(result.Errors);
             }
+            
             var reports = await dbContext.Reports.Where(r => r.Username == user.UserName).ToListAsync();
             
             foreach (var report in reports.Where(report => report.HasPfp))

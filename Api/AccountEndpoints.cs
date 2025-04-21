@@ -407,11 +407,14 @@ public static class AccountEndpoints
         });
 
         app.MapPost("/api/account/delete", [JwtAuthorize]
-            async (UserManager<ApplicationUser> userManager, HttpContext context) =>
+            async (UserManager<ApplicationUser> userManager, HttpContext context, IProfilePictureService pfpService) =>
             {
                 var user = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
 
                 if (user == null) return Results.Unauthorized();
+
+                if (user.HasPfp)
+                    await pfpService.RemoveProfilePictureAsync(user.UserName);
 
                 await userManager.DeleteAsync(user);
 
