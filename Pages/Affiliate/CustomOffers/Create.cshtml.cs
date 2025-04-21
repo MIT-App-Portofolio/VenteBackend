@@ -43,7 +43,9 @@ public class Create(UserManager<ApplicationUser> userManager, ApplicationDbConte
 
         if (user == null) return BadRequest();
 
-        return new JsonResult(await userManager.Users.Where(u =>
+        return new JsonResult(await userManager.Users
+            .Where(u => !u.ShadowBanned)
+            .Where(u =>
             u.EventStatus.Active && u.EventStatus.LocationId == user.EventPlace.LocationId).OrderBy(u => u.EventStatus.Time).Select(u => new CustomOfferUserDisplay()
         {
             DisplayName = u.Name ?? "@" + u.UserName,

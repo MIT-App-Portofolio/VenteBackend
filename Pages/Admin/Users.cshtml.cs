@@ -16,6 +16,19 @@ namespace Server.Pages.Admin
             Users = await userManager.Users.Skip(PageId * 10).Take(10).ToListAsync();
         }
 
+        public async Task<IActionResult> OnPostShadowBanAsync(string userId)
+        {
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound();
+
+            user.ShadowBanned = !user.ShadowBanned;
+
+            await userManager.UpdateAsync(user);
+            
+            return RedirectToPage(new { pageId = PageId });
+        }
+
         public async Task<IActionResult> OnPostDeleteAsync(string userId)
         {
             var user = await userManager.FindByIdAsync(userId);

@@ -19,6 +19,8 @@ public class ApplicationUser : IdentityUser
     public EventStatus EventStatus { get; set; }
     
     public List<string>? Blocked { get; set; }
+    
+    public bool ShadowBanned { get; set; }
 
     public EventPlace? EventPlace { get; set; }
 }

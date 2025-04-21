@@ -21,7 +21,8 @@
                             <th>Name</th>
                             <th>Description</th>
                             <th>Ig Handle</th>
-                            <th>Actions</th>
+                            <th>Delete</th>
+                            <th>Shadow</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -36,6 +37,11 @@
                                 <td>
                                     <form method="post" asp-page-handler="Delete" asp-route-userId="@user.Id">
                                         <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <form method="post" asp-page-handler="ShadowBan" asp-route-userId="@user.Id">
+                                        <button type="submit" class="btn btn-danger">@(!user.ShadowBanned ? "Shadow" : "De-shadow")</button>
                                     </form>
                                 </td>
                             </tr>

@@ -28,6 +28,7 @@ public class Users(
 
         var users = await userManager.Users
             .Include(u => u.EventStatus)
+            .Where(u => !u.ShadowBanned)
             .Where(u => u.EventStatus.Active && u.EventStatus.LocationId == locationId)
             .OrderBy(u => u.EventStatus.Time)
             .ToListAsync();
