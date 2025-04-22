@@ -15,7 +15,7 @@ namespace Server.Pages.Admin
         {
             Users = await userManager.Users
                 .OrderByDescending(u => u.CreatedAt == null)
-                .ThenByDescending(u => u.CreatedAt)
+                .ThenBy(u => u.CreatedAt)
                 .Skip(PageId * 10).Take(10).ToListAsync();
         }
 
