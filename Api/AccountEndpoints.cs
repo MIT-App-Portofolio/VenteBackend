@@ -74,6 +74,7 @@ public static class AccountEndpoints
                 BirthDate = model.BirthDate.HasValue 
                     ? new DateTimeOffset(model.BirthDate.Value) 
                     : (DateTimeOffset?)null,
+                CreatedAt = DateTimeOffset.Now,
                 Blocked = [],
                 Email = payload.Email,
                 HasPfp = false,
@@ -133,6 +134,7 @@ public static class AccountEndpoints
                 BirthDate = model.BirthDate.HasValue 
                     ? new DateTimeOffset(model.BirthDate.Value) 
                     : (DateTimeOffset?)null,
+                CreatedAt = DateTimeOffset.Now,
                 Blocked = [],
                 Email = email,
                 HasPfp = false,
@@ -167,6 +169,7 @@ public static class AccountEndpoints
                 BirthDate = model.BirthDate.HasValue 
                     ? new DateTimeOffset(model.BirthDate.Value) 
                     : (DateTimeOffset?)null,
+                CreatedAt = DateTimeOffset.Now,
                 Blocked = [],
                 Email = model.Email,
                 HasPfp = false,

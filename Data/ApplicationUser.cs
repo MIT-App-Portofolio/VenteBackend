@@ -21,6 +21,8 @@ public class ApplicationUser : IdentityUser
     public List<string>? Blocked { get; set; }
     
     public bool ShadowBanned { get; set; }
+    
+    public DateTimeOffset? CreatedAt { get; set; }
 
     public EventPlace? EventPlace { get; set; }
 }
