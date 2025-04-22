@@ -11,10 +11,10 @@ namespace Server.Pages.Admin
         public int UsersCreatedToday { get; set; }
         public async Task OnGetAsync()
         {
-            Users = await userManager.Users.CountAsync();
-            UsersCreatedToday = await userManager.Users.Where(u =>
-                    u.CreatedAt.HasValue && u.CreatedAt.Value.ToUniversalTime().Date == DateTimeOffset.UtcNow.Date)
-                .CountAsync();
+            var allUsers = await userManager.Users.ToListAsync();
+            Users = allUsers.Count;
+            UsersCreatedToday = 
+                allUsers.Count(u => u.CreatedAt.HasValue && u.CreatedAt.Value.ToUniversalTime().Date == DateTimeOffset.UtcNow.Date);
         }
     }
 }
