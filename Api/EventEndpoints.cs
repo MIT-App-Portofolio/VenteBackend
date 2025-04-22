@@ -357,7 +357,7 @@ public static class EventEndpoints
             [JwtAuthorize] async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext,
                 HttpContext context, int page, int? ageRangeMin, int? ageRangeMax, Gender? gender) =>
             {
-                const int pageSize = 5;
+                const int pageSize = 150;
 
                 var user = await userManager.Users
                     .Include(u => u.EventStatus)
