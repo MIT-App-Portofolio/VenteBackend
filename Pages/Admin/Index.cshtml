@@ -5,10 +5,10 @@
 
 <div class="hero">
     <div class="hero-content flex-col">
-        <p>Users: @Model.Users | Users today: @Model.UsersCreatedToday</p>
         <div class="card w-96 bg-base-100 shadow-xl">
             <div class="card-body items-center text-center">
                 <a asp-page="/Admin/Users" asp-route-pageId="0">Users</a>
+                <a asp-page="/Admin/UserStats" asp-route-pageId="0">User stats</a>
                 <a asp-page="/Admin/Reports">Reports</a>
                 <a asp-page="/Admin/Locations">Locations</a>
                 <a asp-page="/Admin/EventPlaces/Index" asp-route-pageId="0">Places</a>
