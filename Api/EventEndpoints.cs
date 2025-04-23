@@ -238,6 +238,8 @@ public static class EventEndpoints
             [JwtAuthorize] async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, NotificationService notificationService,
                 string invited, HttpContext context) =>
             {
+                return Results.BadRequest();
+                
                 var q = userManager.Users
                     .Include(u => u.EventStatus);
 
