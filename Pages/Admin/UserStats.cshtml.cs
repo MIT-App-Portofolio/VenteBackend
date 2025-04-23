@@ -33,7 +33,7 @@ public class UserStats(UserManager<ApplicationUser> userManager) : PageModel
         }, (acc, u) => new {
             Total = acc.Total + 1,
             Male = acc.Male + (u.Gender == Gender.Male ? 1 : 0),
-            Female = acc.Female + (u.Gender == Gender.Male ? 1 : 0),
+            Female = acc.Female + (u.Gender == Gender.Female ? 1 : 0),
             Other = acc.Other + (u.Gender == Gender.NotSpecified ? 1 : 0), 
             EventActive = acc.EventActive + (u.EventStatus.Active ? 1 : 0),
             CreatedToday = acc.CreatedToday + (u.CreatedAt?.ToUniversalTime().Date == DateTimeOffset.UtcNow.Date ? 1 : 0),
