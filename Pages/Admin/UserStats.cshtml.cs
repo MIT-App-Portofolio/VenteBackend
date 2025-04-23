@@ -10,6 +10,8 @@ public class UserStats(UserManager<ApplicationUser> userManager) : PageModel
     public int Users { get; set; }
     public int UsersCreatedToday { get; set; }
     
+    public int Notifs { get; set; }
+    
     public int Males { get; set; }
     public int Females { get; set; }
     public int Unspecified { get; set; }
@@ -20,7 +22,7 @@ public class UserStats(UserManager<ApplicationUser> userManager) : PageModel
     {
         var allUsers = await userManager.Users
             .AsNoTracking()
-            .Select(u => new { u.Gender, u.CreatedAt, u.EventStatus})
+            .Select(u => new { u.Gender, u.CreatedAt, u.EventStatus, u.NotificationKey })
             .ToListAsync();
 
         var stats = allUsers.Aggregate(new {
@@ -30,6 +32,7 @@ public class UserStats(UserManager<ApplicationUser> userManager) : PageModel
             Other = 0,
             EventActive = 0,
             CreatedToday = 0,
+            NotifsOn = 0,
         }, (acc, u) => new {
             Total = acc.Total + 1,
             Male = acc.Male + (u.Gender == Gender.Male ? 1 : 0),
@@ -37,6 +40,7 @@ public class UserStats(UserManager<ApplicationUser> userManager) : PageModel
             Other = acc.Other + (u.Gender == Gender.NotSpecified ? 1 : 0), 
             EventActive = acc.EventActive + (u.EventStatus.Active ? 1 : 0),
             CreatedToday = acc.CreatedToday + (u.CreatedAt?.ToUniversalTime().Date == DateTimeOffset.UtcNow.Date ? 1 : 0),
+            NotifsOn = acc.NotifsOn + (u.NotificationKey != null ? 1 : 0)
         });
 
         Users = stats.Total;
@@ -45,5 +49,6 @@ public class UserStats(UserManager<ApplicationUser> userManager) : PageModel
         Females = stats.Female;
         Unspecified = stats.Other;
         ActiveEvent = stats.EventActive;
+        Notifs = stats.NotifsOn;
     }
 }
