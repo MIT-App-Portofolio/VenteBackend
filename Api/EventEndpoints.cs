@@ -398,7 +398,7 @@ public static class EventEndpoints
                     .ToListAsync();
 
                 users = users
-                    .OrderBy(u => Math.Abs((u.EventStatus.Time.Value - user.EventStatus.Time.Value).Ticks))
+                    .OrderBy(u => Math.Abs((u.EventStatus.Time.Value.Date - user.EventStatus.Time.Value.Date).Ticks))
                     .ThenByDescending(u => u.HasPfp).ToList();
 
                 return Results.Ok(await UserDto.FromListAsync(users, dbContext, userManager));
