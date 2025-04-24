@@ -372,6 +372,7 @@ public static class EventEndpoints
                 var query = userManager.Users
                     .Include(u => u.EventStatus)
                     .Where(u => !u.ShadowBanned)
+                    .Where(u => !(!u.HasPfp && u.IgHandle == null))
                     .Where(u => u.EventStatus.Active == true &&
                                 u.EventStatus.LocationId == user.EventStatus.LocationId &&
                                 (u.EventStatus.Time.Value - user.EventStatus.Time.Value).Days < 14);
