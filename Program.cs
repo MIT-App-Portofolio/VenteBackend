@@ -193,7 +193,8 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
     
     var um = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    await ExitSystemMigration.Migrate(db, um);
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<ExitSystemMigration>>();
+    await ExitSystemMigration.Migrate(db, um, logger);
 }
 
 // Role config

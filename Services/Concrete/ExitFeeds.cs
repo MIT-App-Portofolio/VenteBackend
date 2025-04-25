@@ -96,7 +96,15 @@ public class ExitFeeds(IServiceProvider serviceProvider)
         void AddUser(string username, List<DateTime> dates, List<string> with)
         {
             if (entry.Any(u => u.UserName == username)) return;
+            
+            var user = users[username];
 
+            if (user.ShadowBanned)
+                return;
+
+            if (!user.HasPfp && string.IsNullOrEmpty(user.IgHandle))
+                return;
+            
             var withDtos = with.Where(u => u != username).Select(u =>
             {
                 var usr = users[u];
@@ -106,8 +114,6 @@ public class ExitFeeds(IServiceProvider serviceProvider)
                     PfpUrl = usr.HasPfp ? pfpService.GetDownloadUrl(usr.UserName) : pfpService.GetFallbackUrl()
                 };
             }).ToList();
-
-            var user = users[username];
 
             entry.Add(new ExitUserQueryDto
             {

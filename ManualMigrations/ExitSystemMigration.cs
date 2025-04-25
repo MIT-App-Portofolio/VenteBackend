@@ -6,7 +6,7 @@ namespace Server.ManualMigrations;
 
 public class ExitSystemMigration
 {
-    public static async Task Migrate(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager)
+    public static async Task Migrate(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, ILogger<ExitSystemMigration> logger)
     {
         var users = await userManager.Users.Include(u => u.EventStatus).Where(u => u.EventStatus.Active).ToListAsync();
         
@@ -24,10 +24,13 @@ public class ExitSystemMigration
                 Members = []
             };
 
-            if (!dbContext.Exits.Any(e => e.Name == exit.Name && e.Leader == exit.Leader && e.LocationId == exit.LocationId && e.Dates.Count == 1 && e.Dates[0] == exit.Dates[0] && e.Invited.Count == 0 && e.Members.Count == 0))
-            {
-                dbContext.Exits.Add(exit);
-            }
+            if (dbContext.Exits.Any(e =>
+                    e.Name == exit.Name && e.Leader == exit.Leader && e.LocationId == exit.LocationId &&
+                    e.Dates.Count == 1 && e.Dates[0] == exit.Dates[0] && e.Invited.Count == 0 &&
+                    e.Members.Count == 0)) continue;
+            
+            logger.LogInformation("Migrating to exit for user {0}", user.UserName);
+            dbContext.Exits.Add(exit);
         }
 
         await dbContext.SaveChangesAsync();
