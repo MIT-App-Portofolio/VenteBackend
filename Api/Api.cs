@@ -30,8 +30,10 @@ public static class Api
         AccountEndpoints.MapAccountEndpoints(app);
         SafetyEndpoints.MapSafetyEndpoints(app);
         AccountAccessEndpoints.MapAccountAccessEndpoints(app);
+        ExitAlbumEndpoints.MapExitAlbumEndpoints(app);
         EventEndpoints.MapEventEndpoints(app);
         VenueEndpoints.MapVenueEndpoints(app);
         AlbumEndpoints.MapAlbumEndpoints(app);
+        ExitEndpoints.MapExitEndpoints(app);
     }
 }

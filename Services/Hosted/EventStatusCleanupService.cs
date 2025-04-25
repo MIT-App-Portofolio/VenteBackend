@@ -1,11 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Server.Data;
+using Server.Services.Concrete;
 
 namespace Server.Services.Hosted;
 
 public class EventStatusCleanupService(
     ILogger<EventStatusCleanupService> logger,
-    IServiceProvider serviceProvider)
+    IServiceProvider serviceProvider,
+    ExitFeeds exitFeeds)
     : IHostedService, IDisposable
 {
     private Timer _timer;
@@ -21,6 +23,8 @@ public class EventStatusCleanupService(
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        
+        exitFeeds.ClearPastDates();
             
         var usersWithExpiredEvents = context.Users
             .Include(u => u.EventStatus)

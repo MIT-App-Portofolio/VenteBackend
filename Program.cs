@@ -17,7 +17,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Server.Api;
 using Server.Config;
-using Server.Services;
+using Server.ManualMigrations;
 using Server.Services.Concrete;
 using Server.Services.Hosted;
 using Server.Services.Implementations;
@@ -154,12 +154,14 @@ builder.Services.AddSingleton<JwtTokenManager>();
 builder.Services.AddSingleton<NotificationService>();
 builder.Services.AddSingleton<AppleTokenValidatorService>();
 builder.Services.AddSingleton<CustomOfferTokenStorage>();
+builder.Services.AddSingleton<ExitFeeds>();
 
 builder.Services.AddHostedService<EventStatusCleanupService>();
 builder.Services.AddHostedService<NoteCleanupService>();
 builder.Services.AddHostedService<EventsCleanupService>();
 builder.Services.AddHostedService<CustomOffersCleanupService>();
 builder.Services.AddHostedService<AlbumCleanupService>();
+builder.Services.AddHostedService<ExitFeedExecutor>();
 
 // CORS
 builder.Services.AddCors(options =>
@@ -189,6 +191,9 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
+    
+    var um = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    await ExitSystemMigration.Migrate(db, um);
 }
 
 // Role config

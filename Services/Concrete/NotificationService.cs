@@ -17,7 +17,7 @@ public class NotificationService(ILogger<NotificationService> logger)
         {
             Notification = new Notification
             {
-                Title = $"{invitor} te ha invitado a un evento",
+                Title = $"{invitor} te ha invitado a una escapada",
                 Body = "Haz click para ver más detalles",
             },
             Data = new Dictionary<string, string>
