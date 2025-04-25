@@ -117,7 +117,7 @@ public static class ExitEndpoints
             if (exit == null || exit.Leader != user.UserName) return Results.BadRequest();
 
             var invited = await userManager.Users
-                .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+                .FirstOrDefaultAsync(u => u.UserName == userName);
 
             if (invited == null) return Results.BadRequest("user_not_found");
 
