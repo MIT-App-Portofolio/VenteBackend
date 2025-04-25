@@ -14,7 +14,7 @@ public class ExitSystemMigration
         {
             var es = user.EventStatus;
 
-            var exit = new ExitInstance()
+            var exit = new ExitInstance
             {
                 Name = (await dbContext.Locations.FirstAsync(l => l.Id == es.LocationId)).Name,
                 Dates = [es.Time.Value],
@@ -24,7 +24,10 @@ public class ExitSystemMigration
                 Members = []
             };
 
-            dbContext.Exits.Add(exit);
+            if (!dbContext.Exits.Any(e => e.Name == exit.Name && e.Leader == exit.Leader && e.LocationId == exit.LocationId && e.Dates.Count == 1 && e.Dates[0] == exit.Dates[0] && e.Invited.Count == 0 && e.Members.Count == 0))
+            {
+                dbContext.Exits.Add(exit);
+            }
         }
 
         await dbContext.SaveChangesAsync();

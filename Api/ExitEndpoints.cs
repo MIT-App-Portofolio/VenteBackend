@@ -123,7 +123,7 @@ public static class ExitEndpoints
 
             if (exit.Members.Contains(userName) || exit.Invited.Contains(userName) || exit.Leader == userName) return Results.BadRequest("user_already_in_exit");
 
-            exit.Invited.Add(user.UserName);
+            exit.Invited.Add(userName);
 
             await notificationService.SendInviteNotification(invited, user.UserName);
 
