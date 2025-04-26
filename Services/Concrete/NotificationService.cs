@@ -1,5 +1,6 @@
 using FirebaseAdmin.Messaging;
 using Server.Data;
+using Message = FirebaseAdmin.Messaging.Message;
 
 namespace Server.Services.Concrete;
 
@@ -23,6 +24,31 @@ public class NotificationService(ILogger<NotificationService> logger)
             Data = new Dictionary<string, string>
             {
                 ["notification_type"] = "invite"
+            },
+            Token = target.NotificationKey
+        };
+        
+        return FirebaseMessaging.DefaultInstance.SendAsync(message);
+    }
+
+    public Task SendInviteAcceptedNotification(ApplicationUser target, string member)
+    {
+        if (target.NotificationKey == null)
+        {
+            logger.LogWarning("User {0} has no notification key", target.UserName);
+            return Task.CompletedTask;
+        }
+        
+        var message = new Message
+        {
+            Notification = new Notification
+            {
+                Title = $"{member} se ha unido a tu escapada.",
+                Body = "Haz click para ver más detalles",
+            },
+            Data = new Dictionary<string, string>
+            {
+                ["notification_type"] = "invite_accept"
             },
             Token = target.NotificationKey
         };

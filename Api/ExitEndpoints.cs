@@ -165,7 +165,7 @@ public static class ExitEndpoints
         });
 
         app.MapPost("/api/exit/accept_invite", [JwtAuthorize]
-            async (HttpContext context, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext,
+            async (HttpContext context, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, NotificationService notificationService,
                 ExitFeeds feed, int id) =>
             {
                 var user = await userManager.Users
@@ -179,6 +179,15 @@ public static class ExitEndpoints
 
                 if (await DatesOverlap(dbContext, exit.Dates, user.UserName))
                     return Results.BadRequest("date_overlap");
+                
+                var inviteTasks = new List<Task>();
+                foreach (var member in (List<string>)[..exit.Members, exit.Leader])
+                {
+                    var u = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == member);
+                    if (u == null) continue;
+                    inviteTasks.Add(notificationService.SendInviteAcceptedNotification(u, user.UserName));
+                }
+                await Task.WhenAll(inviteTasks);
 
                 exit.Invited.Remove(user.UserName);
                 exit.Members.Add(user.UserName);
