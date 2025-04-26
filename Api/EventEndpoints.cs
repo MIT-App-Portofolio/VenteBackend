@@ -182,6 +182,21 @@ public static class EventEndpoints
             user.EventStatus.EventGroupId = null;
             user.EventStatus.EventGroupInvitationId = null;
 
+            var exit = new ExitInstance
+            {
+                Name = location,
+                LocationId = location,
+                Dates = [time],
+                Leader = user.UserName,
+                Members = [],
+                Invited = []
+            };
+
+            await dbContext.Exits.AddAsync(exit);
+            await dbContext.SaveChangesAsync();
+
+            user.EventStatus.AssociatedExitId = exit.Id;
+            
             await userManager.UpdateAsync(user);
 
             return Results.Ok();
@@ -194,7 +209,11 @@ public static class EventEndpoints
                     .Include(u => u.EventStatus);
                 var user = await q.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
                 if (user == null) return Results.Unauthorized();
+                
+                if (user.EventStatus.AssociatedExitId != null) 
+                    await dbContext.Exits.Where(e => e.Id == user.EventStatus.AssociatedExitId).ExecuteDeleteAsync();
 
+                user.EventStatus.AssociatedExitId = null;
                 user.EventStatus.Active = false;
                 user.EventStatus.Time = null;
                 user.EventStatus.LocationId = null;

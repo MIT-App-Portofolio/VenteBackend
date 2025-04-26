@@ -6,8 +6,7 @@ namespace Server.Services.Hosted;
 
 public class EventStatusCleanupService(
     ILogger<EventStatusCleanupService> logger,
-    IServiceProvider serviceProvider,
-    ExitFeeds exitFeeds)
+    IServiceProvider serviceProvider)
     : IHostedService, IDisposable
 {
     private Timer _timer;
@@ -24,8 +23,6 @@ public class EventStatusCleanupService(
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         
-        exitFeeds.ClearPastDates();
-            
         var usersWithExpiredEvents = context.Users
             .Include(u => u.EventStatus)
             .Where(u => u.EventStatus.Time != null && u.EventStatus.Time.Value < DateTime.Today)

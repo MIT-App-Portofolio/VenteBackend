@@ -8,6 +8,8 @@ public class EventStatus
     public string? LocationId { get; set; }
     
     public int? EventGroupInvitationId { get; set; }
+    
+    public int? AssociatedExitId { get; set; }
 
     public int? EventGroupId { get; set; }
 }

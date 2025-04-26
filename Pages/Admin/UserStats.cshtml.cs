@@ -5,7 +5,7 @@ using Server.Data;
 
 namespace Server.Pages.Admin;
 
-public class UserStats(UserManager<ApplicationUser> userManager) : PageModel
+public class UserStats(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext) : PageModel
 {
     public int Users { get; set; }
     public int UsersCreatedToday { get; set; }
@@ -17,6 +17,9 @@ public class UserStats(UserManager<ApplicationUser> userManager) : PageModel
     public int Unspecified { get; set; }
    
     public int ActiveEvent { get; set; }
+    
+    public int Exits { get; set; }
+    public (string, int) MaxExits { get; set; }
     
     public async Task OnGetAsync()
     {
@@ -50,5 +53,13 @@ public class UserStats(UserManager<ApplicationUser> userManager) : PageModel
         Unspecified = stats.Other;
         ActiveEvent = stats.EventActive;
         Notifs = stats.NotifsOn;
+
+        var exits = await dbContext.Exits.Select(e => new { e.Leader, e.Members }).ToListAsync();
+        Exits = exits.Count;
+        MaxExits = exits
+            .SelectMany(e => e.Members.Append(e.Leader))
+            .GroupBy(e => e)
+            .Select(g => (g.Key, g.Count()))
+            .MaxBy(g => g.Item2);
     }
 }

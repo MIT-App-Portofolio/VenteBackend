@@ -162,6 +162,7 @@ builder.Services.AddHostedService<EventsCleanupService>();
 builder.Services.AddHostedService<CustomOffersCleanupService>();
 builder.Services.AddHostedService<AlbumCleanupService>();
 builder.Services.AddHostedService<ExitFeedExecutor>();
+builder.Services.AddHostedService<ExitCleanupService>();
 
 // CORS
 builder.Services.AddCors(options =>
