@@ -97,8 +97,13 @@ public class ExitFeeds(IServiceProvider serviceProvider)
         void AddUser(string username, List<DateTime> dates, List<string> with)
         {
             if (entry.Any(u => u.UserName == username)) return;
-            
-            var user = users[username];
+
+            if (!users.TryGetValue(username, out var user))
+            {
+                logger.LogWarning("User {0} not found. Ignoring", username);
+                return;
+            }
+
 
             if (user.ShadowBanned)
                 return;
