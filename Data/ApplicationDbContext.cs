@@ -21,6 +21,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     
     public DbSet<SharedAlbum> Albums { get; set; }
     
+    public DbSet<Message> Messages { get; set; }
+    
     protected override void OnModelCreating(ModelBuilder builder)
     {
         DateTimeOffsetConverters(builder);

@@ -17,6 +17,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Server.Api;
 using Server.Config;
+using Server.Hubs;
 using Server.ManualMigrations;
 using Server.Services.Concrete;
 using Server.Services.Hosted;
@@ -96,7 +97,20 @@ builder.Services.AddAuthentication()
             ValidAudience = builder.Configuration["JWT:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]))
         };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chathub"))
+                    context.Token = accessToken;
+                return Task.CompletedTask;
+            }
+        };
     });
+
+builder.Services.AddSignalR();
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
@@ -155,6 +169,7 @@ builder.Services.AddSingleton<NotificationService>();
 builder.Services.AddSingleton<AppleTokenValidatorService>();
 builder.Services.AddSingleton<CustomOfferTokenStorage>();
 builder.Services.AddSingleton<ExitFeeds>();
+builder.Services.AddSingleton<MessagingConnectionMap>();
 
 builder.Services.AddHostedService<EventStatusCleanupService>();
 builder.Services.AddHostedService<NoteCleanupService>();
@@ -286,6 +301,8 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapHub<ChatHub>("/chathub");
 
 app.MapStaticAssets();
 app.MapRazorPages()

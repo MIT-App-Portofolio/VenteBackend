@@ -56,6 +56,36 @@ public class NotificationService(ILogger<NotificationService> logger)
         return FirebaseMessaging.DefaultInstance.SendAsync(message);
     }
 
+    public Task SendDmNotification(ApplicationUser destination, string from, Data.Message dm)
+    {
+        if (destination.NotificationKey == null)
+        {
+            logger.LogWarning("User {0} has no notification key", destination.UserName);
+            return Task.CompletedTask;
+        }
+        
+        var message = new Message
+        {
+            Notification = new Notification
+            {
+                Title = $"{from} te ha enviado un mensaje.",
+                Body = dm.MessageType switch
+                {
+                    MessageType.Text => dm.TextContent,
+                    MessageType.Voice => "Mensaje de voz",
+                    _ => throw new ArgumentOutOfRangeException()
+                },
+            },
+            Data = new Dictionary<string, string>
+            {
+                ["notification_type"] = "dm"
+            },
+            Token = destination.NotificationKey
+        };
+        
+        return FirebaseMessaging.DefaultInstance.SendAsync(message);
+    }
+
     public Task SendOfferNotification(List<string?> tokens, CustomOffer offer, EventPlace sender)
     {
         tokens = tokens.Where(t => t != null).ToList();
