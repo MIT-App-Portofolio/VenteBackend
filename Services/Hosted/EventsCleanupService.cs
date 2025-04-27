@@ -36,7 +36,16 @@ public class EventsCleanupService(
             {
                 logger.LogInformation("Deleting offer image {0} for place {1}", e.Name, place.Name);
                 if (e.Image != null)
-                    imageService.DeleteEventPictureAsync(place, i).Wait();
+                {
+                    try
+                    {
+                        imageService.DeleteEventPictureAsync(place, i).Wait();
+                    }
+                    catch (Exception error)
+                    {
+                        logger.LogError("Could not delete offer image {0} for place {1}: {2}", e.Name, place.Name, error.ToString());
+                    }
+                }
             }
 
             foreach (var (e, _) in toRemove)
