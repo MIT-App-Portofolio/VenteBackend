@@ -12,7 +12,7 @@ public class ExitFeedExecutor(
     public Task StartAsync(CancellationToken cancellationToken)
     {
         logger.LogInformation("Exit feed executor is starting.");
-        _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(5));
+        _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
         return Task.CompletedTask;
     }
 
