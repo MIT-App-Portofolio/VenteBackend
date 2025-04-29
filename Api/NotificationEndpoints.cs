@@ -17,7 +17,7 @@ public class NotificationEndpoints
             
             if (user == null) return Results.Unauthorized();
 
-            return Results.Ok(user.Notifications.Select(n => new NotificationDto(n)).ToList());
+            return Results.Ok(user.Notifications.OrderByDescending(n => n.Timestamp).Select(n => new NotificationDto(n)).ToList());
         });
         
         app.MapPost("/api/notifications/mark_read", [JwtAuthorize] async (HttpContext context, UserManager<ApplicationUser> userManager) =>
