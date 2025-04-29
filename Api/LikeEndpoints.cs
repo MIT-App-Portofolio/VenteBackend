@@ -46,6 +46,7 @@ public class LikeEndpoints
                     Message = $"{user.Name ?? "@" + user.UserName} te ha dado like",
                     Read = false,
                     ReferenceUsername = user.UserName,
+                    Timestamp = DateTimeOffset.UtcNow,
                     Type = NotificationType.Like
                 });
 
@@ -70,14 +71,23 @@ public class LikeEndpoints
 
             if (likedExit == null) return Results.NotFound();
             
+            var likedUser = await userManager.Users
+                                            .Include(u => u.Notifications)
+                                            .FirstOrDefaultAsync(u => u.UserName == username);
+
+            if (likedUser == null) return Results.NotFound();
+            
             if (likedExit.Likes.ContainsKey(username))
             {
                 likedExit.Likes[username].Remove(user.UserName); 
             }
             
+            likedUser.Notifications.RemoveAll(n => n.ReferenceUsername == user.UserName && n.Type == NotificationType.Like);
+            
             feed.UpdateLike(false, likedExit.LocationId, username, exitId, user.UserName);
 
             await userManager.UpdateAsync(user);
+            await userManager.UpdateAsync(likedUser);
             await dbContext.SaveChangesAsync();
 
             return Results.Ok();
