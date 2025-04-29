@@ -22,6 +22,7 @@ public class LikeEndpoints
             if (likedExit == null) return Results.NotFound();
             
             var likedUser = await userManager.Users
+                                            .Include(u => u.Notifications)
                                             .FirstOrDefaultAsync(u => u.UserName == username);
 
             if (likedUser == null) return Results.NotFound();
