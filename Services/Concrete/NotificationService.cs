@@ -24,7 +24,8 @@ public class NotificationService(ILogger<NotificationService> logger)
             },
             Data = new Dictionary<string, string>
             {
-                ["notification_type"] = "invite"
+                ["notification_type"] = "invite",
+                ["link"] = "calendar"
             },
             Token = target.NotificationKey
         };
@@ -49,7 +50,8 @@ public class NotificationService(ILogger<NotificationService> logger)
             },
             Data = new Dictionary<string, string>
             {
-                ["notification_type"] = "invite_accept"
+                ["notification_type"] = "invite_accept",
+                ["link"] = "vente://calendar"
             },
             Token = target.NotificationKey
         };
@@ -79,7 +81,8 @@ public class NotificationService(ILogger<NotificationService> logger)
             },
             Data = new Dictionary<string, string>
             {
-                ["notification_type"] = "dm"
+                ["notification_type"] = "dm",
+                ["link"] = "vente://messages?selectedUser="+from
             },
             Token = destination.NotificationKey
         };
@@ -104,7 +107,8 @@ public class NotificationService(ILogger<NotificationService> logger)
             },
             Data = new Dictionary<string, string>
             {
-                ["notification_type"] = "like"
+                ["notification_type"] = "like",
+                ["link"] = "vente://notifications"
             },
             Token = destination.NotificationKey
         };
@@ -125,7 +129,8 @@ public class NotificationService(ILogger<NotificationService> logger)
             },
             Data = new Dictionary<string, string>
             {
-                ["notification_type"] = "offer"
+                ["notification_type"] = "offer",
+                ["link"] = "vente://offers"
             },
             Tokens = tokens
         };
