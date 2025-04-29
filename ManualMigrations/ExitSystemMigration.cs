@@ -14,12 +14,15 @@ public class ExitSystemMigration
         {
             var es = user.EventStatus;
 
+            if (es.AssociatedExitId != null) continue;
+
             var exit = new ExitInstance
             {
                 Name = (await dbContext.Locations.FirstAsync(l => l.Id == es.LocationId)).Name,
                 Dates = [es.Time.Value],
                 LocationId = es.LocationId,
                 Leader = user.UserName,
+                Likes = [],
                 Invited = [],
                 Members = []
             };

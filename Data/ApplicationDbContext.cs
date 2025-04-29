@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using System.Text.Json;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Server.Data;
@@ -43,6 +45,21 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(o => o.Event)
             .WithMany(e => e.Offers)
             .HasForeignKey(p => p.EventId);
+
+        builder.Entity<ExitInstance>()
+            .Property(e => e.Likes)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<Dictionary<string, List<string>>>(v, (JsonSerializerOptions?)null)
+            )
+            .Metadata.SetValueComparer(new ValueComparer<Dictionary<string, List<string>>>(
+                (d1, d2) => JsonSerializer.Serialize(d1, (JsonSerializerOptions?)null) ==
+                            JsonSerializer.Serialize(d2, (JsonSerializerOptions?)null),
+                d => d == null ? 0 : JsonSerializer.Serialize(d, (JsonSerializerOptions?)null).GetHashCode(),
+                d => JsonSerializer.Deserialize<Dictionary<string, List<string>>>(
+                    JsonSerializer.Serialize(d, (JsonSerializerOptions?)null),
+                    (JsonSerializerOptions?)null)));
+            ;
     }
 
     public void DateTimeOffsetConverters(ModelBuilder builder)

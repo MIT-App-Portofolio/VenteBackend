@@ -1,6 +1,7 @@
 using FirebaseAdmin.Messaging;
 using Server.Data;
 using Message = FirebaseAdmin.Messaging.Message;
+using Notification = FirebaseAdmin.Messaging.Notification;
 
 namespace Server.Services.Concrete;
 
@@ -79,6 +80,31 @@ public class NotificationService(ILogger<NotificationService> logger)
             Data = new Dictionary<string, string>
             {
                 ["notification_type"] = "dm"
+            },
+            Token = destination.NotificationKey
+        };
+        
+        return FirebaseMessaging.DefaultInstance.SendAsync(message);
+    }
+
+    public Task SendLikeNotification(ApplicationUser destination, string liker)
+    {
+        if (destination.NotificationKey == null)
+        {
+            logger.LogWarning("User {0} has no notification key", destination.UserName);
+            return Task.CompletedTask;
+        }
+        
+        var message = new Message
+        {
+            Notification = new Notification
+            {
+                Title = $"{liker} te ha dado un like.",
+                Body = "Haz click para ver mas detalles."
+            },
+            Data = new Dictionary<string, string>
+            {
+                ["notification_type"] = "like"
             },
             Token = destination.NotificationKey
         };

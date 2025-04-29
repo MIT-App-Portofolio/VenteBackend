@@ -188,6 +188,7 @@ public static class EventEndpoints
                 LocationId = location,
                 Dates = [time],
                 Leader = user.UserName,
+                Likes = [],
                 Members = [],
                 Invited = []
             };

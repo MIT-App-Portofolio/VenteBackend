@@ -6,13 +6,32 @@ using Server.Services.Interfaces;
 
 namespace Server.Services.Concrete;
 
+public class InternalUserQuery
+{
+    public string UserName { get; set; }
+    public Gender Gender { get; set; }
+    
+    public List<DateTime> Dates { get; set; }
+    public List<ExitUserFriendDto> With { get; set; }
+    
+    public string? Note { get; set; }
+    public int? Years { get; set; }
+    public string? Name { get; set; }
+    public string? IgHandle { get; set; }
+    public string? Description { get; set; }
+    
+    public List<string> Likes { get; set; }
+    
+    public int ExitId { get; set; }
+}
+
 public class ExitFeeds(IServiceProvider serviceProvider)
 {
-    private readonly Dictionary<string, List<ExitUserQueryDto>> _cache = new();
+    private readonly Dictionary<string, List<InternalUserQuery>> _cache = new();
     private readonly Queue<string> _queue = new();
 
     public List<ExitUserQueryDto> GetFeed(string location, List<DateTimeOffset> dates, int? ageRangeMin,
-        int? ageRangeMax, Gender? gender, List<string>? blocked)
+        int? ageRangeMax, Gender? gender, List<string>? blocked, string receiverUsername)
     {
         lock (_cache)
         {
@@ -38,8 +57,24 @@ public class ExitFeeds(IServiceProvider serviceProvider)
             {
                 query = query.Where(u => u.Years.HasValue && u.Years < ageRangeMax.Value);
             }
-            
-            return query.ToList();
+
+            var users = query.ToList();
+
+            return users.Select(u =>
+                new ExitUserQueryDto
+                {
+                    UserName = u.UserName,
+                    Gender = u.Gender,
+                    Dates = u.Dates,
+                    With = u.With,
+                    Note = u.Note,
+                    Years = u.Years,
+                    Name = u.Name,
+                    IgHandle = u.IgHandle,
+                    Description = u.Description,
+                    Likes = u.Likes.Count,
+                    UserLiked = u.Likes.Contains(receiverUsername)
+                }).ToList();
         }
     }
 
@@ -83,18 +118,20 @@ public class ExitFeeds(IServiceProvider serviceProvider)
         var exits = await dbContext.Exits.Where(e => e.LocationId == location)
             .Select(e => new
             {
+                e.Id,
                 e.Members,
                 e.Dates,
                 e.Leader,
+                e.Likes,
             })
             .ToListAsync();
 
-        var entry = new List<ExitUserQueryDto>();
+        var entry = new List<InternalUserQuery>();
         var usernames = exits.SelectMany(e => (List<string>) [..e.Members, e.Leader]).Distinct().ToList();
         var users = await userManager.Users.Where(u => usernames.Contains(u.UserName))
             .ToDictionaryAsync(u => u.UserName);
 
-        void AddUser(string username, List<DateTime> dates, List<string> with)
+        void AddUser(string username, List<DateTime> dates, List<string> with, Dictionary<string, List<string>> exitLikes, int exitId)
         {
             if (entry.Any(u => u.UserName == username)) return;
 
@@ -103,7 +140,6 @@ public class ExitFeeds(IServiceProvider serviceProvider)
                 logger.LogWarning("User {0} not found. Ignoring", username);
                 return;
             }
-
 
             if (user.ShadowBanned)
                 return;
@@ -121,17 +157,19 @@ public class ExitFeeds(IServiceProvider serviceProvider)
                 };
             }).ToList();
 
-            entry.Add(new ExitUserQueryDto
+            entry.Add(new InternalUserQuery
             {
                 UserName = user.UserName,
                 Gender = user.Gender,
                 Dates = dates,
                 With = withDtos,
                 Note = user.CustomNote,
+                Likes = exitLikes.TryGetValue(username, out var like) ? like : [],
                 Years = user.BirthDate?.GetYears(),
                 Name = user.Name,
                 IgHandle = user.IgHandle,
-                Description = user.Description
+                Description = user.Description,
+                ExitId = exitId,
             });
         }
 
@@ -142,16 +180,32 @@ public class ExitFeeds(IServiceProvider serviceProvider)
 
             foreach (var m in exit.Members)
             {
-                AddUser(m, dates, with);
+                AddUser(m, dates, with, exit.Likes, exit.Id);
             }
 
-            AddUser(exit.Leader, dates, with);
+            AddUser(exit.Leader, dates, with, exit.Likes, exit.Id);
         }
 
         logger.LogInformation("Cache finish for {0} with {1} users", location, entry.Count);
         lock (_cache)
         {
             _cache[location] = entry;
+        }
+    }
+
+    public void UpdateLike(bool add, string location, string username, int exitId, string liker)
+    {
+        lock (_cache)
+        {
+            _cache[location].ForEach(u =>
+            {
+                if (u.UserName != username || u.ExitId != exitId) return;
+                
+                if (add)
+                    u.Likes.Add(liker);
+                else
+                    u.Likes.Remove(liker);
+            });
         }
     }
 

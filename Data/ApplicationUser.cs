@@ -25,6 +25,8 @@ public class ApplicationUser : IdentityUser
     public DateTimeOffset? CreatedAt { get; set; }
 
     public EventPlace? EventPlace { get; set; }
+    
+    public List<Notification> Notifications { get; set; }
 }
 
 public enum Gender

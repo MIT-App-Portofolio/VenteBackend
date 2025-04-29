@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Server.Data;
 
 /// <summary>
@@ -21,4 +23,7 @@ public class ExitInstance
     public required List<string> Members { get; set; }
     /// Usernames
     public required List<string> Invited { get; set; }
+    
+    [Column(TypeName = "jsonb")] 
+    public required Dictionary<string, List<string>> Likes { get; set; }
 }

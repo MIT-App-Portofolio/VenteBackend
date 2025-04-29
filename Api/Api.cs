@@ -36,5 +36,7 @@ public static class Api
         AlbumEndpoints.MapAlbumEndpoints(app);
         ExitEndpoints.MapExitEndpoints(app);
         MessageEndpoints.MapMessageEndpoints(app);
+        LikeEndpoints.MapLikeEndpoints(app);
+        NotificationEndpoints.MapNotificationEndpoints(app);
     }
 }

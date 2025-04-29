@@ -92,6 +92,7 @@ public static class ExitEndpoints
                     Name = model.Name ?? location.Name,
                     Members = [],
                     Invited = [],
+                    Likes = [],
                     Dates = model.Dates
                 };
 
@@ -277,7 +278,7 @@ public static class ExitEndpoints
                     return Results.BadRequest();
 
                 return Results.Ok(
-                    feed.GetFeed(exit.LocationId, exit.Dates, ageRangeMin, ageRangeMax, gender, user.Blocked)
+                    feed.GetFeed(exit.LocationId, exit.Dates, ageRangeMin, ageRangeMax, gender, user.Blocked, user.UserName)
                     .Skip(pageSize * page)
                     .Take(pageSize));
             });

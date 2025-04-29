@@ -34,26 +34,31 @@ public static class AccountAccessEndpoints
         
 
         app.MapGet("/api/account/profile",
-            async (UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, string username) =>
+            [JwtAuthorize] async (HttpContext context, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, string username) =>
             {
                 var user = await userManager.Users
+                    .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+
+                if (user == null) return Results.Unauthorized();
+                
+                var accessedUser = await userManager.Users
                     .Include(u => u.EventStatus)
                     .FirstOrDefaultAsync(u => u.UserName == username);
 
-                if (user == null) return Results.Unauthorized();
+                if (accessedUser == null) return Results.NotFound();
 
                 List<string>? withUsernames = null;
 
-                if (user.EventStatus.EventGroupId != null)
+                if (accessedUser.EventStatus.EventGroupId != null)
                 {
-                    var group = await dbContext.Groups.FindAsync(user.EventStatus.EventGroupId);
+                    var group = await dbContext.Groups.FindAsync(accessedUser.EventStatus.EventGroupId);
                     if (group == null) throw new UnreachableException("Group could not be found.");
 
                     withUsernames = await userManager.Users.Where(u => group.Members.Contains(u.Id))
                         .Select(u => u.UserName!).ToListAsync();
                 }
 
-                return Results.Ok(new UserDto(user, withUsernames));
+                return Results.Ok(new UserDto(accessedUser, withUsernames));
             });
     }
 }
