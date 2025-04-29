@@ -73,7 +73,8 @@ public class ExitFeeds(IServiceProvider serviceProvider)
                     IgHandle = u.IgHandle,
                     Description = u.Description,
                     Likes = u.Likes.Count,
-                    UserLiked = u.Likes.Contains(receiverUsername)
+                    UserLiked = u.Likes.Contains(receiverUsername),
+                    ExitId = u.ExitId,
                 }).ToList();
         }
     }
