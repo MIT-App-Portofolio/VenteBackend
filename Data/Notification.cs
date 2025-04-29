@@ -6,7 +6,10 @@ public class Notification
     public NotificationType Type { get; set; }
     public string Message { get; set; }
     public bool Read { get; set; }
-    public DateTimeOffset Timestamp { get; set; }
+    /// <summary>
+    ///  This type isn't actually optional but for migration purposes it now is
+    /// </summary>
+    public DateTimeOffset? Timestamp { get; set; }
     
     /// <summary>
     /// A username of a user that will appear once clicked on notifications
