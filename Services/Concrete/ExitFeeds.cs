@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
@@ -109,6 +110,8 @@ public class ExitFeeds(IServiceProvider serviceProvider)
 
     private async Task Update(string location)
     {
+        var stopwatch = Stopwatch.StartNew();
+        
         using var scope = serviceProvider.CreateScope();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<ExitFeeds>>();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -187,11 +190,12 @@ public class ExitFeeds(IServiceProvider serviceProvider)
             AddUser(exit.Leader, dates, with, exit.Likes, exit.Id);
         }
 
-        logger.LogInformation("Cache finish for {0} with {1} users", location, entry.Count);
         lock (_cache)
         {
             _cache[location] = entry;
         }
+        stopwatch.Stop();
+        logger.LogInformation("Cache finish for {0} with {1} users. Took {2} ms", location, entry.Count, stopwatch.ElapsedMilliseconds);
     }
 
     public void UpdateLike(bool add, string location, string username, int exitId, string liker)

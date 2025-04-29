@@ -213,6 +213,14 @@ using (var scope = app.Services.CreateScope())
     await ExitSystemMigration.Migrate(db, um, logger);
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var feed = scope.ServiceProvider.GetRequiredService<ExitFeeds>();
+    feed.Enqueue("salou");
+    feed.Enqueue("sabadell");
+    await feed.ExecuteQueue();
+}
+
 // Role config
 using (var scope = app.Services.CreateScope())
 {
