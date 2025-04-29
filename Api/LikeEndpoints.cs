@@ -29,11 +29,12 @@ public class LikeEndpoints
 
             if (likedExit.Likes.ContainsKey(username))
             {
-                likedExit.Likes[username].Add(username); 
+                if (likedExit.Likes[username].Contains(user.UserName)) return Results.BadRequest();
+                likedExit.Likes[username].Add(user.UserName); 
             }
             else
             {
-                likedExit.Likes[username] = [username];
+                likedExit.Likes[username] = [user.UserName];
             }
             
             feed.UpdateLike(true, likedExit.LocationId, username, exitId, user.UserName);
@@ -71,7 +72,7 @@ public class LikeEndpoints
             
             if (likedExit.Likes.ContainsKey(username))
             {
-                likedExit.Likes[username].Remove(username); 
+                likedExit.Likes[username].Remove(user.UserName); 
             }
             
             feed.UpdateLike(false, likedExit.LocationId, username, exitId, user.UserName);
