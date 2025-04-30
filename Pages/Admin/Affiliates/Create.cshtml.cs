@@ -63,6 +63,7 @@ namespace Server.Pages.Admin.Affiliates
                 Name = Input.EventPlaceName,
                 LocationId = Input.EventPlaceLocation,
                 Description = Input.EventPlaceDescription,
+                Type = Input.EventPlaceType,
                 Images = [],
                 PriceRangeBegin = Input.EventPlacePriceRangeBegin,
                 PriceRangeEnd = Input.EventPlacePriceRangeEnd,

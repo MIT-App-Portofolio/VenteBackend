@@ -42,6 +42,13 @@
                             placeholder="Event place description" />
                     </label>
 
+                    <span asp-validation-for="Input.EventPlaceType" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <select asp-for="Input.EventPlaceType" class="grow" asp-items="Html.GetEnumSelectList<EventPlaceType>()">
+                            <option value="">Select event place type</option>
+                        </select>
+                    </label>
+
                     <span asp-validation-for="Input.EventPlacePriceRangeBegin" class="text-danger"></span>
                     <label class="input input-bordered flex items-center gap-2 mb-3">
                         <input asp-for="Input.EventPlacePriceRangeBegin" class="grow" placeholder="Price range start" />

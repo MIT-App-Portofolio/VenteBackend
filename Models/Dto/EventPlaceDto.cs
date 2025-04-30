@@ -15,6 +15,12 @@ public class EventPlaceDto
         AgeRequirement = place.AgeRequirement;
         GoogleMapsLink = place.GoogleMapsLink;
         Events = place.Events.Select(o => new EventPlaceEventDto(o)).ToList();
+        Type = place.Type switch
+        {
+            EventPlaceType.Disco => "Disco",
+            EventPlaceType.Bar => "Bar",
+            _ => throw new ArgumentOutOfRangeException()
+        };
     }
 
     public EventPlaceDto()
@@ -22,6 +28,7 @@ public class EventPlaceDto
         
     }
 
+    public string Type { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string LocationId { get; set; }

@@ -22,5 +22,7 @@ namespace Server.Models
         public int EventPlacePriceRangeBegin { get; set; }
         [Required]
         public int EventPlacePriceRangeEnd { get; set; }
+        [Required]
+        public EventPlaceType EventPlaceType { get; set; }
     }
 }

@@ -8,6 +8,7 @@ public class EventPlace
 
     public string Name { get; set; }
     public string Description { get; set; }
+    public EventPlaceType Type { get; set; }
     
     public string LocationId { get; set; }
     
@@ -18,6 +19,12 @@ public class EventPlace
     public string? GoogleMapsLink { get; set; }
     
     public List<EventPlaceEvent> Events { get; set; }
+}
+
+public enum EventPlaceType
+{
+    Disco,
+    Bar
 }
 
 public class EventPlaceEvent
