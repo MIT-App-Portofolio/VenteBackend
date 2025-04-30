@@ -1,5 +1,5 @@
+using Microsoft.EntityFrameworkCore;
 using Server.Data;
-using Microsoft.Extensions.Hosting;
 
 namespace Server.Services.Hosted;
 

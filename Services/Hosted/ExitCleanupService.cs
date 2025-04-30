@@ -36,7 +36,7 @@ public class ExitCleanupService(
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         
-        await exitFeeds.ClearPastDatesAsync();
+        exitFeeds.ClearPastDates();
 
         await context.Exits
             .Where(e => e.Dates.All(d => d.Date < DateTimeOffset.UtcNow.Date))
