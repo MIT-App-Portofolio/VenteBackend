@@ -60,6 +60,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                     JsonSerializer.Serialize(d, (JsonSerializerOptions?)null),
                     (JsonSerializerOptions?)null)));
             ;
+            
+        builder.Entity<ApplicationUser>()
+            .HasMany(u => u.Notifications)
+            .WithOne()
+            .HasForeignKey("ApplicationUserId")
+            .OnDelete(DeleteBehavior.Cascade);
     }
 
     public void DateTimeOffsetConverters(ModelBuilder builder)
