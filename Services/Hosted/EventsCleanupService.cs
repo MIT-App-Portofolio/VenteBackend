@@ -1,32 +1,43 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Services.Interfaces;
+using Microsoft.Extensions.Hosting;
 
 namespace Server.Services.Hosted;
 
 public class EventsCleanupService(
     ILogger<EventsCleanupService> logger,
     IServiceProvider serviceProvider)
-    : IHostedService, IDisposable
+    : BackgroundService
 {
-    private Timer _timer;
+    private readonly PeriodicTimer _timer = new(TimeSpan.FromHours(6));
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Offers Cleanup Service is starting.");
-        _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromHours(6));
-        return Task.CompletedTask;
+        
+        try
+        {
+            do
+            {
+                await DoWork(stoppingToken);
+            } while (await _timer.WaitForNextTickAsync(stoppingToken));
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogInformation("Offers Cleanup Service is stopping.");
+        }
     }
 
-    private void DoWork(object state)
+    private async Task DoWork(CancellationToken cancellationToken)
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var imageService = scope.ServiceProvider.GetRequiredService<IEventPlacePictureService>();
         
-        var places = context.Places
+        var places = await context.Places
             .Include(p => p.Events)
-            .ToList();
+            .ToListAsync(cancellationToken);
 
         foreach (var place in places)
         {
@@ -39,7 +50,7 @@ public class EventsCleanupService(
                 {
                     try
                     {
-                        imageService.DeleteEventPictureAsync(place, i).Wait();
+                        await imageService.DeleteEventPictureAsync(place, i);
                     }
                     catch (Exception error)
                     {
@@ -55,18 +66,12 @@ public class EventsCleanupService(
             }
         }
 
-        context.SaveChanges();
+        await context.SaveChangesAsync(cancellationToken);
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public override void Dispose()
     {
-        logger.LogInformation("Offers Cleanup Service is stopping.");
-        _timer?.Change(Timeout.Infinite, 0);
-        return Task.CompletedTask;
-    }
-
-    public void Dispose()
-    {
-        _timer?.Dispose();
+        _timer.Dispose();
+        base.Dispose();
     }
 }

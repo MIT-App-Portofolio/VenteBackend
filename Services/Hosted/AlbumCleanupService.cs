@@ -1,52 +1,58 @@
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Services.Interfaces;
+using Microsoft.Extensions.Hosting;
 
 namespace Server.Services.Hosted;
 
 public class AlbumCleanupService(
     ILogger<AlbumCleanupService> logger,
     IServiceProvider serviceProvider)
-    : IHostedService, IDisposable
+    : BackgroundService
 {
-    private Timer _timer;
+    private readonly PeriodicTimer _timer = new(TimeSpan.FromHours(1));
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Album Cleanup Service is starting.");
-        _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromHours(1));
-        return Task.CompletedTask;
+        
+        try
+        {
+            do
+            {
+                await DoWork(stoppingToken);
+            } while (await _timer.WaitForNextTickAsync(stoppingToken));
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogInformation("Album Cleanup Service is stopping.");
+        }
     }
 
-    private void DoWork(object state)
+    private async Task DoWork(CancellationToken cancellationToken)
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var pictureService = scope.ServiceProvider.GetRequiredService<IAlbumPictureService>();
 
-        var albums = context.Albums.Where(a => a.DeletionDate <= DateTimeOffset.UtcNow).Include(a => a.Pictures).ToList();
+        var albums = await context.Albums
+            .Where(a => a.DeletionDate <= DateTimeOffset.UtcNow)
+            .Include(a => a.Pictures)
+            .ToListAsync(cancellationToken);
 
         var tasks = albums
             .SelectMany(a => a.Pictures.Select(p => pictureService.RemoveAlbumPicture(a.Id, p.Id)))
             .ToList();
 
-        Task.WaitAll(tasks.ToArray());
+        await Task.WhenAll(tasks);
         
         context.Albums.RemoveRange(albums);
-        context.SaveChangesAsync();
-
-        context.SaveChanges();
+        await context.SaveChangesAsync(cancellationToken);
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public override void Dispose()
     {
-        logger.LogInformation("Album Cleanup Service is stopping.");
-        _timer?.Change(Timeout.Infinite, 0);
-        return Task.CompletedTask;
-    }
-
-    public void Dispose()
-    {
-        _timer?.Dispose();
+        _timer.Dispose();
+        base.Dispose();
     }
 }

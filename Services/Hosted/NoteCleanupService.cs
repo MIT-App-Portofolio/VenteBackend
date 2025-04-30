@@ -1,29 +1,40 @@
 using Server.Data;
+using Microsoft.Extensions.Hosting;
 
 namespace Server.Services.Hosted;
 
 public class NoteCleanupService(
     ILogger<NoteCleanupService> logger,
     IServiceProvider serviceProvider)
-    : IHostedService, IDisposable
+    : BackgroundService
 {
-    private Timer _timer;
+    private readonly PeriodicTimer _timer = new(TimeSpan.FromHours(1));
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Note Cleanup Service is starting.");
-        _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromHours(1));
-        return Task.CompletedTask;
+        
+        try
+        {
+            do
+            {
+                await DoWork(stoppingToken);
+            } while (await _timer.WaitForNextTickAsync(stoppingToken));
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogInformation("Note Cleanup Service is stopping.");
+        }
     }
 
-    private void DoWork(object state)
+    private async Task DoWork(CancellationToken cancellationToken)
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             
-        var usersWithExpiredEvents = context.Users
+        var usersWithExpiredEvents = await context.Users
             .Where(u => u.CustomNote != null && u.NoteWasSet.Value <= DateTimeOffset.UtcNow.AddHours(-24))
-            .ToList();
+            .ToListAsync(cancellationToken);
 
         foreach (var user in usersWithExpiredEvents)
         {
@@ -32,18 +43,12 @@ public class NoteCleanupService(
             user.NoteWasSet = null;
         }
 
-        context.SaveChanges();
+        await context.SaveChangesAsync(cancellationToken);
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public override void Dispose()
     {
-        logger.LogInformation("Note Cleanup Service is stopping.");
-        _timer?.Change(Timeout.Infinite, 0);
-        return Task.CompletedTask;
-    }
-
-    public void Dispose()
-    {
-        _timer?.Dispose();
+        _timer.Dispose();
+        base.Dispose();
     }
 }

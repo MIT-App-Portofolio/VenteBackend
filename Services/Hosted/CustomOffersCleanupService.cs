@@ -1,41 +1,46 @@
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
+using Microsoft.Extensions.Hosting;
 
 namespace Server.Services.Hosted;
 
 public class CustomOffersCleanupService(
     ILogger<CustomOffersCleanupService> logger,
     IServiceProvider serviceProvider)
-    : IHostedService, IDisposable
+    : BackgroundService
 {
-    private Timer _timer;
+    private readonly PeriodicTimer _timer = new(TimeSpan.FromHours(1));
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Custom Offers Cleanup Service is starting.");
-        _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromHours(1));
-        return Task.CompletedTask;
+        
+        try
+        {
+            do
+            {
+                await DoWork(stoppingToken);
+            } while (await _timer.WaitForNextTickAsync(stoppingToken));
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogInformation("Custom Offers Cleanup Service is stopping.");
+        }
     }
 
-    private void DoWork(object state)
+    private async Task DoWork(CancellationToken cancellationToken)
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        context.CustomOffers.Where(o => o.ValidUntil <= DateTimeOffset.UtcNow).ExecuteDelete();
-
-        context.SaveChanges();
+        await context.CustomOffers
+            .Where(o => o.ValidUntil <= DateTimeOffset.UtcNow)
+            .ExecuteDeleteAsync(cancellationToken);
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public override void Dispose()
     {
-        logger.LogInformation("Custom Offers Cleanup Service is stopping.");
-        _timer?.Change(Timeout.Infinite, 0);
-        return Task.CompletedTask;
-    }
-
-    public void Dispose()
-    {
-        _timer?.Dispose();
+        _timer.Dispose();
+        base.Dispose();
     }
 }

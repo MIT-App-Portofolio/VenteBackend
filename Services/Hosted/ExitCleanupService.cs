@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using Server.Data;
 using Server.Services.Concrete;
+using Microsoft.Extensions.Hosting;
 
 namespace Server.Services.Hosted;
 
@@ -9,38 +10,42 @@ public class ExitCleanupService(
     ILogger<ExitCleanupService> logger,
     IServiceProvider serviceProvider,
     ExitFeeds exitFeeds)
-    : IHostedService, IDisposable
+    : BackgroundService
 {
-    private Timer _timer;
+    private readonly PeriodicTimer _timer = new(TimeSpan.FromHours(6));
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Exit Cleanup Service is starting.");
-        _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromHours(6));
-        return Task.CompletedTask;
+        
+        try
+        {
+            do
+            {
+                await DoWork(stoppingToken);
+            } while (await _timer.WaitForNextTickAsync(stoppingToken));
+        }
+        catch (OperationCanceledException)
+        {
+            logger.LogInformation("Exit Cleanup Service is stopping.");
+        }
     }
 
-    private void DoWork(object state)
+    private async Task DoWork(CancellationToken cancellationToken)
     {
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         
-        exitFeeds.ClearPastDates();
+        await exitFeeds.ClearPastDatesAsync();
 
-        context.Exits
+        await context.Exits
             .Where(e => e.Dates.All(d => d.Date < DateTimeOffset.UtcNow.Date))
-            .ExecuteDelete();
+            .ExecuteDeleteAsync(cancellationToken);
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public override void Dispose()
     {
-        logger.LogInformation("Exit Cleanup Service is stopping.");
-        _timer?.Change(Timeout.Infinite, 0);
-        return Task.CompletedTask;
-    }
-
-    public void Dispose()
-    {
-        _timer?.Dispose();
+        _timer.Dispose();
+        base.Dispose();
     }
 }
