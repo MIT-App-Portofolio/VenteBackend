@@ -148,7 +148,7 @@ public class ExitFeeds(IServiceProvider serviceProvider)
             if (user.ShadowBanned)
                 return;
 
-            if (!user.HasPfp && string.IsNullOrEmpty(user.IgHandle))
+            if (!user.HasPfp)
                 return;
             
             var withDtos = with.Where(u => u != username).Select(u =>
