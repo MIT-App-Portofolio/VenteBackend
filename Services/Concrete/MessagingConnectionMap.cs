@@ -14,4 +14,7 @@ public class MessagingConnectionMap
 
     public string? GetConnectionId(string username) =>
         _connections.TryGetValue(username, out var connectionId) ? connectionId : null;
+
+    public int GetCount() =>
+        _connections.Count;
 }

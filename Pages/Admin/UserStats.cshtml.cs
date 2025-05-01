@@ -2,10 +2,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
+using Server.Services.Concrete;
 
 namespace Server.Pages.Admin;
 
-public class UserStats(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext) : PageModel
+public class UserStats(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, MessagingConnectionMap messagingConnectionMap) : PageModel
 {
     public int Users { get; set; }
     public int UsersCreatedToday { get; set; }
@@ -23,6 +24,7 @@ public class UserStats(UserManager<ApplicationUser> userManager, ApplicationDbCo
     
     public int Messages { get; set; }
     public int MessagesToday { get; set; }
+    public int ChatHubConnections { get; set; }
     
     public async Task OnGetAsync()
     {
@@ -68,5 +70,7 @@ public class UserStats(UserManager<ApplicationUser> userManager, ApplicationDbCo
         var messages = await dbContext.Messages.Select(m => m.Timestamp).ToListAsync();
         Messages = messages.Count;
         MessagesToday = messages.Count(m => m.Date == DateTimeOffset.UtcNow.Date);
+
+        ChatHubConnections = messagingConnectionMap.GetCount();
     }
 }
