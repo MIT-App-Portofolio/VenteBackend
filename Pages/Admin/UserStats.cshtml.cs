@@ -21,6 +21,9 @@ public class UserStats(UserManager<ApplicationUser> userManager, ApplicationDbCo
     public int Exits { get; set; }
     public (string, int) MaxExits { get; set; }
     
+    public int Messages { get; set; }
+    public int MessagesToday { get; set; }
+    
     public async Task OnGetAsync()
     {
         var allUsers = await userManager.Users
@@ -61,5 +64,9 @@ public class UserStats(UserManager<ApplicationUser> userManager, ApplicationDbCo
             .GroupBy(e => e)
             .Select(g => (g.Key, g.Count()))
             .MaxBy(g => g.Item2);
+
+        var messages = await dbContext.Messages.Select(m => m.Timestamp).ToListAsync();
+        Messages = messages.Count;
+        MessagesToday = messages.Count(m => m.Date == DateTimeOffset.UtcNow.Date);
     }
 }
