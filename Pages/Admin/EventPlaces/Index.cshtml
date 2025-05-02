@@ -29,6 +29,7 @@
                                 <td>@place.PriceRangeBegin - @place.PriceRangeEnd</td>
                                 <td>
                                     <a asp-page="/Admin/EventPlaces/Edit" asp-route-id="@place.Id" class="btn btn-primary">Edit</a>
+                                    <a asp-page="/Admin/EventPlaces/ProgrammaticCreate" asp-route-placeId="@place.Id"><button class="btn btn-primary">JSON events</button></a>
                                 </td>
                             </tr>
                         }
