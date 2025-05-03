@@ -42,6 +42,7 @@ public class ExitFeeds(IServiceProvider serviceProvider)
             if (!_cache.TryGetValue(location, out var feed)) return [];
 
             var query = feed
+                .Where(u => u.HasPfp)
                 .Where(u => u.Dates.Any(d => dates.Any(d2 => Math.Abs((d - d2).Days) < 14)))
                 .OrderBy(u => u.Dates.Min(d => Math.Abs((d - dates[0]).Days)))
                 .AsEnumerable();
@@ -164,9 +165,6 @@ public class ExitFeeds(IServiceProvider serviceProvider)
             if (user.ShadowBanned)
                 return;
 
-            if (!user.HasPfp)
-                return;
-            
             var withDtos = with.Where(u => u != username).Select(u =>
             {
                 var usr = users[u];
