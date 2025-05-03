@@ -46,7 +46,7 @@ public class MessageEndpoints
 
             var messages = await q
                 .OrderByDescending(u => u.Timestamp)
-                .Take(10)
+                .Take(30)
                 .Select(m => new MessageDto(m, user.UserName))
                 .ToListAsync();
             
