@@ -38,7 +38,7 @@ namespace Server.Pages.Admin
             if (user == null)
                 return NotFound();
 
-            user.ShadowBanned = !user.Verified;
+            user.Verified = !user.Verified;
 
             await userManager.UpdateAsync(user);
             
