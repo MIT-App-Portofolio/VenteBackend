@@ -50,6 +50,7 @@ public class EventPlaceEventDto
         Description = @event.Description;
         Time = @event.Time.DateTime;
         Offers = @event.Offers.Select(o => new EventPlaceOfferDto(o)).ToList();
+        PurchaseLink = @event.PurchaseLink;
         Image = @event.Image;
     }
     
@@ -57,6 +58,7 @@ public class EventPlaceEventDto
     public string? Description { get; set; }
     public DateTime Time { get; set; }
     public string? Image { get; set; }
+    public string? PurchaseLink { get; set; }
     public List<EventPlaceOfferDto> Offers { get; set; }
 }
 

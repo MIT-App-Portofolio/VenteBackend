@@ -12,11 +12,13 @@ public class EventPlaceEventModel
         Name = eventPlaceEvent.Name;
         Time = eventPlaceEvent.Time.DateTime;
         Description = eventPlaceEvent.Description;
+        PurchaseLink = eventPlaceEvent.PurchaseLink;
     }
     
     [Required]
     public string Name { get; set; }
     public string? Description { get; set; }
+    public string? PurchaseLink { get; set; }
     [Required]
     public DateTime Time { get; set; }
 }

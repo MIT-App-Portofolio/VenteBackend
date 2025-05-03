@@ -106,6 +106,7 @@ namespace Server.Pages.Affiliate
                 Name = CreateEventInput.Name,
                 Description = CreateEventInput.Description,
                 Image = null,
+                PurchaseLink = CreateEventInput.PurchaseLink,
                 Offers = []
             });
             

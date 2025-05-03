@@ -38,6 +38,8 @@ public class EventPlaceEvent
     public string? Image { get; set; }
     public DateTimeOffset Time { get; set; }
     
+    public string? PurchaseLink { get; set; }
+    
     public List<EventPlaceOffer> Offers { get; set; }
 }
 

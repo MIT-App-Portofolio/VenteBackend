@@ -16,6 +16,7 @@ public class Event(UserManager<ApplicationUser> userManager) : PageModel
         public string Name { get; set; }
         public DateTime Time { get; set; }
         public string? Description { get; set; }
+        public string? PurchaseLink { get; set; }
     }
 
     public class OfferModel
@@ -47,6 +48,7 @@ public class Event(UserManager<ApplicationUser> userManager) : PageModel
             Name = @event.Name,
             Time = @event.Time.DateTime,
             Description= @event.Description,
+            PurchaseLink = @event.PurchaseLink,
         };
         
         Offers = @event.Offers.Select(o => (new OfferModel

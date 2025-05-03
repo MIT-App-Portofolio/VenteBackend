@@ -13,6 +13,11 @@
             <p class="mb-4">@Model.EventInfo.Description</p>
             <h3 class="text-xl font-semibold mb-2">Fecha</h3>
             <p class="mb-4">@Model.EventInfo.Time.ToShortDateString()</p>
+            @if (Model.EventInfo.PurchaseLink != null)
+            {
+                <h3 class="text-xl font-semibold mb-2">Link para entradas</h3>
+                <a class="mb-4">@Model.EventInfo.PurchaseLink</a>
+            }
         </div>
 
         <div class="mt-8 p-6 bg-base-100 rounded-lg shadow-md w-full">
