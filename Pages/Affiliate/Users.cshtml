@@ -1,5 +1,4 @@
 @page
-@using System.Globalization
 @using Server.Data
 @model Server.Pages.Affiliate.Users
 
@@ -25,13 +24,13 @@
                     <div class="card-body">
                         <h2 class="card-title">@(user.Name ?? "@" + user.UserName)</h2>
                         
-                        <p>Va a @Model.LocationName el @user.EventStatus.Time?.Date.ToString(new CultureInfo("es-ES"))</p>
+                        <p>Va el @user.Dates.GetDateListDisplay()</p>
 
                         @if (user.Gender == Gender.Male)
                         {
                             <p>Hombre</p>
                         }
-                        else
+                        else if (user.Gender == Gender.Female)
                         {
                             <p>Mujer</p>
                         }
@@ -48,9 +47,9 @@
                             <p>Instagram <a href="https://instagram.com/@user.IgHandle">@@@user.IgHandle</a></p>
                         }
                         
-                        @if (user.EventStatus.With != null)
+                        @if (user.With.Count > 0)
                         {
-                            <p>Va con @user.EventStatus.With.Count personas</p>
+                            <p>Va con @user.With.Count personas</p>
                         }
                     </div>
                 </div>

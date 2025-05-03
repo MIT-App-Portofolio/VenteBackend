@@ -12,6 +12,8 @@ public class InternalUserQuery
     public string UserName { get; set; }
     public Gender Gender { get; set; }
     
+    public bool HasPfp { get; set; }
+    
     public List<DateTime> Dates { get; set; }
     public List<ExitUserFriendDto> With { get; set; }
     
@@ -79,6 +81,18 @@ public class ExitFeeds(IServiceProvider serviceProvider)
                     UserLiked = u.Likes.Contains(receiverUsername),
                     ExitId = u.ExitId,
                 }).ToList();
+        }
+    }
+
+    public List<InternalUserQuery> GetFullFeed(string location)
+    {
+        lock (_cache)
+        {
+            if (!_cache.TryGetValue(location, out var feed)) return [];
+
+            return feed
+                .OrderBy(u => u.Dates.Min(d => Math.Abs((d - DateTimeOffset.UtcNow).Days)))
+                .ToList();
         }
     }
 
@@ -173,6 +187,7 @@ public class ExitFeeds(IServiceProvider serviceProvider)
                 Likes = exitLikes.TryGetValue(username, out var like) ? like : [],
                 Years = user.BirthDate?.GetYears(),
                 Name = user.Name,
+                HasPfp = user.HasPfp,
                 Verified = user.Verified,
                 IgHandle = user.IgHandle,
                 Description = user.Description,

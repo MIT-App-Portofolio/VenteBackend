@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Models.Dto;
 using Server.Services;
+using Server.Services.Concrete;
 using Server.Services.Interfaces;
 
 namespace Server.Pages.Affiliate;
@@ -13,25 +14,23 @@ public class Users(
     UserManager<ApplicationUser> userManager,
     ApplicationDbContext dbContext,
     IProfilePictureService profilePictureService,
-    IWebHostEnvironment environment) : PageModel
+    IWebHostEnvironment environment,
+    ExitFeeds feed) : PageModel
 {
-    public List<(UserDto, string)> UsersList { get; set; }
+    public List<(InternalUserQuery, string)> UsersList { get; set; }
     public string LocationName { get; set; }
 
     public async Task<IActionResult> OnGetAsync()
     {
-        var locationId = await userManager.Users
+        var user = await userManager.Users
             .Include(u => u.EventPlace)
-            .Where(u => u.UserName == User.Identity.Name)
-            .Select(u => u.EventPlace.LocationId)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(u => u.UserName == User.Identity.Name);
 
-        var users = await userManager.Users
-            .Include(u => u.EventStatus)
-            .Where(u => !u.ShadowBanned)
-            .Where(u => u.EventStatus.Active && u.EventStatus.LocationId == locationId)
-            .OrderBy(u => u.EventStatus.Time)
-            .ToListAsync();
+        if (user == null) return Unauthorized();
+        
+        var locationId = user.EventPlace.LocationId;
+
+        var users = feed.GetFullFeed(locationId);
         
         LocationName = (await dbContext.Locations.FirstOrDefaultAsync(l => l.Id == locationId)).Name;
 
@@ -39,16 +38,11 @@ public class Users(
         if (environment.IsEnvironment("Sandbox"))
         {
             UsersList = users
-                .Select(u => (new UserDto(u, null), "https://picsum.photos/200/200?random=" + ++cacheCount)).ToList();
+                .Select(u => (u, "https://picsum.photos/200/200?random=" + ++cacheCount)).ToList();
         }
         else
         {
-            var dtos = await UserDto.FromListAsync(users, dbContext, userManager);
-            UsersList = [];
-            for (int i = 0; i < dtos.Count; i++)
-            {
-                UsersList.Add((dtos[i], users[i].HasPfp ? profilePictureService.GetDownloadUrl(users[i].UserName!) : profilePictureService.GetFallbackUrl()));
-            }
+            UsersList = users.Select(u => (u, u.HasPfp ? profilePictureService.GetDownloadUrl(u.UserName) : profilePictureService.GetFallbackUrl())).ToList();
         }
         
         return Page();
