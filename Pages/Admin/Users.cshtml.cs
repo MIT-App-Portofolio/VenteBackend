@@ -31,6 +31,19 @@ namespace Server.Pages.Admin
             
             return RedirectToPage(new { pageId = PageId });
         }
+        
+        public async Task<IActionResult> OnPostVerifyAsync(string userId)
+        {
+            var user = await userManager.FindByIdAsync(userId);
+            if (user == null)
+                return NotFound();
+
+            user.ShadowBanned = !user.Verified;
+
+            await userManager.UpdateAsync(user);
+            
+            return RedirectToPage(new { pageId = PageId });
+        }
 
         public async Task<IActionResult> OnPostDeleteAsync(string userId)
         {

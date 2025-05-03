@@ -18,6 +18,7 @@ public class ExitUserQueryDto
     
     public int Likes { get; set; }
     public bool UserLiked { get; set; }
+    public bool Verified { get; set; }
     
     public int ExitId { get; set; }
 }

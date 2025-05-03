@@ -23,6 +23,7 @@
                             <th>Ig Handle</th>
                             <th>Delete</th>
                             <th>Shadow</th>
+                            <th>Verification</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -42,6 +43,11 @@
                                 <td>
                                     <form method="post" asp-page-handler="ShadowBan" asp-route-userId="@user.Id">
                                         <button type="submit" class="btn btn-danger">@(!user.ShadowBanned ? "Shadow" : "De-shadow")</button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <form method="post" asp-page-handler="Verify" asp-route-userId="@user.Id">
+                                        <button type="submit" class="btn btn-danger">@(!user.Verified ? "Verify" : "Unverify")</button>
                                     </form>
                                 </td>
                             </tr>

@@ -25,6 +25,7 @@ public class UserDto
         Note = user.CustomNote;
         IgHandle = user.IgHandle;
         Description = user.Description;
+        Verified = user.Verified;
         if (user.BirthDate.HasValue)
         {
             Years = DateTime.Now.Year - user.BirthDate.Value.Year;
@@ -87,5 +88,6 @@ public class UserDto
     public string? Name { get; set; }
     public string? IgHandle { get; set; }
     public string? Description { get; set; }
+    public bool Verified { get; set; }
     public EventStatusDto EventStatus { get; set; }
 }

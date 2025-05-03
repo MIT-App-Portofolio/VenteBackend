@@ -27,6 +27,8 @@ public class ApplicationUser : IdentityUser
     public EventPlace? EventPlace { get; set; }
     
     public List<Notification> Notifications { get; set; }
+    
+    public bool Verified { get; set; }
 }
 
 public enum Gender
