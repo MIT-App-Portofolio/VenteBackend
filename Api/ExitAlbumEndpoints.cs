@@ -86,13 +86,15 @@ public static class ExitAlbumEndpoints
             if (exit.AlbumId == null)
             {
                 List<string> members = [..exit.Members, exit.Leader];
+                var firstDate = exit.Dates[0];
+                var lastDate = exit.Dates.Last();
                 var newAlbum = new SharedAlbum
                 {
                     Members = await userManager.Users.Where(u => members.Contains(u.UserName)).Select(u => u.Id).ToListAsync(),
-                    EventDate = user.EventStatus.Time.Value,
-                    PlaceId = user.EventStatus.LocationId,
-                    AvailableAt = DateTimeOffset.Now.AddHours(6),
-                    DeletionDate = DateTimeOffset.Now.AddDays(14),
+                    EventDate = firstDate,
+                    PlaceId = exit.LocationId,
+                    AvailableAt = lastDate.AddHours(6),
+                    DeletionDate = lastDate.AddDays(14),
                 };
 
                 dbContext.Albums.Add(newAlbum);
