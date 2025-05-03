@@ -237,7 +237,7 @@ public class ExitFeeds(IServiceProvider serviceProvider)
         {
             foreach (var location in _cache.Keys)
             {
-                _cache[location] = _cache[location].Where(e => e.Dates.All(d => d > now)).ToList();
+                _cache[location] = _cache[location].Where(e => !e.Dates.All(d => d < now)).ToList();
             }
         }
     }
