@@ -16,7 +16,8 @@ public class ExitSystemMigration
 
             if (es.AssociatedExitId != null)
             {
-                logger.LogInformation("User {0} with event status {1} {2} has associated exit. Skipping...", user.UserName, es.Time.Value.DateTime.DateShortDisplay(), es.LocationId);
+                var fetchedExit = await dbContext.Exits.FirstOrDefaultAsync(e => e.Id == es.AssociatedExitId);
+                logger.LogInformation("User {0} with event status {1} {2} has associated exit. (exit exists: {3}). Skipping...", user.UserName, es.Time.Value.DateTime.DateShortDisplay(), es.LocationId, fetchedExit != null);
                 continue;
             }
 
