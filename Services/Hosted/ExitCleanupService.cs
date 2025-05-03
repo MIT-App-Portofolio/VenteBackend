@@ -38,9 +38,10 @@ public class ExitCleanupService(
         
         exitFeeds.ClearPastDates();
 
-        await context.Exits
+        var cleared = await context.Exits
             .Where(e => e.Dates.All(d => d.Date < DateTimeOffset.UtcNow.Date))
             .ExecuteDeleteAsync(cancellationToken);
+        logger.LogInformation("Cleared {0} exits", cleared);
     }
 
     public override void Dispose()
