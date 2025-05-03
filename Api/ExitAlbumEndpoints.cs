@@ -83,8 +83,6 @@ public static class ExitAlbumEndpoints
 
             if (exit == null) return Results.BadRequest();
 
-            if (exit.AlbumId == null) return Results.Ok();
-
             if (exit.AlbumId == null)
             {
                 List<string> members = [..exit.Members, exit.Leader];
