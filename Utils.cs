@@ -49,7 +49,7 @@ public static class Utils
         return string.Join(", ", ranges);
     }
 
-    private static string DateShortDisplay(this DateTime date)
+    public static string DateShortDisplay(this DateTime date)
     {
         return date.ToString("dd/MM");
     }

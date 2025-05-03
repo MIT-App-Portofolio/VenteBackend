@@ -14,7 +14,11 @@ public class ExitSystemMigration
         {
             var es = user.EventStatus;
 
-            if (es.AssociatedExitId != null) continue;
+            if (es.AssociatedExitId != null)
+            {
+                logger.LogInformation("User {0} with event status {1} {2} has associated exit. Skipping...", user.UserName, es.Time.Value.DateTime.DateShortDisplay(), es.LocationId);
+                continue;
+            }
 
             var exit = new ExitInstance
             {
@@ -30,7 +34,11 @@ public class ExitSystemMigration
             if (dbContext.Exits.Any(e =>
                     e.Name == exit.Name && e.Leader == exit.Leader && e.LocationId == exit.LocationId &&
                     e.Dates.Count == 1 && e.Dates[0] == exit.Dates[0] && e.Invited.Count == 0 &&
-                    e.Members.Count == 0)) continue;
+                    e.Members.Count == 0))
+            {
+                logger.LogInformation("User {0} with event status {1} {2} and without exit id has matched exit. Skipping...", user.UserName, es.Time.Value.DateTime.DateShortDisplay(), es.LocationId);
+                continue;
+            }
             
             logger.LogInformation("Migrating to exit for user {0}", user.UserName);
             dbContext.Exits.Add(exit);
