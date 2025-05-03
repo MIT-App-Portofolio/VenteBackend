@@ -20,6 +20,7 @@ public class InternalUserQuery
     public string? Name { get; set; }
     public string? IgHandle { get; set; }
     public string? Description { get; set; }
+    public bool Verified { get; set; }
     
     public List<string> Likes { get; set; }
     
@@ -74,6 +75,7 @@ public class ExitFeeds(IServiceProvider serviceProvider)
                     IgHandle = u.IgHandle,
                     Description = u.Description,
                     Likes = u.Likes.Count,
+                    Verified = u.Verified,
                     UserLiked = u.Likes.Contains(receiverUsername),
                     ExitId = u.ExitId,
                 }).ToList();
@@ -171,6 +173,7 @@ public class ExitFeeds(IServiceProvider serviceProvider)
                 Likes = exitLikes.TryGetValue(username, out var like) ? like : [],
                 Years = user.BirthDate?.GetYears(),
                 Name = user.Name,
+                Verified = user.Verified,
                 IgHandle = user.IgHandle,
                 Description = user.Description,
                 ExitId = exitId,
