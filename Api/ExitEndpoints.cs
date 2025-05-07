@@ -29,7 +29,7 @@ public static class ExitEndpoints
                             LocationId = e.LocationId,
                             Leader = e.Leader,
                             Name = e.Name,
-                            Dates = e.Dates.Select(d => d.DateTime).ToList(),
+                            Dates = e.Dates.Select(d => d.Date).ToList(),
                             AwaitingInvite = e.Invited,
                             Members = e.Members
                         }).ToListAsync();
@@ -61,7 +61,7 @@ public static class ExitEndpoints
             });
 
         app.MapPost("/api/exit/register", [JwtAuthorize]
-            async (HttpContext context, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext,
+            async (HttpContext context, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, ILogger<Program> logger,
                 ExitFeeds feed, ExitRegisterModel model) =>
             {
                 var validationResults = new List<ValidationResult>();
@@ -95,9 +95,13 @@ public static class ExitEndpoints
                     Likes = [],
                     Dates = model.Dates
                 };
+                
+                logger.LogInformation("Creating exit for {0} with dates: {1}", newExit.Leader, newExit.Dates);
 
                 await dbContext.Exits.AddAsync(newExit);
                 await dbContext.SaveChangesAsync();
+                
+                logger.LogInformation("Post creation exit for {0} dates: {1}", newExit.Leader, newExit.Dates);
 
                 feed.Enqueue(model.LocationId);
 
