@@ -81,6 +81,8 @@ public static class ExitEndpoints
 
                 if (model.Dates.Count > 20)
                     return Results.BadRequest();
+                
+                logger.LogInformation("Pre creation for {0} with dates: {1}", user.UserName, model.Dates);
 
                 if (await DatesOverlap(dbContext, model.Dates, user.UserName))
                     return Results.BadRequest("date_overlap");
