@@ -82,8 +82,6 @@ public static class ExitEndpoints
                 if (model.Dates.Count > 20)
                     return Results.BadRequest();
                 
-                logger.LogInformation("Pre creation for {0} with dates: {1}", user.UserName, model.Dates);
-
                 if (await DatesOverlap(dbContext, model.Dates, user.UserName))
                     return Results.BadRequest("date_overlap");
 
@@ -95,15 +93,11 @@ public static class ExitEndpoints
                     Members = [],
                     Invited = [],
                     Likes = [],
-                    Dates = model.Dates
+                    Dates = model.Dates.Select(d => TimeZoneInfo.ConvertTime(d, TimeZoneInfo.FindSystemTimeZoneById("Europe/Madrid"))).ToList()
                 };
                 
-                logger.LogInformation("Creating exit for {0} with dates: {1}", newExit.Leader, newExit.Dates);
-
                 await dbContext.Exits.AddAsync(newExit);
                 await dbContext.SaveChangesAsync();
-                
-                logger.LogInformation("Post creation exit for {0} dates: {1}", newExit.Leader, newExit.Dates);
 
                 feed.Enqueue(model.LocationId);
 
