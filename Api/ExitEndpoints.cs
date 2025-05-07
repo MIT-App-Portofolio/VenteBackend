@@ -81,6 +81,8 @@ public static class ExitEndpoints
 
                 if (model.Dates.Count > 20)
                     return Results.BadRequest();
+
+                model.Dates = model.Dates.Select(d => d.AddHours(2)).ToList();
                 
                 if (await DatesOverlap(dbContext, model.Dates, user.UserName))
                     return Results.BadRequest("date_overlap");
@@ -93,7 +95,7 @@ public static class ExitEndpoints
                     Members = [],
                     Invited = [],
                     Likes = [],
-                    Dates = model.Dates.Select(d => TimeZoneInfo.ConvertTime(d, TimeZoneInfo.FindSystemTimeZoneById("Europe/Madrid"))).ToList()
+                    Dates = model.Dates
                 };
                 
                 await dbContext.Exits.AddAsync(newExit);
