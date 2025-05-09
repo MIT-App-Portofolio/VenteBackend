@@ -61,7 +61,7 @@ public static class ExitEndpoints
             });
 
         app.MapPost("/api/exit/register", [JwtAuthorize]
-            async (HttpContext context, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, ILogger<Program> logger,
+            async (HttpContext context, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext,
                 ExitFeeds feed, ExitRegisterModel model) =>
             {
                 var validationResults = new List<ValidationResult>();
