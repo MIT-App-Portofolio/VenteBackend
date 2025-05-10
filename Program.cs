@@ -211,6 +211,11 @@ using (var scope = app.Services.CreateScope())
     var um = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<ExitSystemMigration>>();
     await ExitSystemMigration.Migrate(db, um, logger);
+
+    var salou = await db.Locations.FirstOrDefaultAsync(l => l.Id == "salou");
+    salou.Name = "Salou/Cambrils";
+    db.Locations.Update(salou);
+    await db.SaveChangesAsync();
 }
 
 using (var scope = app.Services.CreateScope())
