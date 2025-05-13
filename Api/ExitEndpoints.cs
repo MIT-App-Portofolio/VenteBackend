@@ -82,7 +82,11 @@ public static class ExitEndpoints
                 if (model.Dates.Count > 20)
                     return Results.BadRequest();
 
-                model.Dates = model.Dates.Select(d => d.AddHours(2)).ToList();
+                if (model.NoTzTransform == null || !model.NoTzTransform.Value)
+                {
+                    // there's a bug on the frontend that selects the date in utc then translates it to local time which ends up selecting the day before
+                    model.Dates = model.Dates.Select(d => d.AddHours(2)).ToList();
+                }
                 
                 if (await DatesOverlap(dbContext, model.Dates, user.UserName))
                     return Results.BadRequest("date_overlap");

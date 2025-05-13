@@ -10,4 +10,5 @@ public class ExitRegisterModel
     public string LocationId { get; set; }
     [Required]
     public List<DateTimeOffset> Dates { get; set; }
+    public bool? NoTzTransform { get; set; }
 }
