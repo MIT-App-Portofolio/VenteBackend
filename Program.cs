@@ -211,11 +211,6 @@ using (var scope = app.Services.CreateScope())
     var um = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<ExitSystemMigration>>();
     await ExitSystemMigration.Migrate(db, um, logger);
-
-    var pol = await db.Users.FirstOrDefaultAsync(u => u.UserName == "pol.argente");
-    pol.BirthDate = new DateTimeOffset(2007, 10, 2, 2, 0, 0, TimeSpan.Zero);
-    db.Users.Update(pol);
-    await db.SaveChangesAsync();
 }
 
 using (var scope = app.Services.CreateScope())
