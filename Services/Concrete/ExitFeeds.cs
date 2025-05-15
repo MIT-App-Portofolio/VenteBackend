@@ -240,7 +240,8 @@ public class ExitFeeds(IServiceProvider serviceProvider)
             {
                 ret.AddRange(value.Where(u => friends.Contains(u.UserName)).Select(u => new FriendExitStatusDto()
                 {
-                    DisplayName = u.Name ?? "@" + u.UserName,
+                    Username = u.UserName,
+                    Name = u.Name,
                     PfpUrl = u.HasPfp ? pfpService.GetDownloadUrl(u.UserName, u.PfpVersion) : pfpService.GetFallbackUrl(),
                     Dates = u.Dates,
                     LocationId = loc
