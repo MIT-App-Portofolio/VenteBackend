@@ -40,5 +40,6 @@ public static class Api
         UserSearchEndpoints.MapUserSearchEndpoints(app);
         NotificationEndpoints.MapNotificationEndpoints(app);
         FollowEndpoints.MapFollowEndpoints(app);
+        StatusEndpoints.MapStatusEndpoints(app);
     }
 }

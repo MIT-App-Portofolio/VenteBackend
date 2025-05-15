@@ -233,6 +233,26 @@ public class ExitFeeds(IServiceProvider serviceProvider)
         }
     }
 
+    public List<FriendExitStatusDto> GetFriendStatuses(List<string> friends, IProfilePictureService pfpService)
+    {
+        var ret = new List<FriendExitStatusDto>();
+        lock (_cache)
+        {
+            foreach (var (loc, value) in _cache)
+            {
+                ret.AddRange(value.Where(u => friends.Contains(u.UserName)).Select(u => new FriendExitStatusDto()
+                {
+                    DisplayName = u.Name ?? "@" + u.UserName,
+                    PfpUrl = u.HasPfp ? pfpService.GetDownloadUrl(u.UserName, u.PfpVersion) : pfpService.GetFallbackUrl(),
+                    Dates = u.Dates,
+                    LocationId = loc
+                }));
+            }
+        }
+
+        return ret;
+    }
+
     public void ClearPastDates()
     {
         var now = DateTimeOffset.UtcNow.AddDays(1);
