@@ -126,7 +126,8 @@ public class FollowEndpoints
                 {
                     Message = $"{user.UserName} ha aceptado tu solicitud",
                     ReferenceUsername = user.UserName,
-                    Type = NotificationType.FollowAccept
+                    Type = NotificationType.FollowAccept,
+                    Timestamp = DateTimeOffset.Now
                 });
 
                 await notificationService.SendFollowAcceptNotification(followed, user.UserName);
