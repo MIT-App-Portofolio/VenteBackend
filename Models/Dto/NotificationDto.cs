@@ -11,6 +11,7 @@ public class NotificationDto
         Type = notification.Type switch
         {
             Data.NotificationType.Like => "Notification",
+            Data.NotificationType.FollowAccept => "FollowAccept",
             _ => throw new ArgumentOutOfRangeException()
         };
 
