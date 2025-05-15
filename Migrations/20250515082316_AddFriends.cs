@@ -15,13 +15,15 @@ namespace Server.Migrations
                 name: "Friends",
                 table: "AspNetUsers",
                 type: "text[]",
-                nullable: false);
+                nullable: false,
+                defaultValue: new List<string>());
 
             migrationBuilder.AddColumn<List<string>>(
                 name: "SolicitedFollowTo",
                 table: "AspNetUsers",
                 type: "text[]",
-                nullable: false);
+                nullable: false,
+                defaultValue: new List<string>());
         }
 
         /// <inheritdoc />
