@@ -13,7 +13,7 @@ public class HetznerProfilePictureService(IConfiguration configuration, IHttpCli
 
     public string GetDownloadUrl(ApplicationUser user)
     {
-        return new Uri(_pfpBucketUrl, $"/profile-pictures/{user.UserName}.jpeg?cache_v={user.PfpVersion}").ToString();
+        return user.HasPfp ? new Uri(_pfpBucketUrl, $"/profile-pictures/{user.UserName}.jpeg?cache_v={user.PfpVersion}").ToString() : GetFallbackUrl();
     }
 
     public string GetDownloadUrl(string username, int pfpVersion)

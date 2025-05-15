@@ -37,7 +37,11 @@ public class FollowEndpoints
                 var followed = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == username);
                 if (followed == null) return Results.NotFound();
 
-                if (user.SolicitedFollowTo.Contains(user.UserName)) return Results.BadRequest();
+                if (followed.SolicitedFollowTo.Contains(user.UserName)) return Results.BadRequest();
+
+                if (user.Friends.Contains(user.UserName)) return Results.Ok();
+                
+                if (user.SolicitedFollowTo.Contains(username)) return Results.BadRequest();
 
                 if (followed.Blocked.Contains(user.UserName)) return Results.Unauthorized();
 
@@ -114,6 +118,7 @@ public class FollowEndpoints
                 if (!followed.SolicitedFollowTo.Contains(user.UserName)) return Results.BadRequest();
 
                 followed.SolicitedFollowTo.Remove(user.UserName);
+                user.SolicitedFollowTo.Remove(username);
                 followed.Friends.Add(user.UserName);
                 user.Friends.Add(followed.UserName);
 
