@@ -115,7 +115,7 @@ public class FollowEndpoints
 
                 followed.SolicitedFollowTo.Remove(user.UserName);
                 followed.Friends.Add(user.UserName);
-                user.Friends.Add(user.UserName);
+                user.Friends.Add(followed.UserName);
 
                 followed.Notifications.Add(new Notification
                 {
