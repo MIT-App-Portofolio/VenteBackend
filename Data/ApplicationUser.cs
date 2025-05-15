@@ -31,11 +31,11 @@ public class ApplicationUser : IdentityUser
     /// <summary>
     /// Who the user is following
     /// </summary>
-    public List<string> Friends { get; set; }
+    public List<string>? Friends { get; set; }
     /// <summary>
     /// Who the user has solicited
     /// </summary>
-    public List<string> SolicitedFollowTo { get; set; }
+    public List<string>? SolicitedFollowTo { get; set; }
     
     public bool Verified { get; set; }
 }

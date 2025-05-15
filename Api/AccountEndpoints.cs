@@ -76,6 +76,8 @@ public static class AccountEndpoints
                     : (DateTimeOffset?)null,
                 CreatedAt = DateTimeOffset.Now,
                 Blocked = [],
+                Friends = [],
+                SolicitedFollowTo = [],
                 Email = payload.Email,
                 HasPfp = false,
                 EventStatus = new EventStatus()
@@ -136,6 +138,8 @@ public static class AccountEndpoints
                     : (DateTimeOffset?)null,
                 CreatedAt = DateTimeOffset.Now,
                 Blocked = [],
+                Friends = [],
+                SolicitedFollowTo = [],
                 Email = email,
                 HasPfp = false,
                 EventStatus = new EventStatus()
@@ -171,6 +175,8 @@ public static class AccountEndpoints
                     : (DateTimeOffset?)null,
                 CreatedAt = DateTimeOffset.Now,
                 Blocked = [],
+                Friends = [],
+                SolicitedFollowTo = [],
                 Email = model.Email,
                 HasPfp = false,
                 EventStatus = new EventStatus()

@@ -211,6 +211,16 @@ using (var scope = app.Services.CreateScope())
     var um = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<ExitSystemMigration>>();
     await ExitSystemMigration.Migrate(db, um, logger);
+    
+    var users = await db.Users.ToListAsync();
+    
+    foreach (var user in users)
+    {
+        user.Friends ??= [];
+        user.SolicitedFollowTo ??= [];
+    }
+
+    await db.SaveChangesAsync();
 }
 
 using (var scope = app.Services.CreateScope())
