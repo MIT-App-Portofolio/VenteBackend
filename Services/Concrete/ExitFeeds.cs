@@ -156,8 +156,6 @@ public class ExitFeeds(IServiceProvider serviceProvider)
 
         void AddUser(string username, List<DateTime> dates, List<string> with, Dictionary<string, List<string>> exitLikes, int exitId)
         {
-            if (entry.Any(u => u.UserName == username)) return;
-
             if (!users.TryGetValue(username, out var user))
             {
                 logger.LogWarning("User {0} not found. Ignoring", username);
