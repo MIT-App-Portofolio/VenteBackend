@@ -170,7 +170,7 @@ public class ExitFeeds(IServiceProvider serviceProvider)
                 var usr = users[u];
                 return new ExitUserFriendDto
                 {
-                    DisplayName = usr.Name ?? "@" + usr.UserName,
+                    DisplayName = string.IsNullOrEmpty(usr.Name) ? "@" + usr.UserName : usr.Name,
                     PfpUrl = usr.HasPfp ? pfpService.GetDownloadUrl(usr) : pfpService.GetFallbackUrl()
                 };
             }).ToList();
