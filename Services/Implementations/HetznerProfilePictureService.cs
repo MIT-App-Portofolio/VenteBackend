@@ -1,3 +1,4 @@
+using Server.Data;
 using Server.Services.Interfaces;
 
 namespace Server.Services.Implementations;
@@ -10,9 +11,14 @@ public class HetznerProfilePictureService(IConfiguration configuration, IHttpCli
         return GetClient().PutAsync(new Uri(_pfpBucketUrl, $"/profile-pictures/{username}.jpeg"), new StreamContent(pictureStream));
     }
 
-    public string GetDownloadUrl(string username)
+    public string GetDownloadUrl(ApplicationUser user)
     {
-        return new Uri(_pfpBucketUrl, $"/profile-pictures/{username}.jpeg").ToString();
+        return new Uri(_pfpBucketUrl, $"/profile-pictures/{user.UserName}.jpeg?cache_v={user.PfpVersion}").ToString();
+    }
+
+    public string GetDownloadUrl(string username, int pfpVersion)
+    {
+        return new Uri(_pfpBucketUrl, $"/profile-pictures/{username}.jpeg?cache_v={pfpVersion}").ToString();
     }
 
     public string GetFallbackUrl()

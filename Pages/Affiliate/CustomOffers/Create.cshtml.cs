@@ -51,7 +51,7 @@ public class Create(UserManager<ApplicationUser> userManager, ApplicationDbConte
             DisplayName = u.Name ?? "@" + u.UserName,
             EventDate = u.EventStatus.Time.Value,
             Id = u.Id,
-            PfpUrl = u.HasPfp ? pfpService.GetDownloadUrl(u.UserName) : pfpService.GetFallbackUrl(),
+            PfpUrl = u.HasPfp ? pfpService.GetDownloadUrl(u) : pfpService.GetFallbackUrl(),
             BirthDate = u.BirthDate,
             Gender = u.Gender
         }).ToListAsync());

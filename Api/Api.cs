@@ -37,6 +37,8 @@ public static class Api
         ExitEndpoints.MapExitEndpoints(app);
         MessageEndpoints.MapMessageEndpoints(app);
         LikeEndpoints.MapLikeEndpoints(app);
+        UserSearchEndpoints.MapUserSearchEndpoints(app);
         NotificationEndpoints.MapNotificationEndpoints(app);
+        FollowEndpoints.MapFollowEndpoints(app);
     }
 }

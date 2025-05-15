@@ -29,7 +29,7 @@ public static class AccountAccessEndpoints
                 if (!user.HasPfp)
                     return Results.Ok(pfpService.GetFallbackUrl());
 
-                return Results.Ok(pfpService.GetDownloadUrl(userName) + "?cache_v=" + user.PfpVersion);
+                return Results.Ok(pfpService.GetDownloadUrl(user));
             });
         
 

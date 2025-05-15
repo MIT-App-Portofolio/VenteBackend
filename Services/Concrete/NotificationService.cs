@@ -115,6 +115,58 @@ public class NotificationService(ILogger<NotificationService> logger)
         
         return FirebaseMessaging.DefaultInstance.SendAsync(message);
     }
+    
+    public Task SendFollowRequestNotification(ApplicationUser destination, string follower)
+    {
+        if (destination.NotificationKey == null)
+        {
+            logger.LogWarning("User {0} has no notification key", destination.UserName);
+            return Task.CompletedTask;
+        }
+        
+        var message = new Message
+        {
+            Notification = new Notification
+            {
+                Title = $"{follower} ha solicitado seguirte.",
+                Body = "Haz click para rechazar/aceptar."
+            },
+            Data = new Dictionary<string, string>
+            {
+                ["notification_type"] = "follow",
+                ["link"] = "/social"
+            },
+            Token = destination.NotificationKey
+        };
+        
+        return FirebaseMessaging.DefaultInstance.SendAsync(message);
+    }
+    
+    public Task SendFollowAcceptNotification(ApplicationUser destination, string follower)
+    {
+        if (destination.NotificationKey == null)
+        {
+            logger.LogWarning("User {0} has no notification key", destination.UserName);
+            return Task.CompletedTask;
+        }
+        
+        var message = new Message
+        {
+            Notification = new Notification
+            {
+                Title = $"{follower} ha aceptado tu solicitud.",
+                Body = "Haz click para ver mas detalles."
+            },
+            Data = new Dictionary<string, string>
+            {
+                ["notification_type"] = "follow_accept",
+                ["link"] = "/social"
+            },
+            Token = destination.NotificationKey
+        };
+        
+        return FirebaseMessaging.DefaultInstance.SendAsync(message);
+    }
 
     public Task SendOfferNotification(List<string?> tokens, CustomOffer offer, EventPlace sender)
     {

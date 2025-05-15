@@ -42,7 +42,7 @@ public class Users(
         }
         else
         {
-            UsersList = users.Select(u => (u, u.HasPfp ? profilePictureService.GetDownloadUrl(u.UserName) : profilePictureService.GetFallbackUrl())).ToList();
+            UsersList = users.Select(u => (u, u.HasPfp ? profilePictureService.GetDownloadUrl(u.UserName, u.PfpVersion) : profilePictureService.GetFallbackUrl())).ToList();
         }
         
         return Page();

@@ -64,7 +64,7 @@ public static class SafetyEndpoints
             using var httpClient = new HttpClient();
                 
             var memoryStream = new MemoryStream();
-            await using (var stream = await httpClient.GetStreamAsync(pfpService.GetDownloadUrl(user.UserName)))
+            await using (var stream = await httpClient.GetStreamAsync(pfpService.GetDownloadUrl(user)))
             {
                 await stream.CopyToAsync(memoryStream);
             }

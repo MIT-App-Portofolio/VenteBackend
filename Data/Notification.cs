@@ -19,5 +19,6 @@ public class Notification
 
 public enum NotificationType
 {
-    Like
+    Like,
+    FollowAccept
 }

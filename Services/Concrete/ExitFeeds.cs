@@ -13,6 +13,7 @@ public class InternalUserQuery
     public Gender Gender { get; set; }
     
     public bool HasPfp { get; set; }
+    public int PfpVersion { get; set; }
     
     public List<DateTime> Dates { get; set; }
     public List<ExitUserFriendDto> With { get; set; }
@@ -23,6 +24,7 @@ public class InternalUserQuery
     public string? IgHandle { get; set; }
     public string? Description { get; set; }
     public bool Verified { get; set; }
+    
     
     public List<string> Likes { get; set; }
     
@@ -171,7 +173,7 @@ public class ExitFeeds(IServiceProvider serviceProvider)
                 return new ExitUserFriendDto
                 {
                     DisplayName = usr.Name ?? "@" + usr.UserName,
-                    PfpUrl = usr.HasPfp ? pfpService.GetDownloadUrl(usr.UserName) : pfpService.GetFallbackUrl()
+                    PfpUrl = usr.HasPfp ? pfpService.GetDownloadUrl(usr) : pfpService.GetFallbackUrl()
                 };
             }).ToList();
 
@@ -184,6 +186,7 @@ public class ExitFeeds(IServiceProvider serviceProvider)
                 Note = user.CustomNote,
                 Likes = exitLikes.TryGetValue(username, out var like) ? like : [],
                 Years = user.BirthDate?.GetYears(),
+                PfpVersion = user.PfpVersion,
                 Name = user.Name,
                 HasPfp = user.HasPfp,
                 Verified = user.Verified,

@@ -28,6 +28,15 @@ public class ApplicationUser : IdentityUser
     
     public List<Notification> Notifications { get; set; }
     
+    /// <summary>
+    /// Who the user is following
+    /// </summary>
+    public List<string> Friends { get; set; }
+    /// <summary>
+    /// Who the user has solicited
+    /// </summary>
+    public List<string> SolicitedFollowTo { get; set; }
+    
     public bool Verified { get; set; }
 }
 
