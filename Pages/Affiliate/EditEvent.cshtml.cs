@@ -68,6 +68,8 @@ public class EditEvent(UserManager<ApplicationUser> userManager) : PageModel
         @event.Description = Event.Description;
         @event.Time = Event.Time;
         @event.PurchaseLink = Event.PurchaseLink;
+
+        await userManager.UpdateAsync(user);
         
         return RedirectToPage("/Affiliate/Event", new {EventId});
     }
