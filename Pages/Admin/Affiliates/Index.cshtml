@@ -14,6 +14,7 @@
                         <tr>
                             <th>Username</th>
                             <th>Email</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -22,6 +23,11 @@
                             <tr>
                                 <td>@user.UserName</td>
                                 <td>@user.Email</td>
+                                <td>
+                                    <form method="post" asp-page-handler="Login" asp-route-affiliateId="@user.Id">
+                                        <button>Login</button> 
+                                    </form>
+                                </td>
                             </tr>
                         }
                     </tbody>
