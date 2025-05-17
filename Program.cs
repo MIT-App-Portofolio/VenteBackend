@@ -211,15 +211,10 @@ using (var scope = app.Services.CreateScope())
     var um = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<ExitSystemMigration>>();
     await ExitSystemMigration.Migrate(db, um, logger);
-    
-    var users = await db.Users.ToListAsync();
-    
-    foreach (var user in users)
-    {
-        user.Friends ??= [];
-        user.SolicitedFollowTo ??= [];
-    }
 
+    var tropi = await db.Places.FirstOrDefaultAsync(p => p.Name.Contains("Tropical"));
+    tropi.Score = 100;
+    db.Places.Update(tropi);
     await db.SaveChangesAsync();
 }
 

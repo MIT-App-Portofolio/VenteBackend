@@ -3,6 +3,7 @@
 public class EventPlace
 {
     public int Id { get; set; }
+    public int Score { get; set; }
     public ApplicationUser Owner { get; set; }
     public string OwnerId { get; set; }
 

@@ -440,6 +440,7 @@ public static class EventEndpoints
                 .Include(p => p.Events)
                 .ThenInclude(e => e.Offers)
                 .Where(p => p.LocationId == user.EventStatus.LocationId)
+                .OrderByDescending(p => p.Score)
                 .Select(p =>
                     new
                     {

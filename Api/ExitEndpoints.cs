@@ -305,6 +305,7 @@ public static class ExitEndpoints
                 .Include(p => p.Events)
                 .ThenInclude(e => e.Offers)
                 .Where(p => p.LocationId == exit.LocationId)
+                .OrderByDescending(p => p.Score)
                 .Select(p =>
                     new
                     {
