@@ -1,0 +1,51 @@
+@page "{eventId:int}"
+@model Server.Pages.Affiliate.EditEvent
+
+@{
+    ViewData["Title"] = "Editando " + Model.Event.Name;
+}
+
+<div class="hero">
+    <div class="hero-content">
+        <div class="card w-full bg-base-100 shadow-xl">
+            <div class="card-body items-center text-center">
+                <h2 class="card-title text-primary">Editar su evento</h2>
+
+                <form method="post">
+                    <span asp-validation-for="Event.Name" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <span class="text-primary">Nombre:</span>
+                        <input asp-for="Event.Name" class="grow" required/>
+                    </label>
+
+                    <span asp-validation-for="Event.Description" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <span class="text-primary">
+                            Descripción:
+                        </span>
+                        <input asp-for="Event.Description" class="grow"/>
+                    </label>
+
+                    <span asp-validation-for="Event.Time" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <span class="text-primary">
+                            Tiempo:
+                        </span>
+                        <input asp-for="Event.Time" type="date" class="grow"/>
+                    </label>
+
+                    <span asp-validation-for="Event.PurchaseLink" class="text-danger"></span>
+                    <label class="input input-bordered flex items-center gap-2 mb-3">
+                        <span class="text-primary">
+                            Link de compra:
+                        </span>
+                        <input asp-for="Event.PurchaseLink" class="grow"/>
+                    </label>
+
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <button type="submit" class="btn btn-primary w-full">Guardar cambios</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
