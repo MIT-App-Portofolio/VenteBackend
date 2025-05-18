@@ -211,10 +211,6 @@ using (var scope = app.Services.CreateScope())
     var um = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<ExitSystemMigration>>();
     await ExitSystemMigration.Migrate(db, um, logger);
-    var dario = await db.Users.FirstOrDefaultAsync(u => u.UserName == "_darioalvaredoo_");
-    dario.Verified = true;
-    db.Users.Update(dario);
-    await db.SaveChangesAsync();
 }
 
 using (var scope = app.Services.CreateScope())
