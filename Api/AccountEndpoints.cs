@@ -216,6 +216,7 @@ public static class AccountEndpoints
         {
             var user = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
             if (user == null) return Results.Unauthorized();
+            if (user.UserName is "appletest" or "googletest") return Results.Ok(true);
 
             return Results.Ok(user.HasPfp);
         });
