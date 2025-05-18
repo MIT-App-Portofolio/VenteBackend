@@ -212,6 +212,14 @@ public static class AccountEndpoints
             return Results.Ok(tokenManager.GenerateToken(user.UserName, user.Email, user.Id));
         });
 
+        app.MapGet("/api/account/has_pfp", [JwtAuthorize] async (HttpContext context, UserManager<ApplicationUser> userManager) =>
+        {
+            var user = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+            if (user == null) return Results.Unauthorized();
+
+            return Results.Ok(user.HasPfp);
+        });
+
         app.MapPost("/api/account/set_custom_note", [JwtAuthorize] async (UserManager<ApplicationUser> userManager, HttpContext context, string note) =>
         {
             var user = await userManager.FindByNameAsync(context.User.Identity.Name);
