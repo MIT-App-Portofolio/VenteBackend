@@ -30,7 +30,11 @@ public class Users(
         
         var locationId = user.EventPlace.LocationId;
 
-        var users = feed.GetFullFeed(locationId);
+        var users = feed.GetFullFeed(locationId).GroupBy(u => new
+        {
+            u.UserName,
+            DatesKey = string.Join(",", u.Dates.OrderBy(d => d).Select(d => d.ToString("o")))
+        }).Select(g => g.First()).ToList();
         
         LocationName = (await dbContext.Locations.FirstOrDefaultAsync(l => l.Id == locationId)).Name;
 
