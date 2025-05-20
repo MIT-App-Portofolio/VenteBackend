@@ -17,8 +17,6 @@ public class NewsEndpoints
             var exit = await dbContext.Exits.FirstOrDefaultAsync(e => e.Id == exitId && (e.Members.Contains(user.UserName) || e.Leader == user.UserName));
             if (exit == null) return Results.Unauthorized();
 
-            return Results.Ok();
-
             return exit.LocationId switch
             {
                 "salou" => Results.Ok(new CurrentNewsDto
