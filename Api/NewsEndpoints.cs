@@ -24,7 +24,7 @@ public class NewsEndpoints
                     Name = "Entradas tropical 33% de descuento",
                     UniqueId = "tropical-initial-discount",
                     Description = "Las entradas a tropical salen a 10\u20ac en vez de 15\u20ac. Solo en Vente.",
-                    Path = "/places"
+                    Path = $"/places?selectedExitId={exitId}"
                 }),
                 _ => Results.Ok()
             };
