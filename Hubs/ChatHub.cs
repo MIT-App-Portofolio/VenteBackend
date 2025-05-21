@@ -45,7 +45,11 @@ public class ChatHub(ApplicationDbContext dbContext, UserManager<ApplicationUser
             return;
         }
 
-        if (!(await userManager.Users.AnyAsync(u => u.UserName == senderUsername))) return;
+        var senderUser = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == senderUsername);
+
+        if (senderUser == null) return;
+
+        if (senderUser.ShadowBanned) return;
 
         var destination = await userManager.Users.Where(u => u.UserName == username).FirstOrDefaultAsync();
 
