@@ -1,0 +1,15 @@
+@page
+@inject ShadowedUsersTracker tracker
+@using Server.Services.Concrete
+@model Server.Pages.Admin.ShadowTracker
+
+@{
+}
+
+<div class="hero">
+    <div class="hero-content">
+        <pre>
+@tracker.GetAllActions()
+</pre>
+    </div>
+</div>

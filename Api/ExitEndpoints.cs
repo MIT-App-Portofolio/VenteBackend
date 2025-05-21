@@ -62,7 +62,7 @@ public static class ExitEndpoints
 
         app.MapPost("/api/exit/register", [JwtAuthorize]
             async (HttpContext context, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext,
-                ExitFeeds feed, ExitRegisterModel model) =>
+                ExitFeeds feed, ExitRegisterModel model, ShadowedUsersTracker tracker) =>
             {
                 var validationResults = new List<ValidationResult>();
                 var validationContext = new ValidationContext(model);
@@ -74,6 +74,11 @@ public static class ExitEndpoints
                     .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
 
                 if (user == null) return Results.Unauthorized();
+
+                if (user.ShadowBanned)
+                {
+                    tracker.AddAction(user.UserName, $"Registered exit in {model.LocationId}");
+                }
 
                 var location = await dbContext.Locations.FirstOrDefaultAsync(l => l.Id == model.LocationId);
 

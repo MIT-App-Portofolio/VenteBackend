@@ -12,7 +12,7 @@ using Server.Services.Concrete;
 namespace Server.Hubs;
 
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-public class ChatHub(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, MessagingConnectionMap userConnections, NotificationService notificationService) : Hub
+public class ChatHub(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, MessagingConnectionMap userConnections, NotificationService notificationService, ShadowedUsersTracker tracker) : Hub
 {
     public override async Task OnConnectedAsync()
     {
@@ -47,9 +47,17 @@ public class ChatHub(ApplicationDbContext dbContext, UserManager<ApplicationUser
 
         var senderUser = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == senderUsername);
 
-        if (senderUser == null) return;
+        if (senderUser == null)
+        {
+            Context.Abort();
+            return;
+        }
 
-        if (senderUser.ShadowBanned) return;
+        if (senderUser.ShadowBanned)
+        {
+            tracker.AddAction(senderUsername, $"Sent dm to {username}: {message}");
+            return;
+        }
 
         var destination = await userManager.Users.Where(u => u.UserName == username).FirstOrDefaultAsync();
 

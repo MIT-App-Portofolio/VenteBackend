@@ -10,7 +10,7 @@ public class LikeEndpoints
 {
     public static void MapLikeEndpoints(WebApplication app)
     {
-        app.MapPost("/api/like/like_profile", [JwtAuthorize] async (HttpContext context, UserManager<ApplicationUser> userManager, NotificationService notificationService, ApplicationDbContext dbContext, ExitFeeds feed, string username, int exitId) =>
+        app.MapPost("/api/like/like_profile", [JwtAuthorize] async (HttpContext context, UserManager<ApplicationUser> userManager, NotificationService notificationService, ApplicationDbContext dbContext, ExitFeeds feed, ShadowedUsersTracker tracker, string username, int exitId) =>
         {
             var user = await userManager.Users
                 .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
@@ -18,6 +18,11 @@ public class LikeEndpoints
             if (user == null) return Results.Unauthorized();
 
             var likedExit = await dbContext.Exits.FirstOrDefaultAsync(e => e.Id == exitId);
+
+            if (user.ShadowBanned)
+            {
+                tracker.AddAction(user.UserName, $"Liked {username}");
+            }
 
             if (likedExit == null) return Results.NotFound();
             

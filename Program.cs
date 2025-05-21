@@ -170,6 +170,7 @@ builder.Services.AddSingleton<AppleTokenValidatorService>();
 builder.Services.AddSingleton<CustomOfferTokenStorage>();
 builder.Services.AddSingleton<ExitFeeds>();
 builder.Services.AddSingleton<MessagingConnectionMap>();
+builder.Services.AddSingleton<ShadowedUsersTracker>();
 
 builder.Services.AddHostedService<EventStatusCleanupService>();
 builder.Services.AddHostedService<NoteCleanupService>();
