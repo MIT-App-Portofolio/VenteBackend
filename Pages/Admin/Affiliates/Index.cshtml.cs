@@ -22,7 +22,7 @@ namespace Server.Pages.Admin.Affiliates
             var user = await userManager.Users.FirstOrDefaultAsync(u => u.Id == affiliateId);
             if (user == null) return BadRequest();
             await signInManager.SignInAsync(user, true);
-            return RedirectToPage("/");
+            return RedirectToPage("/Index");
         }
     }
 }
