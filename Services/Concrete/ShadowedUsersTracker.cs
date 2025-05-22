@@ -6,7 +6,7 @@ public class ShadowedUsersTracker
 {
     private readonly List<(string Username, string Action)> Actions = new();
 
-    public void AddAction(string action, string username)
+    public void AddAction(string username, string action)
     {
         lock (Actions)
         {
