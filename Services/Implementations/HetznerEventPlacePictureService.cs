@@ -11,7 +11,7 @@ public class HetznerEventPlacePictureService(IConfiguration configuration, IHttp
     {
         return place.Images
             .Select(image => 
-                new Uri(_pfpBucketUrl, $"places-pictures/{place.Name}/{image}").ToString())
+                new Uri(_pfpBucketUrl, $"places-pictures/{Uri.EscapeDataString(place.Name)}/{Uri.EscapeDataString(image)}").ToString())
             .ToList();
     }
 
@@ -19,39 +19,39 @@ public class HetznerEventPlacePictureService(IConfiguration configuration, IHttp
     {
         return place.Images
             .Select(image => 
-                (image, new Uri(_pfpBucketUrl, $"places-pictures/{place.Name}/{image}").ToString()))
+                (image, new Uri(_pfpBucketUrl, $"places-pictures/{Uri.EscapeDataString(place.Name)}/{Uri.EscapeDataString(image)}").ToString()))
             .ToList();
     }
 
     public string GetEventPictureUrl(EventPlace place, int eventId)
     {
         var e = place.Events[eventId];
-        return new Uri(_pfpBucketUrl, $"places-pictures/{place.Name}/{e.Name}_{e.Time.ToUnixTimeSeconds().ToString()}/{e.Image}").ToString();
+        return new Uri(_pfpBucketUrl, $"places-pictures/{Uri.EscapeDataString(place.Name)}/{Uri.EscapeDataString(e.Name)}_{e.Time.ToUnixTimeSeconds().ToString()}/{Uri.EscapeDataString(e.Image)}").ToString();
     }
 
     public Task UploadAsync(EventPlace place, Stream picture, string filename)
     {
-        var path = $"places-pictures/{place.Name}/{filename}";
+        var path = $"places-pictures/{Uri.EscapeDataString(place.Name)}/{Uri.EscapeDataString(filename)}";
         return GetClient().PutAsync(new Uri(_pfpBucketUrl, path), new StreamContent(picture));
     }
 
     public Task UploadEventPictureAsync(EventPlace place, int offerId, Stream picture, string filename)
     {
         var @event = place.Events[offerId];
-        var path = $"places-pictures/{place.Name}/{@event.Name}_{@event.Time.ToUnixTimeSeconds().ToString()}/{filename}";
+        var path = $"places-pictures/{Uri.EscapeDataString(place.Name)}/{Uri.EscapeDataString(@event.Name)}_{@event.Time.ToUnixTimeSeconds().ToString()}/{Uri.EscapeDataString(filename)}";
         return GetClient().PutAsync(new Uri(_pfpBucketUrl, path), new StreamContent(picture));
     }
 
     public Task DeleteAsync(EventPlace place, string filename)
     {
-        var path = $"places-pictures/{place.Name}/{filename}";
+        var path = $"places-pictures/{Uri.EscapeDataString(place.Name)}/{Uri.EscapeDataString(filename)}";
         return GetClient().DeleteAsync(new Uri(_pfpBucketUrl, path));
     }
 
     public Task DeleteEventPictureAsync(EventPlace place, int eventId)
     {
         var @event = place.Events[eventId];
-        var path = $"places-pictures/{place.Name}/{@event.Name}_{@event.Time.ToUnixTimeSeconds().ToString()}/{@event.Image}";
+        var path = $"places-pictures/{Uri.EscapeDataString(place.Name)}/{Uri.EscapeDataString(@event.Name)}_{@event.Time.ToUnixTimeSeconds().ToString()}/{Uri.EscapeDataString(@event.Image)}";
         return GetClient().DeleteAsync(new Uri(_pfpBucketUrl, path));
     }
 
