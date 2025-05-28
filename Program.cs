@@ -212,6 +212,11 @@ using (var scope = app.Services.CreateScope())
     var um = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<ExitSystemMigration>>();
     await ExitSystemMigration.Migrate(db, um, logger);
+
+    var picService = scope.ServiceProvider.GetRequiredService<IEventPlacePictureService>();
+    var httpFactory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>();
+    var iconfig = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+    await EventPictureEscapingMigration.Migrate(db, picService, iconfig, httpFactory);
 }
 
 using (var scope = app.Services.CreateScope())
