@@ -27,7 +27,13 @@ public class HetznerEventPlacePictureService(IConfiguration configuration, IHttp
     {
         var e = place.Events[eventId];
         // return new Uri(_pfpBucketUrl, $"places-pictures/{Uri.EscapeDataString(place.Name)}/{Uri.EscapeDataString(e.Name)}_{e.Time.ToUnixTimeSeconds().ToString()}/{Uri.EscapeDataString(e.Image)}").ToString();
-        return new Uri(_pfpBucketUrl, $"places-pictures/{place.Name}/{e.Name}_{e.Time.ToUnixTimeSeconds().ToString()}/{e.Image}").ToString();
+        var filename = e.Image;
+        if (filename == null) return "";
+        filename = filename.Replace("?", "qm");
+        filename = filename.Replace("¿", "rqm");
+        filename = filename.Replace("&", "and");
+        filename = filename.Replace("/", "slash");
+        return new Uri(_pfpBucketUrl, $"places-pictures/{place.Name}/{e.Name}_{e.Time.ToUnixTimeSeconds().ToString()}/{filename}").ToString();
     }
 
     public Task UploadAsync(EventPlace place, Stream picture, string filename)
@@ -39,6 +45,11 @@ public class HetznerEventPlacePictureService(IConfiguration configuration, IHttp
     public Task UploadEventPictureAsync(EventPlace place, int offerId, Stream picture, string filename)
     {
         var @event = place.Events[offerId];
+        filename = filename.Replace("?", "qm");
+        filename = filename.Replace("¿", "rqm");
+        filename = filename.Replace("&", "and");
+        filename = filename.Replace("/", "slash");
+        
         var path = $"places-pictures/{Uri.EscapeDataString(place.Name)}/{Uri.EscapeDataString(@event.Name)}_{@event.Time.ToUnixTimeSeconds().ToString()}/{Uri.EscapeDataString(filename)}";
         return GetClient().PutAsync(new Uri(_pfpBucketUrl, path), new StreamContent(picture));
     }
@@ -52,7 +63,13 @@ public class HetznerEventPlacePictureService(IConfiguration configuration, IHttp
     public Task DeleteEventPictureAsync(EventPlace place, int eventId)
     {
         var @event = place.Events[eventId];
-        var path = $"places-pictures/{Uri.EscapeDataString(place.Name)}/{Uri.EscapeDataString(@event.Name)}_{@event.Time.ToUnixTimeSeconds().ToString()}/{Uri.EscapeDataString(@event.Image)}";
+        var filename = @event.Image;
+        if (filename == null) return Task.CompletedTask;
+        filename = filename.Replace("?", "qm");
+        filename = filename.Replace("¿", "rqm");
+        filename = filename.Replace("&", "and");
+        filename = filename.Replace("/", "slash");
+        var path = $"places-pictures/{Uri.EscapeDataString(place.Name)}/{Uri.EscapeDataString(@event.Name)}_{@event.Time.ToUnixTimeSeconds().ToString()}/{Uri.EscapeDataString(filename)}";
         return GetClient().DeleteAsync(new Uri(_pfpBucketUrl, path));
     }
 
