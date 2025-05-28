@@ -26,11 +26,11 @@ public class EventPictureEscapingMigration
 
                 if (uri == new Uri(pathActual) || uri.ToString() == pathActual)
                 {
-                    Console.WriteLine("what the actual fuck ");
+                    Console.WriteLine($"what the actual fuck {uri} {pathActual}");
                 }
                 else
                 {
-                    Console.WriteLine("no match. fucckkkk");
+                    Console.WriteLine($"no match. fucckkkk {uri} {pathActual}");
                 }
 
                 continue;
