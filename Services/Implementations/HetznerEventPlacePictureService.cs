@@ -65,7 +65,6 @@ public class HetznerEventPlacePictureService(IConfiguration configuration, IHttp
         url = url.Replace("?", "qm");
         url = url.Replace("¿", "rqm");
         url = url.Replace("&", "and");
-        url = url.Replace("/", "slash");
         return url;
     }
 
