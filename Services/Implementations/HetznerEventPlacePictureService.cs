@@ -26,7 +26,8 @@ public class HetznerEventPlacePictureService(IConfiguration configuration, IHttp
     public string GetEventPictureUrl(EventPlace place, int eventId)
     {
         var e = place.Events[eventId];
-        return new Uri(_pfpBucketUrl, $"places-pictures/{Uri.EscapeDataString(place.Name)}/{Uri.EscapeDataString(e.Name)}_{e.Time.ToUnixTimeSeconds().ToString()}/{Uri.EscapeDataString(e.Image)}").ToString();
+        // return new Uri(_pfpBucketUrl, $"places-pictures/{Uri.EscapeDataString(place.Name)}/{Uri.EscapeDataString(e.Name)}_{e.Time.ToUnixTimeSeconds().ToString()}/{Uri.EscapeDataString(e.Image)}").ToString();
+        return new Uri(_pfpBucketUrl, $"places-pictures/{place.Name}/{e.Name}_{e.Time.ToUnixTimeSeconds().ToString()}/{e.Image}").ToString();
     }
 
     public Task UploadAsync(EventPlace place, Stream picture, string filename)
