@@ -22,6 +22,15 @@ public class EventPictureEscapingMigration
                 var path = $"places-pictures/{place.Name}/{e.Name}_{e.Time.ToUnixTimeSeconds().ToString()}/{e.Image}";
                 var uri = new Uri(pfpBucketUrl, path);
 
+                var pathActual = pictureService.GetEventPictureUrl(place, i);
+
+                if (uri == new Uri(pathActual) || uri.ToString() == pathActual)
+                {
+                    Console.WriteLine("what the actual fuck ");
+                }
+
+                continue;
+
                 try
                 {
                     await using (var stream = await httpClient.GetStreamAsync(uri))
