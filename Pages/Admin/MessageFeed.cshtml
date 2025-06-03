@@ -1,0 +1,16 @@
+@page
+@inject Services.Concrete.MessageFeed feed
+@model Server.Pages.Admin.MessageFeed
+
+@{
+    Layout = null;
+}
+
+
+<div class="hero">
+    <div class="hero-content">
+        <pre>
+@feed.GetMessages()
+</pre>
+    </div>
+</div>

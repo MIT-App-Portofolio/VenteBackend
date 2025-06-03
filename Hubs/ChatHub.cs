@@ -2,17 +2,19 @@ using System.Net;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Models.Dto;
 using Server.Services.Concrete;
+using MessageFeed = Server.Pages.Admin.MessageFeed;
 
 namespace Server.Hubs;
 
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-public class ChatHub(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, MessagingConnectionMap userConnections, NotificationService notificationService, ShadowedUsersTracker tracker) : Hub
+public class ChatHub(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, MessagingConnectionMap userConnections, NotificationService notificationService, ShadowedUsersTracker tracker, Services.Concrete.MessageFeed feed) : Hub
 {
     public override async Task OnConnectedAsync()
     {
@@ -62,6 +64,8 @@ public class ChatHub(ApplicationDbContext dbContext, UserManager<ApplicationUser
         var destination = await userManager.Users.Where(u => u.UserName == username).FirstOrDefaultAsync();
 
         if (destination == null) return;
+        
+        feed.RegisterMessage(senderUsername, destination.UserName, message);
 
         if (destination.Blocked != null && destination.Blocked.Contains(senderUsername))
             return;
@@ -114,4 +118,5 @@ public class ChatHub(ApplicationDbContext dbContext, UserManager<ApplicationUser
                 await Clients.Client(connectionId).SendAsync("MessageRead", currentUsername);
             }
         }
-    }}
+    }
+}

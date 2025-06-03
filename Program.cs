@@ -23,6 +23,7 @@ using Server.Services.Concrete;
 using Server.Services.Hosted;
 using Server.Services.Implementations;
 using Server.Services.Interfaces;
+using MessageFeed = Server.Pages.Admin.MessageFeed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -171,6 +172,7 @@ builder.Services.AddSingleton<CustomOfferTokenStorage>();
 builder.Services.AddSingleton<ExitFeeds>();
 builder.Services.AddSingleton<MessagingConnectionMap>();
 builder.Services.AddSingleton<ShadowedUsersTracker>();
+builder.Services.AddSingleton<MessageFeed>();
 
 builder.Services.AddHostedService<EventStatusCleanupService>();
 builder.Services.AddHostedService<NoteCleanupService>();
@@ -212,11 +214,6 @@ using (var scope = app.Services.CreateScope())
     var um = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<ExitSystemMigration>>();
     await ExitSystemMigration.Migrate(db, um, logger);
-
-    var picService = scope.ServiceProvider.GetRequiredService<IEventPlacePictureService>();
-    var httpFactory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>();
-    var iconfig = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-    await EventPictureEscapingMigration.Migrate(db, picService, iconfig, httpFactory);
 }
 
 using (var scope = app.Services.CreateScope())
