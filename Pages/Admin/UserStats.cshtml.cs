@@ -26,6 +26,8 @@ public class UserStats(UserManager<ApplicationUser> userManager, ApplicationDbCo
     public int MessagesToday { get; set; }
     public int ChatHubConnections { get; set; }
     
+    public string Top5Messagers { get; set; }
+
     public async Task OnGetAsync()
     {
         var allUsers = await userManager.Users
@@ -33,7 +35,8 @@ public class UserStats(UserManager<ApplicationUser> userManager, ApplicationDbCo
             .Select(u => new { u.Gender, u.CreatedAt, u.EventStatus, u.NotificationKey })
             .ToListAsync();
 
-        var stats = allUsers.Aggregate(new {
+        var stats = allUsers.Aggregate(new
+        {
             Total = 0,
             Male = 0,
             Female = 0,
@@ -41,13 +44,15 @@ public class UserStats(UserManager<ApplicationUser> userManager, ApplicationDbCo
             EventActive = 0,
             CreatedToday = 0,
             NotifsOn = 0,
-        }, (acc, u) => new {
+        }, (acc, u) => new
+        {
             Total = acc.Total + 1,
             Male = acc.Male + (u.Gender == Gender.Male ? 1 : 0),
             Female = acc.Female + (u.Gender == Gender.Female ? 1 : 0),
-            Other = acc.Other + (u.Gender == Gender.NotSpecified ? 1 : 0), 
+            Other = acc.Other + (u.Gender == Gender.NotSpecified ? 1 : 0),
             EventActive = acc.EventActive + (u.EventStatus.Active ? 1 : 0),
-            CreatedToday = acc.CreatedToday + (u.CreatedAt?.ToUniversalTime().Date == DateTimeOffset.UtcNow.Date ? 1 : 0),
+            CreatedToday = acc.CreatedToday +
+                           (u.CreatedAt?.ToUniversalTime().Date == DateTimeOffset.UtcNow.Date ? 1 : 0),
             NotifsOn = acc.NotifsOn + (u.NotificationKey != null ? 1 : 0)
         });
 
@@ -72,5 +77,15 @@ public class UserStats(UserManager<ApplicationUser> userManager, ApplicationDbCo
         MessagesToday = messages.Count(m => m.Date == DateTimeOffset.UtcNow.Date);
 
         ChatHubConnections = messagingConnectionMap.GetCount();
+
+        Top5Messagers = string.Join(", ", await dbContext.Messages.GroupBy(m => m.From)
+            .OrderByDescending(g => g.Count())
+            .Take(5)
+            .Select(g =>
+            new
+            {
+                g.Key,
+                Count = g.Count()
+            }).Select(g => g.Key + $"({g.Count})").ToListAsync());
     }
 }
