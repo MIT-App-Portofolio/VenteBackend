@@ -23,7 +23,7 @@ using Server.Services.Concrete;
 using Server.Services.Hosted;
 using Server.Services.Implementations;
 using Server.Services.Interfaces;
-using MessageFeed = Server.Pages.Admin.MessageFeed;
+using MessageFeed = Server.Services.Concrete.MessageFeed;
 
 var builder = WebApplication.CreateBuilder(args);
 
