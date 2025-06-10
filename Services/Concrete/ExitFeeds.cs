@@ -165,6 +165,8 @@ public class ExitFeeds(IServiceProvider serviceProvider)
             if (user.ShadowBanned)
                 return;
 
+            with = with.Where(u => users.ContainsKey(u)).ToList();
+
             var withDtos = with.Where(u => u != username).Select(u =>
             {
                 var usr = users[u];
