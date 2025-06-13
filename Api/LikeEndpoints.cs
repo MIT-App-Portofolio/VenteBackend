@@ -10,7 +10,7 @@ public class LikeEndpoints
 {
     public static void MapLikeEndpoints(WebApplication app)
     {
-        app.MapPost("/api/like/like_profile", [JwtAuthorize] async (HttpContext context, UserManager<ApplicationUser> userManager, NotificationService notificationService, ApplicationDbContext dbContext, ExitFeeds feed, ShadowedUsersTracker tracker, string username, int exitId) =>
+        app.MapPost("/api/like/like_profile", [JwtAuthorize] async (HttpContext context, UserManager<ApplicationUser> userManager, NotificationService notificationService, ApplicationDbContext dbContext, ExitFeeds feed, ShadowedUsersTracker tracker, LikeTracker likeTracker, string username, int exitId) =>
         {
             var user = await userManager.Users
                 .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
@@ -41,6 +41,8 @@ public class LikeEndpoints
             {
                 likedExit.Likes[username] = [user.UserName];
             }
+            
+            likeTracker.RegisterLike(user.UserName, username);
             
             feed.UpdateLike(true, likedExit.LocationId, username, exitId, user.UserName);
 

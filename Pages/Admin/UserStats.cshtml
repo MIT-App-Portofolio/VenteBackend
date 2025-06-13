@@ -1,4 +1,6 @@
 @page
+@inject LikeTracker tracker
+@using Server.Services.Concrete
 @model Server.Pages.Admin.UserStats
 
 @{ }
@@ -25,6 +27,9 @@
                 <p>ChatHub connections: @Model.ChatHubConnections</p>
                 
                 <p>Top messengers: @Model.Top5Messagers</p>
+                
+                <p>Like stats:</p>
+                <p>@tracker.GetStats()</p>
             </div>
         </div>
     </div>

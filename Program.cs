@@ -173,6 +173,7 @@ builder.Services.AddSingleton<ExitFeeds>();
 builder.Services.AddSingleton<MessagingConnectionMap>();
 builder.Services.AddSingleton<ShadowedUsersTracker>();
 builder.Services.AddSingleton<MessageFeed>();
+builder.Services.AddSingleton<LikeTracker>();
 
 builder.Services.AddHostedService<EventStatusCleanupService>();
 builder.Services.AddHostedService<NoteCleanupService>();
