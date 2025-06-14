@@ -32,6 +32,11 @@ public class LikeTracker
     public string GetStats()
     {
         var sb = new StringBuilder();
+        if (_likers.Count == 0 || _liked.Count == 0)
+        {
+            return "No likes yet";
+        }
+        
         lock (_likers)
         {
             var topliker = _likers.OrderByDescending(x => x.Value).ThenBy(x => x.Key).Select(x => x.Key).First();
