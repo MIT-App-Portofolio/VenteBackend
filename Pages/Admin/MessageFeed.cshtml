@@ -7,9 +7,15 @@
 
 
 <div class="hero">
-    <div class="hero-content">
-        <pre>
-@feed.GetMessages()
+    <div class="hero-content w-full" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; height: 100%; overflow-y: scroll;">
+        @foreach (var chat in feed.GetMessages())
+        {
+            <div style="height: 200px; overflow-y: auto;">
+                <p>Chat: @chat.Item1</p>
+                <pre style="white-space: pre-wrap; word-break: break-word;">
+@chat.Item2
 </pre>
+            </div>
+        }
     </div>
 </div>
