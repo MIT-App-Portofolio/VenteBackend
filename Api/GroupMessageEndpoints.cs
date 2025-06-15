@@ -9,7 +9,7 @@ public class GroupMessageEndpoints
 {
     public static void MapGroupMessageEndpoints(WebApplication app)
     {
-        app.MapGet("/api/group_messages/get_current", async (HttpContext context, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext) =>
+        app.MapGet("/api/group_messages/get_current", [JwtAuthorize] async (HttpContext context, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext) =>
         {
             var user = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
             if (user == null) return Results.BadRequest();
