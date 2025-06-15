@@ -8,6 +8,7 @@ public class GroupMessageDto
 
     public GroupMessageDto(GroupMessage message)
     {
+        Id = message.Id;
         SenderUsername = message.From;
         MessageType = message.MessageType switch
         {
@@ -19,6 +20,7 @@ public class GroupMessageDto
         TextContent = message.TextContent;
     }
 
+    public int Id { get; set; }
     public string SenderUsername { get; set; }
     public string MessageType { get; set; }
     public string? TextContent { get; set; }
