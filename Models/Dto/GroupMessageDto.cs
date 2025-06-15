@@ -18,9 +18,11 @@ public class GroupMessageDto
         };
         ReadBy = message.ReadBy;
         TextContent = message.TextContent;
+        Timestamp = message.Timestamp;
     }
 
     public int Id { get; set; }
+    public DateTimeOffset Timestamp { get; set; }
     public string SenderUsername { get; set; }
     public string MessageType { get; set; }
     public string? TextContent { get; set; }
