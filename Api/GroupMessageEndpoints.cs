@@ -21,13 +21,20 @@ public class GroupMessageEndpoints
 
             var ids = exits.Select(e => e.Id).ToList();
 
-            var messages = await dbContext.GroupMessages
+            var latestMessages = await dbContext.GroupMessages
                 .Where(g => ids.Contains(g.ExitId))
                 .GroupBy(g => g.ExitId)
                 .Select(g => g.OrderByDescending(m => m.Timestamp).FirstOrDefault())
-                .Select(m => m == null ? null : new GroupMessageSummaryDto(m, exits.First(e => e.Id == m.ExitId)))
                 .ToListAsync();
 
+            var messages = latestMessages
+                .Where(m => m != null)
+                .Select(m => {
+                    var exit = exits.FirstOrDefault(e => e.Id == m.ExitId);
+                    return new GroupMessageSummaryDto(m, exit);
+                })
+                .ToList();
+            
             return Results.Ok(messages.Where(m => m != null).ToList());
         });
         
