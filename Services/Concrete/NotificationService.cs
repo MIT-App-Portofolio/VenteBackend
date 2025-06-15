@@ -90,6 +90,43 @@ public class NotificationService(ILogger<NotificationService> logger)
         return FirebaseMessaging.DefaultInstance.SendAsync(message);
     }
 
+    public Task SendGroupDmNotifications(List<ApplicationUser> targets, int exitId, string groupName, string from,
+        GroupMessage dm)
+    {
+        var messages = new List<Message>();
+
+        foreach (var target in targets)
+        {
+            if (target.NotificationKey == null)
+            {
+                logger.LogWarning("User {0} has no notification key", target.UserName);
+                continue;
+            }
+
+            messages.Add(new Message
+            {
+                Notification = new Notification
+                {
+                    Title = $"{groupName}: {from} ha enviado un mensaje.",
+                    Body = dm.MessageType switch
+                    {
+                        MessageType.Text => dm.TextContent,
+                        MessageType.Voice => "Mensaje de voz",
+                        _ => throw new ArgumentOutOfRangeException()
+                    },
+                },
+                Data = new Dictionary<string, string>
+                {
+                    ["notification_type"] = "dm_group",
+                    ["link"] = "/messages?selectedExit=" + exitId
+                },
+                Token = target.NotificationKey
+            });
+        }
+
+        return FirebaseMessaging.DefaultInstance.SendEachAsync(messages);
+    }
+
     public Task SendLikeNotification(ApplicationUser destination, string liker)
     {
         if (destination.NotificationKey == null)

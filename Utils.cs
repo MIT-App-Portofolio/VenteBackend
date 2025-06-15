@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using Server.Data;
+
 namespace Server;
 
 public static class Utils
@@ -64,5 +67,12 @@ public static class Utils
         var range2End = (targetEnd ?? targetStart).Date.AddDays(14);
 
         return range1End >= range2Start && range1Start <= range2End;
+    }
+    
+    public static async Task<ExitInstance?> GetActiveExit(ApplicationDbContext dbContext, ApplicationUser user)
+    {
+        return await dbContext.Exits.FirstOrDefaultAsync(e =>
+            (e.Members.Contains(user.UserName) || e.Leader == user.UserName) &&
+            e.Dates.Any(d => d.Date == DateTimeOffset.UtcNow.Date));
     }
 }

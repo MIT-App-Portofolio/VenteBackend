@@ -19,7 +19,7 @@ public static class ExitAlbumEndpoints
 
             if (user == null) return Results.Unauthorized();
 
-            var exit = await GetActiveExit(dbContext, user);
+            var exit = await Utils.GetActiveExit(dbContext, user);
 
             return Results.Ok(exit != null);
         });
@@ -33,7 +33,7 @@ public static class ExitAlbumEndpoints
 
             if (user == null) return Results.Unauthorized();
 
-            var exit = await GetActiveExit(dbContext, user);
+            var exit = await Utils.GetActiveExit(dbContext, user);
 
             if (exit == null) return Results.BadRequest();
 
@@ -79,7 +79,7 @@ public static class ExitAlbumEndpoints
 
             if (user == null) return Results.Unauthorized();
             
-            var exit = await GetActiveExit(dbContext, user);
+            var exit = await Utils.GetActiveExit(dbContext, user);
 
             if (exit == null) return Results.BadRequest();
 
@@ -134,7 +134,7 @@ public static class ExitAlbumEndpoints
 
             if (user == null) return Results.Unauthorized();
             
-            var exit = await GetActiveExit(dbContext, user);
+            var exit = await Utils.GetActiveExit(dbContext, user);
 
             if (exit == null) return Results.BadRequest();
 
@@ -168,12 +168,5 @@ public static class ExitAlbumEndpoints
                 .Select(a => new SharedAlbumDto(a))
                 .ToListAsync());
         });
-    }
-
-    private static async Task<ExitInstance?> GetActiveExit(ApplicationDbContext dbContext, ApplicationUser user)
-    {
-        return await dbContext.Exits.FirstOrDefaultAsync(e =>
-            (e.Members.Contains(user.UserName) || e.Leader == user.UserName) &&
-            e.Dates.Any(d => d.Date == DateTimeOffset.UtcNow.Date));
     }
 }

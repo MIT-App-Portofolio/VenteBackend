@@ -119,4 +119,88 @@ public class ChatHub(ApplicationDbContext dbContext, UserManager<ApplicationUser
             }
         }
     }
+    public async Task SendGroupDm(int exitId, string message, string tempId)
+    {
+        var senderUsername = Context.User?.FindFirst(ClaimTypes.Name)?.Value;
+
+        var senderUser = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == senderUsername);
+
+        if (senderUser == null)
+        {
+            Context.Abort();
+            return;
+        }
+        
+        var exit = await dbContext.Exits.FirstOrDefaultAsync(e =>
+            e.Id == exitId && (e.Members.Contains(senderUsername) || e.Leader == senderUsername));
+        
+        if (exit == null) return;
+
+        if (senderUser.ShadowBanned)
+        {
+            tracker.AddAction(senderUsername, $"Sent group dm to {exitId}: {message}");
+            return;
+        }
+        
+        var dbMessage = new GroupMessage
+        {
+            From = senderUsername,
+            ExitId = exitId,
+            MessageType = MessageType.Text,
+            TextContent = message,
+            ReadBy = [],
+            Timestamp = DateTimeOffset.UtcNow,
+        };
+        
+        dbContext.GroupMessages.Add(dbMessage);
+        await dbContext.SaveChangesAsync();
+        
+        await Clients.Client(Context.ConnectionId).SendAsync("GroupMessageAck", exitId, tempId, dbMessage.Id);
+        
+        List<string> notifReceivers = [..exit.Members, exit.Leader];
+        notifReceivers.Remove(senderUsername);
+
+        var res = userConnections.GetConnectionsIds(notifReceivers);
+
+        await Clients.Clients(res.foundIds).SendAsync("ReceiveGroupMessage", exitId, new GroupMessageDto(dbMessage));
+
+        await notificationService.SendGroupDmNotifications(
+            await userManager.Users.Where(u => res.missingUsernames.Contains(u.UserName)).ToListAsync(), exit.Id,
+            exit.Name, senderUsername, dbMessage);
+    }
+
+    public async Task MarkGroupRead(int exitId)
+    {
+        var currentUsername = Context.User?.FindFirst(ClaimTypes.Name)?.Value;
+        if (string.IsNullOrEmpty(currentUsername))
+        {
+            Context.Abort();
+            return;
+        }
+        
+        var exit = await dbContext.Exits.FirstOrDefaultAsync(e =>
+            e.Id == exitId && (e.Members.Contains(currentUsername) || e.Leader == currentUsername));
+
+        if (exit == null) return;
+
+        var unreadMessages = await dbContext.GroupMessages
+            .Where(m => m.ExitId == exitId && !m.ReadBy.Contains(currentUsername))
+            .ToListAsync();
+
+        foreach (var message in unreadMessages)
+        {
+            message.ReadBy.Add(currentUsername);
+        }
+
+        dbContext.GroupMessages.UpdateRange(unreadMessages);
+        await dbContext.SaveChangesAsync();
+
+        if (unreadMessages.Count > 0)
+        {
+            List<string> notifReceivers = [..exit.Members, exit.Leader];
+            notifReceivers.Remove(currentUsername);
+            var ret  = userConnections.GetConnectionsIds(notifReceivers);
+            await Clients.Clients(ret.foundIds).SendAsync("GroupMessageRead", currentUsername);
+        }
+    }
 }

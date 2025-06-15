@@ -24,6 +24,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<SharedAlbum> Albums { get; set; }
     
     public DbSet<Message> Messages { get; set; }
+    public DbSet<GroupMessage> GroupMessages { get; set; }
     
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -42,5 +42,6 @@ public static class Api
         FollowEndpoints.MapFollowEndpoints(app);
         StatusEndpoints.MapStatusEndpoints(app);
         NewsEndpoints.MapNewsEndpoints(app);
+        GroupMessageEndpoints.MapGroupMessageEndpoints(app);
     }
 }

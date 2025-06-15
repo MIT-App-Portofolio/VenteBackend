@@ -33,8 +33,8 @@ public class EventPlaceDto
     public string Description { get; set; }
     public string LocationId { get; set; }
     public List<string> ImageUrls { get; set; }
-    public int PriceRangeBegin { get; set; }
-    public int PriceRangeEnd { get; set; }
+    public int? PriceRangeBegin { get; set; }
+    public int? PriceRangeEnd { get; set; }
     public int? AgeRequirement { get; set; }
     public string? GoogleMapsLink { get; set; }
     public List<EventPlaceEventDto> Events { get; set; }

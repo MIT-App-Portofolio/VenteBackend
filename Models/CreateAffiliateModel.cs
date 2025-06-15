@@ -18,10 +18,8 @@ namespace Server.Models
         public string EventPlaceLocation { get; set; }
         [Required]
         public string EventPlaceDescription { get; set; }
-        [Required]
-        public int EventPlacePriceRangeBegin { get; set; }
-        [Required]
-        public int EventPlacePriceRangeEnd { get; set; }
+        public int? EventPlacePriceRangeBegin { get; set; }
+        public int? EventPlacePriceRangeEnd { get; set; }
         [Required]
         public EventPlaceType EventPlaceType { get; set; }
     }
