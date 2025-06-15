@@ -118,7 +118,7 @@ public class NotificationService(ILogger<NotificationService> logger)
                 Data = new Dictionary<string, string>
                 {
                     ["notification_type"] = "dm_group",
-                    ["link"] = "/messages?selectedExit=" + exitId
+                    ["link"] = "/messages?selectedExitId=" + exitId
                 },
                 Token = target.NotificationKey
             });

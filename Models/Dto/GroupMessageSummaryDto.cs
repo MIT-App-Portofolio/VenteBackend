@@ -9,6 +9,7 @@ public class GroupMessageSummaryDto
     public GroupMessageSummaryDto(GroupMessage message, ExitInstance exit)
     {
         GroupName = exit.Name;
+        Timestamp = message.Timestamp;
         ExitId = exit.Id;
         SenderUsername = message.From;
         MessageType = message.MessageType switch
@@ -20,6 +21,7 @@ public class GroupMessageSummaryDto
         TextContent = message.TextContent;
     }
 
+    public DateTimeOffset Timestamp { get; set; }
     public string GroupName { get; set; }
     public int ExitId { get; set; }
     public string SenderUsername { get; set; }
