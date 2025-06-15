@@ -200,7 +200,7 @@ public class ChatHub(ApplicationDbContext dbContext, UserManager<ApplicationUser
             List<string> notifReceivers = [..exit.Members, exit.Leader];
             notifReceivers.Remove(currentUsername);
             var ret  = userConnections.GetConnectionsIds(notifReceivers);
-            await Clients.Clients(ret.foundIds).SendAsync("GroupMessageRead", currentUsername);
+            await Clients.Clients(ret.foundIds).SendAsync("GroupMessageRead", exitId, currentUsername);
         }
     }
 }

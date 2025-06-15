@@ -123,6 +123,8 @@ public class NotificationService(ILogger<NotificationService> logger)
                 Token = target.NotificationKey
             });
         }
+        
+        if (!messages.Any()) return Task.CompletedTask;
 
         return FirebaseMessaging.DefaultInstance.SendEachAsync(messages);
     }
