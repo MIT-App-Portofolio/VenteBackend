@@ -39,14 +39,14 @@ public class LikeTracker
         
         lock (_likers)
         {
-            var topliker = _likers.OrderByDescending(x => x.Value).ThenBy(x => x.Key).Select(x => x.Key).First();
-            sb.Append($"Top liker: {topliker} ({topliker})\n");
+            var topliker = _likers.OrderByDescending(x => x.Value).ThenBy(x => x.Key).First();
+            sb.Append($"Top liker: {topliker.Key} ({topliker.Value})\n");
         }
         
         lock (_liked)
         {
-            var topliked = _liked.OrderByDescending(x => x.Value).ThenBy(x => x.Key).Select(x => x.Key).First();
-            sb.Append($"Top liked: {topliked} ({topliked})\n");
+            var topliked = _liked.OrderByDescending(x => x.Value).ThenBy(x => x.Key).First();
+            sb.Append($"Top liked: {topliked.Key} ({topliked.Value})\n");
         }
 
         sb.Append($"All likes: {LikeCount}");
