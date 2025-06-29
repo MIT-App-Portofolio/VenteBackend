@@ -83,7 +83,7 @@ public class EventPlaceEventDto
         Offers = @event.Offers.Select(o => new EventPlaceOfferDto(o)).ToList();
         PurchaseLink = @event.PurchaseLink;
         Image = @event.Image;
-        Attendants = eventAttendanceRates[@event.Id];
+        Attendants = eventAttendanceRates.TryGetValue(@event.Id, out var ar) ? ar : 0;
         UserAttends = userAttendingEvents.Contains(@event.Id);
     }
     
