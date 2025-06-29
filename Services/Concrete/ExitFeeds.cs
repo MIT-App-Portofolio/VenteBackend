@@ -230,10 +230,10 @@ public class ExitFeeds(IServiceProvider serviceProvider)
 
             foreach (var m in exit.Members)
             {
-                AddUser(m, dates, with, exit.Likes, exit.AttendingEvents[m], exit.Id);
+                AddUser(m, dates, with, exit.Likes, exit.AttendingEvents.TryGetValue(m, out var e) ? e : [], exit.Id);
             }
 
-            AddUser(exit.Leader, dates, with, exit.Likes, exit.AttendingEvents[exit.Leader], exit.Id);
+            AddUser(exit.Leader, dates, with, exit.Likes, exit.AttendingEvents.TryGetValue(exit.Leader, out var e1) ? e1 : [], exit.Id);
         }
 
         lock (_cache)
