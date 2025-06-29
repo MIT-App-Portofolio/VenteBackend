@@ -29,7 +29,8 @@ public class ExitSystemMigration
                 Leader = user.UserName,
                 Likes = [],
                 Invited = [],
-                Members = []
+                Members = [],
+                AttendingEvents = []
             };
 
             if (dbContext.Exits.Any(e =>

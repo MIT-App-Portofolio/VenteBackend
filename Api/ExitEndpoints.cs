@@ -104,7 +104,8 @@ public static class ExitEndpoints
                     Members = [],
                     Invited = [],
                     Likes = [],
-                    Dates = model.Dates
+                    Dates = model.Dates,
+                    AttendingEvents = []
                 };
                 
                 await dbContext.Exits.AddAsync(newExit);
@@ -294,7 +295,7 @@ public static class ExitEndpoints
                     .Take(pageSize));
             });
 
-        app.MapGet("/api/exit/query_event_places", [JwtAuthorize] async (HttpContext context, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, IEventPlacePictureService pictureService, int id) =>
+        app.MapGet("/api/exit/query_event_places", [JwtAuthorize] async (HttpContext context, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, IEventPlacePictureService pictureService, ExitFeeds feed, int id) =>
         {
             var user = await userManager.Users
                 .FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
@@ -323,6 +324,9 @@ public static class ExitEndpoints
                 )
                 .ToListAsync();
 
+            var exitRates = feed.GetAttendancesPerEvent(exit.LocationId);
+            var userAttendances = exit.AttendingEvents[user.UserName];
+
             var ret = places.Select(place =>
             {
                 place.Place.Events = place.Events.Select((e, i) =>
@@ -331,10 +335,74 @@ public static class ExitEndpoints
                     e.Image = e.Image == null ? null : pictureService.GetEventPictureUrl(place.Place, index);
                     return e;
                 }).ToList();
-                return new EventPlaceDto(place.Place, pictureService.GetDownloadUrls(place.Place));
+                return new EventPlaceDto(place.Place, pictureService.GetDownloadUrls(place.Place), exitRates, userAttendances);
             }).ToList();
             
             return Results.Ok(ret);
+        });
+
+        app.MapPost("/api/exit/mark_event_attending", [JwtAuthorize]
+            async (HttpContext context, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, ExitFeeds feed,
+                int exitId, int eventId) =>
+            {
+                var user = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+                if (user == null) return Results.Unauthorized();
+                
+                var exit = await dbContext.Exits.FirstOrDefaultAsync(e => e.Id == exitId && (e.Members.Contains(user.UserName) || e.Leader == user.UserName));
+                if (exit == null) return Results.BadRequest();
+
+                if (!await dbContext.EventPlaceEvents.AnyAsync(e => e.Id == eventId))
+                    return Results.BadRequest();
+
+                if (exit.AttendingEvents.ContainsKey(user.UserName))
+                {
+                    exit.AttendingEvents[user.UserName].Add(eventId);
+                }
+                else
+                {
+                    exit.AttendingEvents.Add(user.UserName, [eventId]);
+                }
+
+                dbContext.Exits.Update(exit);
+                await dbContext.SaveChangesAsync();
+                
+                feed.Enqueue(exit.LocationId);
+
+                return Results.Ok();
+            });
+        
+        app.MapPost("/api/exit/unmark_event_attending", [JwtAuthorize]
+            async (HttpContext context, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, ExitFeeds feed,
+                int exitId, int eventId) =>
+            {
+                var user = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+                if (user == null) return Results.Unauthorized();
+                
+                var exit = await dbContext.Exits.FirstOrDefaultAsync(e => e.Id == exitId && (e.Members.Contains(user.UserName) || e.Leader == user.UserName));
+                if (exit == null) return Results.BadRequest();
+
+                if (exit.AttendingEvents.ContainsKey(user.UserName))
+                {
+                    exit.AttendingEvents[user.UserName].Remove(eventId);
+                }
+
+                dbContext.Exits.Update(exit);
+                await dbContext.SaveChangesAsync();
+                
+                feed.Enqueue(exit.LocationId);
+
+                return Results.Ok();
+            });
+
+        app.MapGet("/api/exit/get_event_feed", [JwtAuthorize] async (HttpContext context, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, ExitFeeds feeds, int exitId, int eventId) =>
+        {
+            var user = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+            if (user == null) return Results.Unauthorized();
+            
+            var exit = await dbContext.Exits.FirstOrDefaultAsync(e => e.Id == exitId && (e.Members.Contains(user.UserName) || e.Leader == user.UserName));
+            if (exit == null) return Results.BadRequest();
+
+            return Results.Ok(feeds.GetEventAttendingUsers(user.UserName, exit.LocationId, eventId));
         });
     }
 

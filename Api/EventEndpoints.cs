@@ -190,7 +190,8 @@ public static class EventEndpoints
                 Leader = user.UserName,
                 Likes = [],
                 Members = [],
-                Invited = []
+                Invited = [],
+                AttendingEvents = []
             };
 
             await dbContext.Exits.AddAsync(exit);

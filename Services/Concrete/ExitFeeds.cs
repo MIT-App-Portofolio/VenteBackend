@@ -25,8 +25,8 @@ public class InternalUserQuery
     public string? Description { get; set; }
     public bool Verified { get; set; }
     
-    
     public List<string> Likes { get; set; }
+    public List<ExitUserAttendingEventDto> Events { get; set; }
     
     public int ExitId { get; set; }
 }
@@ -41,6 +41,8 @@ public class ExitFeeds(IServiceProvider serviceProvider)
     {
         lock (_cache)
         {
+            using var scope = serviceProvider.CreateScope();
+            
             if (!_cache.TryGetValue(location, out var feed)) return [];
 
             var query = feed
@@ -83,6 +85,7 @@ public class ExitFeeds(IServiceProvider serviceProvider)
                     Verified = u.Verified,
                     UserLiked = u.Likes.Contains(receiverUsername),
                     ExitId = u.ExitId,
+                    AttendingEvents = u.Events
                 }).ToList();
         }
     }
@@ -136,6 +139,7 @@ public class ExitFeeds(IServiceProvider serviceProvider)
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var pfpService = scope.ServiceProvider.GetRequiredService<IProfilePictureService>();
+        var eventPictureService = scope.ServiceProvider.GetRequiredService<IEventPlacePictureService>();
 
         logger.LogInformation("Caching feed for {0}", location);
         var exits = await dbContext.Exits.Where(e => e.LocationId == location)
@@ -146,6 +150,7 @@ public class ExitFeeds(IServiceProvider serviceProvider)
                 e.Dates,
                 e.Leader,
                 e.Likes,
+                e.AttendingEvents
             })
             .ToListAsync();
 
@@ -154,7 +159,19 @@ public class ExitFeeds(IServiceProvider serviceProvider)
         var users = await userManager.Users.Where(u => usernames.Contains(u.UserName))
             .ToDictionaryAsync(u => u.UserName);
 
-        void AddUser(string username, List<DateTime> dates, List<string> with, Dictionary<string, List<string>> exitLikes, int exitId)
+
+        var attendingEvents= exits
+            .SelectMany(e => e.AttendingEvents.Values)
+            .SelectMany(l => l)
+            .Distinct()
+            .ToList();
+
+        var allEvents = await dbContext.EventPlaceEvents
+            .Include(e => e.EventPlace)
+            .Where(e => attendingEvents.Contains(e.Id))
+            .ToDictionaryAsync(e => e.Id);
+
+        void AddUser(string username, List<DateTime> dates, List<string> with, Dictionary<string, List<string>> exitLikes, List<int> attendingEvents, int exitId)
         {
             if (!users.TryGetValue(username, out var user))
             {
@@ -193,6 +210,16 @@ public class ExitFeeds(IServiceProvider serviceProvider)
                 IgHandle = user.IgHandle,
                 Description = user.Description,
                 ExitId = exitId,
+                Events = attendingEvents
+                    .Where(k => allEvents.ContainsKey(k))
+                    .Select<int, EventPlaceEvent>(k => allEvents[k])
+                    .Select(e => new ExitUserAttendingEventDto
+                    {
+                        Id = e.Id,
+                        Name = e.Name,
+                        ImageUrl = eventPictureService.GetEventPictureUrl(e.EventPlace, e.Id)
+                    })
+                    .ToList()
             });
         }
 
@@ -203,10 +230,10 @@ public class ExitFeeds(IServiceProvider serviceProvider)
 
             foreach (var m in exit.Members)
             {
-                AddUser(m, dates, with, exit.Likes, exit.Id);
+                AddUser(m, dates, with, exit.Likes, exit.AttendingEvents[m], exit.Id);
             }
 
-            AddUser(exit.Leader, dates, with, exit.Likes, exit.Id);
+            AddUser(exit.Leader, dates, with, exit.Likes, exit.AttendingEvents[exit.Leader], exit.Id);
         }
 
         lock (_cache)
@@ -252,6 +279,54 @@ public class ExitFeeds(IServiceProvider serviceProvider)
         }
 
         return ret;
+    }
+
+    public Dictionary<int, int> GetAttendancesPerEvent(string location)
+    {
+        lock (_cache)
+        {
+            _cache.TryGetValue(location, out var users);
+
+            var ret = new Dictionary<int, int>();
+
+            foreach (var e in users.SelectMany(u => u.Events))
+            {
+                if (!ret.TryAdd(e.Id, 1))
+                {
+                    ret[e.Id] += 1;
+                }
+            }
+
+            return ret;
+        }
+    }
+
+    public List<ExitUserQueryDto> GetEventAttendingUsers(string receiverUsername, string location, int eventId)
+    {
+        lock (_cache)
+        {
+            _cache.TryGetValue(location, out var users);
+            return users
+                .Where(u => u.Events.Any(e => e.Id == eventId))
+                .Select(u => new ExitUserQueryDto()
+                {
+                    UserName = u.UserName,
+                    Gender = u.Gender,
+                    Dates = u.Dates,
+                    With = u.With,
+                    Note = u.Note,
+                    Years = u.Years,
+                    Name = u.Name,
+                    IgHandle = u.IgHandle,
+                    Description = u.Description,
+                    Likes = u.Likes.Count,
+                    Verified = u.Verified,
+                    UserLiked = u.Likes.Contains(receiverUsername),
+                    ExitId = u.ExitId,
+                    AttendingEvents = u.Events
+                })
+                .ToList();
+        }
     }
 
     public void ClearPastDates()

@@ -22,6 +22,25 @@ public class EventPlaceDto
             _ => throw new ArgumentOutOfRangeException()
         };
     }
+    
+    public EventPlaceDto(EventPlace place, List<string> downloadUrls, Dictionary<int, int> eventAttendanceRates, List<int> userAttendingEvents)
+    {
+        Name = place.Name;
+        Description = place.Description;
+        LocationId = place.LocationId;
+        ImageUrls = downloadUrls;
+        PriceRangeBegin = place.PriceRangeBegin;
+        PriceRangeEnd = place.PriceRangeEnd;
+        AgeRequirement = place.AgeRequirement;
+        GoogleMapsLink = place.GoogleMapsLink;
+        Events = place.Events.Select(o => new EventPlaceEventDto(o, eventAttendanceRates, userAttendingEvents)).ToList();
+        Type = place.Type switch
+        {
+            EventPlaceType.Disco => "Disco",
+            EventPlaceType.Bar => "Bar",
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
 
     public EventPlaceDto()
     {
@@ -43,9 +62,10 @@ public class EventPlaceDto
 public class EventPlaceEventDto
 {
     public EventPlaceEventDto() { }
-
+    
     public EventPlaceEventDto(EventPlaceEvent @event)
     {
+        Id = @event.Id;
         Name = @event.Name;
         Description = @event.Description;
         Time = @event.Time.DateTime;
@@ -53,7 +73,23 @@ public class EventPlaceEventDto
         PurchaseLink = @event.PurchaseLink;
         Image = @event.Image;
     }
+
+    public EventPlaceEventDto(EventPlaceEvent @event, Dictionary<int,int> eventAttendanceRates, List<int> userAttendingEvents)
+    {
+        Id = @event.Id;
+        Name = @event.Name;
+        Description = @event.Description;
+        Time = @event.Time.DateTime;
+        Offers = @event.Offers.Select(o => new EventPlaceOfferDto(o)).ToList();
+        PurchaseLink = @event.PurchaseLink;
+        Image = @event.Image;
+        Attendants = eventAttendanceRates[@event.Id];
+        UserAttends = userAttendingEvents.Contains(@event.Id);
+    }
     
+    public int Id { get; set; }
+    public int Attendants { get; set; }
+    public bool UserAttends { get; set; }
     public string Name { get; set; }
     public string? Description { get; set; }
     public DateTime Time { get; set; }

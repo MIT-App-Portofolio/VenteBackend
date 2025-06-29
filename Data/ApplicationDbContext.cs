@@ -14,6 +14,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
     public DbSet<LocationInfo> Locations { get; set; }
     public DbSet<EventPlace> Places { get; set; }
+    public DbSet<EventPlaceEvent> EventPlaceEvents { get; set; }
     public DbSet<EventGroup> Groups { get; set; }
     public DbSet<Report> Reports { get; set; }
     
@@ -60,7 +61,20 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 d => JsonSerializer.Deserialize<Dictionary<string, List<string>>>(
                     JsonSerializer.Serialize(d, (JsonSerializerOptions?)null),
                     (JsonSerializerOptions?)null)));
-            ;
+        
+        builder.Entity<ExitInstance>()
+            .Property(e => e.AttendingEvents)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<Dictionary<string, List<int>>>(v, (JsonSerializerOptions?)null)
+            )
+            .Metadata.SetValueComparer(new ValueComparer<Dictionary<string, List<int>>>(
+                (d1, d2) => JsonSerializer.Serialize(d1, (JsonSerializerOptions?)null) ==
+                            JsonSerializer.Serialize(d2, (JsonSerializerOptions?)null),
+                d => d == null ? 0 : JsonSerializer.Serialize(d, (JsonSerializerOptions?)null).GetHashCode(),
+                d => JsonSerializer.Deserialize<Dictionary<string, List<int>>>(
+                    JsonSerializer.Serialize(d, (JsonSerializerOptions?)null),
+                    (JsonSerializerOptions?)null)));
             
         builder.Entity<ApplicationUser>()
             .HasMany(u => u.Notifications)

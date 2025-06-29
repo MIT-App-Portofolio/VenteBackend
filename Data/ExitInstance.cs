@@ -26,4 +26,8 @@ public class ExitInstance
     
     [Column(TypeName = "jsonb")] 
     public required Dictionary<string, List<string>> Likes { get; set; }
+    
+    
+    [Column(TypeName = "jsonb")] 
+    public required Dictionary<string, List<int>> AttendingEvents { get; set; }
 }

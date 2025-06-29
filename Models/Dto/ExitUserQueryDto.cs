@@ -20,6 +20,8 @@ public class ExitUserQueryDto
     public bool UserLiked { get; set; }
     public bool Verified { get; set; }
     
+    public List<ExitUserAttendingEventDto> AttendingEvents { get; set; }
+    
     public int ExitId { get; set; }
 }
 
@@ -27,4 +29,11 @@ public class ExitUserFriendDto
 {
     public string DisplayName { get; set; }
     public string PfpUrl { get; set; }
+}
+
+public class ExitUserAttendingEventDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string ImageUrl { get; set; }
 }
