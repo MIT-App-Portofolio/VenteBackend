@@ -325,7 +325,7 @@ public static class ExitEndpoints
                 .ToListAsync();
 
             var exitRates = feed.GetAttendancesPerEvent(exit.LocationId);
-            var userAttendances = exit.AttendingEvents[user.UserName];
+            var userAttendances = exit.AttendingEvents.TryGetValue(user.UserName, out var e) ? e : [];
 
             var ret = places.Select(place =>
             {
