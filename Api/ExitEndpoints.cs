@@ -404,6 +404,18 @@ public static class ExitEndpoints
 
             return Results.Ok(feeds.GetEventAttendingUsers(user.UserName, exit.LocationId, eventId));
         });
+        
+        app.MapGet("/api/exit/show_event_attendance_message", [JwtAuthorize] async (HttpContext context, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, ExitFeeds feeds, int exitId) =>
+        {
+            var user = await userManager.Users.FirstOrDefaultAsync(u => u.UserName == context.User.Identity.Name);
+            if (user == null) return Results.Unauthorized();
+            
+            var exit = await dbContext.Exits.FirstOrDefaultAsync(e => e.Id == exitId && (e.Members.Contains(user.UserName) || e.Leader == user.UserName));
+            if (exit == null) return Results.BadRequest();
+
+            return Results.Ok(!exit.AttendingEvents.ContainsKey(user.UserName) ||
+                              exit.AttendingEvents[user.UserName].Count == 0);
+        });
     }
 
     private static async Task<bool> DatesOverlap(ApplicationDbContext dbContext, List<DateTimeOffset> dates,
