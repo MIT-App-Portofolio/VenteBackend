@@ -217,7 +217,7 @@ public class ExitFeeds(IServiceProvider serviceProvider)
                     {
                         Id = e.Id,
                         Name = e.Name,
-                        ImageUrl = eventPictureService.GetEventPictureUrl(e.EventPlace, e.Id)
+                        ImageUrl = eventPictureService.GetEventPictureUrl(e.EventPlace, e.EventPlace.Events.FindIndex(e1 => e1.Id == e.Id))
                     })
                     .ToList()
             });
