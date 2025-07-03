@@ -213,7 +213,7 @@ public class ExitFeeds(IServiceProvider serviceProvider)
                 Events = attendingEvents
                     .Where(k => allEvents.ContainsKey(k))
                     .Select<int, EventPlaceEvent>(k => allEvents[k])
-                    .Where(e => e.Time >= DateTimeOffset.UtcNow)
+                    .Where(e => e.Time >= DateTimeOffset.UtcNow.AddHours(-24))
                     .Select(e => new ExitUserAttendingEventDto
                     {
                         Id = e.Id,
