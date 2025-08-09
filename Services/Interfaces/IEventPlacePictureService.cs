@@ -10,6 +10,9 @@ public interface IEventPlacePictureService
     
     public Task UploadAsync(EventPlace place, Stream picture, string filename);
     public Task UploadEventPictureAsync(EventPlace place, int offerId, Stream picture, string filename);
+
+    public Task MoveEventPictureAsync(EventPlace place, string filename, string oldName, DateTimeOffset oldTime,
+        string newName, DateTimeOffset newTime);
     
     public Task DeleteAsync(EventPlace place, string filename);
     public Task DeleteEventPictureAsync(EventPlace place, int eventId);

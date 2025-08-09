@@ -4,10 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
+using Server.Services.Interfaces;
 
 namespace Server.Pages.Affiliate;
 
-public class EditEvent(UserManager<ApplicationUser> userManager) : PageModel
+public class EditEvent(UserManager<ApplicationUser> userManager, IEventPlacePictureService pictureService) : PageModel
 {
     [FromRoute] public int EventId { get; set; }
     
@@ -63,6 +64,9 @@ public class EditEvent(UserManager<ApplicationUser> userManager) : PageModel
         var @event = user.EventPlace.Events.FirstOrDefault(e => e.Id == EventId);
         
         if (@event == null) return NotFound();
+
+        if ((@event.Name != Event.Name || @event.Time != Event.Time) && !string.IsNullOrEmpty(@event.Image))
+            await pictureService.MoveEventPictureAsync(user.EventPlace, @event.Image, @event.Name, @event.Time, Event.Name, Event.Time);
 
         @event.Name = Event.Name;
         @event.Description = Event.Description;

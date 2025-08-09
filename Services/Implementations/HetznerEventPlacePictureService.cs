@@ -59,6 +59,19 @@ public class HetznerEventPlacePictureService(IConfiguration configuration, IHttp
         var path = NormalizeUrl($"places-pictures/{place.Name}/{@event.Name}_{@event.Time.ToUnixTimeSeconds().ToString()}/{@event.Image}");
         return GetClient().DeleteAsync(new Uri(_pfpBucketUrl, path));
     }
+    
+    public async Task MoveEventPictureAsync(EventPlace place, string filename, string oldName, DateTimeOffset oldTime, string newName, DateTimeOffset newTime)
+    {
+        var oldPath = NormalizeUrl($"places-pictures/{place.Name}/{oldName}_{oldTime.ToUnixTimeSeconds()}/{filename}");
+        var newPath = NormalizeUrl($"places-pictures/{place.Name}/{newName}_{newTime.ToUnixTimeSeconds()}/{filename}");
+
+        var client = GetClient();
+        var copyReq = new HttpRequestMessage(HttpMethod.Put, new Uri(_pfpBucketUrl, newPath));
+        copyReq.Headers.Add("x-amz-copy-source", $"{_pfpBucketUrl.Host}/{oldPath}");
+        await client.SendAsync(copyReq);
+
+        await client.DeleteAsync(new Uri(_pfpBucketUrl, oldPath));
+    }
 
     private string NormalizeUrl(string url)
     {
